@@ -1,3 +1,4 @@
+#[macro_use]
 pub use bevy_butler_proc_macro::*;
 use bevy::prelude::*;
 

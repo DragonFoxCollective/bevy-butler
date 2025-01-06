@@ -39,7 +39,7 @@ pub fn system(attr: TokenStream, item: TokenStream) -> TokenStream {
             app.add_systems(#schedule, #func_name);
         }
 
-        inventory::submit! {
+        bevy_butler::__internal::inventory::submit! {
             ButlerSystem::<#plugin> {
                 func: #butler_func_name,
                 marker: std::marker::PhantomData,
@@ -61,7 +61,7 @@ pub fn auto_plugin(attr: TokenStream, item: TokenStream) -> TokenStream {
 
         impl Plugin for #plugin {
             fn build(&self, app: &mut bevy::app::App) {
-                for butler_sys in inventory::iter::<ButlerSystem<#plugin>> {
+                for butler_sys in bevy_butler::__internal::inventory::iter::<bevy_butler::ButlerSystem<#plugin>> {
                     (butler_sys.func)(app);
                 }
             }

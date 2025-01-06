@@ -3,10 +3,6 @@ name = "bevy-butler"
 version = "0.1.0"
 edition = "2021"
 
-[lib]
-name = "lib"
-path = "src/lib.rs"
-
 [dependencies]
 bevy = { version = "0.15.1", default-features = false }
 bevy-butler-proc-macro = { path = "./bevy-butler-proc-macro" }
