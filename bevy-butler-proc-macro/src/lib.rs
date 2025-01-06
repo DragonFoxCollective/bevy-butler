@@ -40,7 +40,7 @@ pub fn system(attr: TokenStream, item: TokenStream) -> TokenStream {
         }
 
         bevy_butler::__internal::inventory::submit! {
-            ButlerSystem::<#plugin> {
+            bevy_butler::ButlerSystem::<#plugin> {
                 func: #butler_func_name,
                 marker: std::marker::PhantomData,
             }
