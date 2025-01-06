@@ -1,0 +1,13 @@
+[package]
+name = "bevy-butler-proc-macro"
+version = "0.1.0"
+edition = "2024"
+
+[lib]
+proc-macro = true
+
+[dependencies]
+inventory = "0.3.16"
+quote = "1.0.38"
+syn = "2.0.95"
+bevy-butler-core = { path = "../bevy-butler-core" }
