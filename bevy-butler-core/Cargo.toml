@@ -2,6 +2,7 @@
 name = "bevy-butler-core"
 version = "0.1.0"
 edition = "2024"
+description = "Internal type definitions for bevy-butler"
 license = "MIT OR Apache-2.0"
 repository = "https://github.com/TGRCdev/bevy-butler"
 
