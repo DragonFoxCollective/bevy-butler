@@ -1,6 +1,6 @@
 use proc_macro::TokenStream;
 use quote::{format_ident, quote, ToTokens};
-use syn::{parse::{Parse, ParseStream}, parse_macro_input, Expr, ExprPath, Ident, ItemFn, ItemStruct, Meta, Path, Token};
+use syn::{parse::{Parse, ParseStream}, parse_macro_input, Expr, ExprPath, ItemFn, ItemStruct, Meta, Path, Token};
 use proc_macro_crate::{crate_name, FoundCrate};
 
 struct SystemArgs {
@@ -129,7 +129,6 @@ pub fn auto_plugin(_attr: TokenStream, item: TokenStream) -> TokenStream {
 
     let bevy_app = find_bevy_crate("app", "bevy_app");
     let bevy_butler: Path = find_bevy_butler();
-    eprintln!("PLUGIN PATH: {}", bevy_butler.to_token_stream());
 
     quote! {
         #input
