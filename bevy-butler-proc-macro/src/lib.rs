@@ -55,7 +55,6 @@ impl Parse for SystemArgs {
     }
 }
 
-/// Mark a system to be included in a Schedule by a Plugin.
 #[proc_macro_attribute]
 pub fn system(attr: TokenStream, item: TokenStream) -> TokenStream {
     let input = parse_macro_input!(item as ItemFn);
@@ -78,8 +77,8 @@ pub fn system(attr: TokenStream, item: TokenStream) -> TokenStream {
             app.add_systems(#schedule, #transformed_func);
         }
 
-        ::bevy_butler::inventory::submit! {
-            ::bevy_butler::ButlerFunc::new::<#plugin>(#butler_func_name)
+        ::bevy_butler::__internal::inventory::submit! {
+            ::bevy_butler::__internal::ButlerFunc::new::<#plugin>(#butler_func_name)
         }
     }.into()
 }
@@ -93,9 +92,9 @@ pub fn auto_plugin(_attr: TokenStream, item: TokenStream) -> TokenStream {
     quote! {
         #input
 
-        impl Plugin for #plugin {
-            fn build(&self, app: &mut bevy::app::App) {
-                let funcs = app.world().get_resource_ref::<::bevy_butler::ButlerRegistry>()
+        impl ::bevy::prelude::Plugin for #plugin {
+            fn build(&self, app: &mut ::bevy::app::App) {
+                let funcs = app.world().get_resource_ref::<::bevy_butler::__internal::ButlerRegistry>()
                     .unwrap_or_else(|| panic!("Tried to build an #[auto_plugin] without adding BevyButlerPlugin first!"))
                     .get_funcs::<#plugin>();
 
@@ -109,7 +108,7 @@ pub fn auto_plugin(_attr: TokenStream, item: TokenStream) -> TokenStream {
                     }
                 }
                 
-                ::bevy_butler::_butler_debug(&format!("{} added {sys_count} systems", stringify!(#plugin)));
+                ::bevy_butler::__internal::_butler_debug(&format!("{} added {sys_count} systems", stringify!(#plugin)));
             }
         }
     }.into()
@@ -135,8 +134,8 @@ pub fn configure_plugin(attr: TokenStream, item: TokenStream) -> TokenStream {
     quote! {
         #input
 
-        ::bevy_butler::inventory::submit! {
-            ::bevy_butler::ButlerFunc::new::<#plugin>(#func_name)
+        ::bevy_butler::__internal::inventory::submit! {
+            ::bevy_butler::__internal::ButlerFunc::new::<#plugin>(#func_name)
         }
     }.into()
 }
