@@ -17,8 +17,14 @@
 //! #[derive(Resource)]
 //! pub struct Hello(pub String);
 //! 
-//! #[butler_plugin]
 //! pub struct MyPlugin;
+//! 
+//! #[butler_plugin]
+//! impl Plugin for MyPlugin {
+//!     fn build(&self, app: &mut App) {
+//!         app.insert_resource(Hello("MyPlugin".to_string()));
+//!     }
+//! }
 //! 
 //! #[system(schedule = Update, plugin = MyPlugin)]
 //! fn hello_plugin(name: Res<Hello>)
@@ -30,11 +36,6 @@
 //! fn goodbye_plugin(name: Res<Hello>)
 //! {
 //!     info!("Goodbye, {}!", name.0);
-//! }
-//! 
-//! #[configure_plugin(MyPlugin)]
-//! fn configure(plugin: &MyPlugin, app: &mut App) {
-//!     app.insert_resource(Hello("MyPlugin".to_string()));
 //! }
 //! 
 //! fn main() {
