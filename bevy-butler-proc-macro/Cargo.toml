@@ -2,6 +2,8 @@
 name = "bevy-butler-proc-macro"
 version = "0.1.0"
 edition = "2024"
+license = "MIT OR Apache-2.0"
+repository = "https://github.com/TGRCdev/bevy-butler"
 
 [lib]
 proc-macro = true
@@ -10,4 +12,4 @@ proc-macro = true
 inventory = "0.3.16"
 quote = "1.0.38"
 syn = "2.0.95"
-bevy-butler-core = { path = "../bevy-butler-core" }
+bevy-butler-core = { path = "../bevy-butler-core", version = "0.1.0" }
