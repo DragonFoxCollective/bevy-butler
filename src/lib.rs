@@ -91,15 +91,29 @@ pub use bevy_butler_core::__internal;
 /// ```
 pub use bevy_butler_proc_macro::system;
 
-/// Implements [`Plugin`](bevy::prelude::Plugin) on the struct to register any [`#[system]`](system) functons assigned to it.
+/// Macro for defining a Plugin that automatically registers [`#[system]`](system).
 /// 
-/// If you want to perform additional setup in the [`build`](bevy::prelude::Plugin::build) function, you
-/// can define an additional configuration function with [`configure_plugin`].
+/// You can either mark a struct to generate a Plugin implementation, or
+/// mark a Plugin implementation to include code for handling [`#[system]`](system) invocations.
 /// 
 /// ```
 /// # use bevy_butler_proc_macro::*;
+/// # use bevy::prelude::*;
+/// # #[derive(Resource)]
+/// # struct Hello(pub String);
+/// // Generates a plugin impl for a plugin struct
 /// #[butler_plugin]
-/// pub struct MyPlugin;
+/// pub struct PluginOne;
+/// 
+/// pub struct PluginTwo;
+/// 
+/// // Inserts itself into a user-defined plugin impl
+/// #[butler_plugin]
+/// impl Plugin for PluginTwo {
+///     fn build(&self, app: &mut App) {
+///         app.insert_resource(Hello("World".to_string()));
+///     }
+/// }
 /// ```
 pub use bevy_butler_proc_macro::butler_plugin;
 
