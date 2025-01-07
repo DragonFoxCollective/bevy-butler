@@ -1,25 +1,26 @@
 use bevy::MinimalPlugins;
-use bevy_app::{App, AppExit, Startup, Update};
+use bevy_app::{App, AppExit, Plugin, Startup, Update};
 use bevy_ecs::{event::EventWriter, schedule::IntoSystemConfigs, system::{Res, ResMut, Resource}};
-use bevy_butler::{auto_plugin, configure_plugin, system, BevyButlerPlugin};
+use bevy_butler::*;
 
 #[test]
 pub fn test() {
     #[derive(Resource)]
     pub struct Marker(pub bool);
 
-    #[auto_plugin]
     #[derive(Debug)]
     pub struct TestPlugin;
 
-    #[auto_plugin]
+    #[butler_plugin]
+    impl Plugin for TestPlugin {
+        fn build(&self, app: &mut App) {
+            app.insert_resource(Marker(false));
+        }
+    }
+
+    #[butler_plugin]
     #[derive(Debug)]
     pub struct OtherTestPlugin;
-
-    #[configure_plugin(TestPlugin)]
-    fn configure(plugin: &TestPlugin, app: &mut App) {
-        app.insert_resource(Marker(false));
-    }
 
     #[system(schedule = Startup, plugin = TestPlugin, transforms = run_if(|| true))]
     fn test_system(

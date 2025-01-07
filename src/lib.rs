@@ -17,7 +17,7 @@
 //! #[derive(Resource)]
 //! pub struct Hello(pub String);
 //! 
-//! #[auto_plugin]
+//! #[butler_plugin]
 //! pub struct MyPlugin;
 //! 
 //! #[system(schedule = Update, plugin = MyPlugin)]
@@ -48,14 +48,14 @@
 pub use bevy_butler_core::__internal;
 
 /// Include a system in a given [`Schedule`](bevy::prelude::Schedule). Optionally, define an
-/// [`#[auto_plugin]`][auto_plugin] to be registered with.
+/// [`#[butler_plugin]`][butler_plugin] to be registered with.
 /// 
 /// # Attributes
 /// ## `schedule` (Required)
 /// Defines the [`Schedule`](bevy::prelude::Schedule) that the system should run in.
 /// 
 /// ## `plugin`
-/// Defines a struct marked with [`#[auto_plugin]`](auto_plugin) that the
+/// Defines a struct marked with [`#[butler_plugin]`](butler_plugin) that the
 /// system should be registered with. If not defined, the system will be registered
 /// with [`BevyButlerPlugin`].
 /// 
@@ -67,7 +67,7 @@ pub use bevy_butler_core::__internal;
 /// # use bevy::prelude::*;
 /// # use bevy_butler::*;
 /// #
-/// # #[auto_plugin]
+/// # #[butler_plugin]
 /// # pub struct MyPlugin;
 /// #
 /// #[system(schedule = Startup)]
@@ -97,12 +97,12 @@ pub use bevy_butler_proc_macro::system;
 /// 
 /// ```
 /// # use bevy_butler_proc_macro::*;
-/// #[auto_plugin]
+/// #[butler_plugin]
 /// pub struct MyPlugin;
 /// ```
-pub use bevy_butler_proc_macro::auto_plugin;
+pub use bevy_butler_proc_macro::butler_plugin;
 
-/// Adds a configuration function to run within an [`#[auto_plugin]`](auto_plugin)'s [`build`](bevy::prelude::Plugin::build) function.
+/// Adds a configuration function to run within an [`#[butler_plugin]`](butler_plugin)'s [`build`](bevy::prelude::Plugin::build) function.
 /// 
 /// ```
 /// # use bevy_butler_proc_macro::*;
@@ -111,7 +111,7 @@ pub use bevy_butler_proc_macro::auto_plugin;
 /// #[derive(Resource)]
 /// pub struct Hello(String);
 /// 
-/// #[auto_plugin]
+/// #[butler_plugin]
 /// pub struct MyPlugin;
 /// 
 /// #[configure_plugin(MyPlugin)]
@@ -123,6 +123,6 @@ pub use bevy_butler_proc_macro::auto_plugin;
 pub use bevy_butler_proc_macro::configure_plugin;
 
 /// [`Plugin`](bevy::prelude::Plugin) that enables the usage of [`#[system]`](system)
-/// and [`#[auto_plugin]`](auto_plugin). It should be added to the [`App`](bevy::app::App) before any
-/// `#[auto_plugin]` plugins are.
+/// and [`#[butler_plugin]`](butler_plugin). It should be added to the [`App`](bevy::app::App) before any
+/// `#[butler_plugin]` plugins are.
 pub use bevy_butler_core::BevyButlerPlugin;

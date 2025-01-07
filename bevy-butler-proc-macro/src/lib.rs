@@ -1,7 +1,28 @@
 use proc_macro::TokenStream;
 use quote::{format_ident, quote, ToTokens};
-use syn::{parse::{Parse, ParseStream}, parse_macro_input, Expr, ExprPath, ItemFn, ItemStruct, Meta, Path, Token};
+use syn::{parse::{Parse, ParseStream}, parse_macro_input, Error, Expr, ExprPath, Item, ItemFn, Meta, Path, Token};
 use proc_macro_crate::{crate_name, FoundCrate};
+
+mod butler_plugin_impl;
+mod utils;
+
+#[proc_macro_attribute]
+pub fn butler_plugin(args: TokenStream, item: TokenStream) -> TokenStream
+{
+    let parsed: Item = parse_macro_input!(item as Item);
+
+    match parsed {
+        Item::Impl(item_impl) => butler_plugin_impl::butler_plugin_impl(args, item_impl),
+        Item::Struct(item_struct) => butler_plugin_impl::butler_plugin_struct(args, item_struct),
+        
+        _ => Error::new_spanned(
+            parsed,
+            "#[butler_plugin] can only be invoked on structs or `impl Plugin` blocks."
+        )
+            .to_compile_error()
+            .into()
+    }
+}
 
 struct SystemArgs {
     schedule: ExprPath,
@@ -119,40 +140,6 @@ fn find_bevy_butler() -> syn::Path {
             }
         }
     }).expect("Failed to find bevy_butler");
-}
-
-#[proc_macro_attribute]
-pub fn auto_plugin(_attr: TokenStream, item: TokenStream) -> TokenStream {
-    let input = parse_macro_input!(item as ItemStruct);
-
-    let plugin = &input.ident;
-
-    let bevy_app = find_bevy_crate("app", "bevy_app");
-    let bevy_butler: Path = find_bevy_butler();
-
-    quote! {
-        #input
-
-        impl #bevy_app::Plugin for #plugin {
-            fn build(&self, app: &mut #bevy_app::App) {
-                let funcs = app.world().get_resource_ref::<#bevy_butler::__internal::ButlerRegistry>()
-                    .unwrap_or_else(|| panic!("Tried to build an #[auto_plugin] without adding BevyButlerPlugin first!"))
-                    .get_funcs::<#plugin>();
-
-                let mut sys_count = 0;
-                if let Some(funcs) = funcs {
-                    for butler_func in &(*funcs) {
-                        if let Some(sys) = butler_func.try_get_func::<#plugin>() {
-                            (sys)(self, app);
-                            sys_count += 1;
-                        }
-                    }
-                }
-                
-                #bevy_butler::__internal::_butler_debug(&format!("{} added {sys_count} systems", stringify!(#plugin)));
-            }
-        }
-    }.into()
 }
 
 struct ConfigurePlugin {
