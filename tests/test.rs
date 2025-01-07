@@ -1,5 +1,5 @@
 use bevy::prelude::*;
-use bevy_butler::{auto_plugin, configure_plugin, system};
+use bevy_butler::{auto_plugin, configure_plugin, system, BevyButlerPlugin};
 
 #[test]
 pub fn test() {
@@ -19,19 +19,23 @@ pub fn test() {
         app.insert_resource(Marker(false));
     }
 
-    #[system(Startup, TestPlugin, run_if(|| true))]
-    pub fn test_system(
+    #[system(schedule = Startup, plugin = TestPlugin, transforms = run_if(|| true))]
+    fn test_system(
         mut marker: ResMut<Marker>,
     ) {
         println!("HELLO, WORLD!!!!");
         marker.0 = true;
     }
 
+    #[system(schedule = Update)]
+    fn assert_sys(marker: Res<Marker>, mut exit: EventWriter<AppExit>) {
+        assert!(marker.0);
+        exit.send(AppExit::Success);
+    }
+
     App::new()
+        .add_plugins(MinimalPlugins)
+        .add_plugins(BevyButlerPlugin)
         .add_plugins((TestPlugin, OtherTestPlugin))
-        .add_systems(PostStartup, |marker: Res<Marker>| {
-            println!("Testing marker");
-            assert!(marker.0);
-        })
         .run();
 }

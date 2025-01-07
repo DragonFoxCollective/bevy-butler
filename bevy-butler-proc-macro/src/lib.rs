@@ -1,32 +1,56 @@
 use proc_macro::TokenStream;
-use quote::{format_ident, quote};
-use syn::{parse::{Parse, ParseStream}, parse_macro_input, Expr, ItemFn, ItemStruct, Path, Token};
+use quote::{format_ident, quote, ToTokens};
+use syn::{parse::{Parse, ParseStream}, parse_macro_input, Expr, ExprPath, ItemFn, ItemStruct, Meta, Path, Token};
 
 struct SystemArgs {
-    schedule: Path,
-    plugin: Path,
+    schedule: ExprPath,
+    plugin: Option<ExprPath>,
     transforms: Option<Expr>,
 }
 
 impl Parse for SystemArgs {
     fn parse(input: ParseStream) -> syn::Result<Self> {
-        let schedule: Path = input.parse()?;
-        input.parse::<Token![,]>()?;
-        let plugin: Path = input.parse()?;
-        
-        let transforms: Option<Expr> = if input.peek(Token![,]) {
-            input.parse::<Token![,]>()?;
-            eprintln!("NEXT THING IS COMMA");
-            Some(input.parse()?)
-        }
-        else {
-            None
-        };
+        let mut schedule: Option<ExprPath> = None;
+        let mut plugin: Option<ExprPath> = None;
+        let mut transforms: Option<Expr> = None;
 
+        loop {
+            let meta = input.parse::<Meta>()?;
+            let name_value = meta.require_name_value()?;
+            match name_value.path.get_ident().ok_or(input.error("Expected a name-value identifier"))? {
+                ident if ident == "schedule" => {
+                    match &name_value.value {
+                        Expr::Path(path) => schedule = Some(path.clone()),
+                        _ => return Err(input.error("Expected a Schedule")),
+                    }
+                },
+                ident if ident == "plugin" => {
+                    match &name_value.value {
+                        Expr::Path(path) => plugin = Some(path.clone()),
+                        _ => return Err(input.error("Expected a Plugin")),
+                    }
+                },
+                ident if ident == "transforms" => {
+                    transforms = Some(name_value.value.clone());
+                }
+                _ => {
+                    return Err(input.error(format!("Unknown attribute \"{:?}\"", name_value.path)));
+                }
+            }
+
+            if input.is_empty() {
+                break;
+            }
+            else {
+                input.parse::<Token![,]>()?;
+            }
+        }
+
+        let schedule = schedule.ok_or(input.error("#[system] requires a \"schedule\""))?;
         Ok(Self {
             schedule,
             plugin,
-            transforms: None
+            transforms
         })
     }
 }
@@ -38,17 +62,20 @@ pub fn system(attr: TokenStream, item: TokenStream) -> TokenStream {
 
     let args = parse_macro_input!(attr as SystemArgs);
     let schedule = args.schedule;
-    let plugin = args.plugin;
-    let transforms = args.transforms.map(|transforms| quote! { .#transforms });
-
+    let default_plugin = syn::parse_str("::bevy_butler::BevyButlerPlugin").unwrap();
+    let plugin = args.plugin.unwrap_or(default_plugin);
     let func_name = input.sig.ident.clone();
+    let transformed_func = args.transforms
+        .map(|transforms| quote! { #func_name.#transforms})
+        .unwrap_or_else(|| func_name.clone().into_token_stream());
+
     let butler_func_name = format_ident!("_butler_{}", func_name);
 
     quote! {
         #input
 
         fn #butler_func_name (plugin: &#plugin, app: &mut bevy::prelude::App) {
-            app.add_systems(#schedule, #func_name #transforms);
+            app.add_systems(#schedule, #transformed_func);
         }
 
         ::bevy_butler::inventory::submit! {
@@ -68,13 +95,21 @@ pub fn auto_plugin(_attr: TokenStream, item: TokenStream) -> TokenStream {
 
         impl Plugin for #plugin {
             fn build(&self, app: &mut bevy::app::App) {
-                eprintln!("Building {}", stringify!(#plugin));
-                for butler_func in ::bevy_butler::inventory::iter::<bevy_butler::ButlerFunc> {
-                    if let Some(sys) = butler_func.try_get_func::<#plugin>() {
-                        eprintln!("Adding func {:?}", &sys);
-                        (sys)(self, app);
+                let funcs = app.world().get_resource_ref::<::bevy_butler::ButlerRegistry>()
+                    .unwrap_or_else(|| panic!("Tried to build an #[auto_plugin] without adding BevyButlerPlugin first!"))
+                    .get_funcs::<#plugin>();
+
+                let mut sys_count = 0;
+                if let Some(funcs) = funcs {
+                    for butler_func in &(*funcs) {
+                        if let Some(sys) = butler_func.try_get_func::<#plugin>() {
+                            (sys)(self, app);
+                            sys_count += 1;
+                        }
                     }
                 }
+                
+                ::bevy_butler::_butler_debug(&format!("{} added {sys_count} systems", stringify!(#plugin)));
             }
         }
     }.into()
