@@ -3,8 +3,8 @@
 A crate for making Bevy systems more self-documenting.
 
 ![Crates.io License](https://img.shields.io/crates/l/bevy-butler)
-![Crates.io Version](https://img.shields.io/crates/v/bevy-butler)
-![docs.rs](https://img.shields.io/docsrs/bevy-butler)
+[![Crates.io Version](https://img.shields.io/crates/v/bevy-butler)](https://crates.io/crates/bevy-butler)
+[![docs.rs](https://img.shields.io/docsrs/bevy-butler)](https://docs.rs/bevy-butler/latest/bevy_butler/)
 
 ```rust
 use bevy::prelude::*;
