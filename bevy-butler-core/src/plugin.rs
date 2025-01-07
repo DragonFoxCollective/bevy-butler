@@ -1,5 +1,6 @@
-use bevy::prelude::*;
-use bevy::utils::HashMap;
+use bevy_app::{Plugin, App};
+use bevy_utils::HashMap;
+use bevy_log::info;
 use std::any::TypeId;
 use crate::__internal::*;
 

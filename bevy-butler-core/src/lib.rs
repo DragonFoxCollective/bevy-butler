@@ -5,8 +5,10 @@ pub use plugin::*;
 pub mod __internal {
     use std::any::TypeId;
     use std::sync::Arc;
-    use bevy::utils::HashMap;
-    use bevy::prelude::*;
+    use bevy_utils::HashMap;
+    use bevy_ecs::system::Resource;
+    use bevy_app::App;
+    use bevy_log::debug;
 
     pub use inventory;
 

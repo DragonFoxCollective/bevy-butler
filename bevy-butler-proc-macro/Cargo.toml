@@ -12,5 +12,6 @@ proc-macro = true
 [dependencies]
 inventory = "0.3.16"
 quote = "1.0.38"
-syn = "2.0.95"
-bevy-butler-core = { path = "../bevy-butler-core", version = "0.1.0" }
+syn = { version = "2.0.95", features = ["full"] }
+proc-macro-crate = "3.2.0"
+proc-macro2 = "1.0.92"

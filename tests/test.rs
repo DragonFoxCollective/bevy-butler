@@ -1,4 +1,6 @@
-use bevy::prelude::*;
+use bevy::MinimalPlugins;
+use bevy_app::{App, AppExit, Startup, Update};
+use bevy_ecs::{event::EventWriter, schedule::IntoSystemConfigs, system::{Res, ResMut, Resource}};
 use bevy_butler::{auto_plugin, configure_plugin, system, BevyButlerPlugin};
 
 #[test]
