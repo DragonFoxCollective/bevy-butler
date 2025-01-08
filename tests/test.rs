@@ -22,7 +22,7 @@ pub fn test() {
     #[derive(Debug)]
     pub struct OtherTestPlugin;
 
-    #[system(schedule = Startup, plugin = TestPlugin, transforms = run_if(|| true))]
+    #[system(schedule = Startup, plugin = TestPlugin, run_if = || true)]
     fn test_system(
         mut marker: ResMut<Marker>,
     ) {
@@ -30,7 +30,7 @@ pub fn test() {
         marker.0 = true;
     }
 
-    #[system(schedule = Update)]
+    #[system(schedule = Update, after = test_system, run_if = || true)]
     fn assert_sys(marker: Res<Marker>, mut exit: EventWriter<AppExit>) {
         assert!(marker.0);
         exit.send(AppExit::Success);

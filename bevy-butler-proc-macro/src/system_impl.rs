@@ -9,6 +9,7 @@ use proc_macro::TokenStream;
 use proc_macro2::Span;
 use quote::{quote, ToTokens};
 use syn::{parse::{Parse, ParseStream}, parse_macro_input, Error, Expr, ExprCall, ExprPath, Ident, ItemFn, Meta, Token};
+use itertools::Itertools;
 
 use crate::utils::get_crate;
 
@@ -59,8 +60,10 @@ impl Parse for SystemArgs {
                 },
                 ident => {
                     // Any other attributes, assume they're transformers for the system
+                    let transform_str = format!("{}({})", ident, name_value.value.to_token_stream().to_string());
+                    let call: ExprCall = syn::parse_str(&transform_str)?;
                     args.transforms
-                        .push(syn::parse_str(&format!("{}({})", ident, name_value.value.to_token_stream().to_string()))?);
+                        .push(call);
                 }
             }
 
@@ -90,44 +93,50 @@ pub(crate) fn system_free_standing_impl(args: TokenStream, item: ItemFn) -> Toke
     }
     let bevy_butler = bevy_butler.unwrap();
 
+    let bevy_app = get_crate("bevy").map(|mut name| { name.segments.push(syn::parse_str("app").unwrap()); name })
+        .or_else(|_| get_crate("bevy_app"));
+    if let Err(e) = bevy_app {
+        return Error::new(Span::call_site(), e).into_compile_error().into();
+    }
+    let bevy_app = bevy_app.unwrap();
+
     let sys_name = &item.sig.ident;
-    let plugin: Expr = args.plugin.unwrap_or(syn::parse_str("()").unwrap());
+    let plugin: Expr = match args.plugin {
+        Some(plugin) => Expr::Path(plugin),
+        None => syn::parse2(quote!{ #bevy_butler::BevyButlerPlugin }).unwrap(),
+    };
 
     let call_site = proc_macro::Span::call_site();
     let source_file = call_site.source_file();
     let line = call_site.line();
 
-    let digest: syn::Result<Ident> = syn::parse_str(&sha256::digest(format!("{}{}{}", sys_name.to_string(), source_file.path().to_string_lossy(), line)));
-    if let Err(e) = digest {
-        return e.to_compile_error().into();
-    }
-    let digest = digest.unwrap();
-
-    let mut transform_str = String::new();
-    for transform in args.transforms.into_iter() {
-        transform_str += &format!(".{}", transform.to_token_stream().to_string());
-    }
-    let transforms: syn::Result<Expr> = syn::parse_str(&transform_str);
-    if let Err(e) = transforms {
-        return e.into_compile_error().into();
-    }
-    let transforms = transforms.unwrap();
-
+    let digest = sha256::digest(format!("{}{}{}", sys_name.to_string(), source_file.path().to_string_lossy(), line));
     let butler_func_name: syn::Result<Ident> = syn::parse_str(&format!("__butler_{}", digest));
     if let Err(e) = butler_func_name {
-        return e.into_compile_error().into();
+        return e.to_compile_error().into();
     }
     let butler_func_name = butler_func_name.unwrap();
+
+    let transform_str = args.transforms
+        .into_iter()
+        .map(|t| t.to_token_stream().to_string())
+        .join(".");
+    let transforms: Option<Expr> = if !transform_str.is_empty() {
+        Some(syn::parse_str(&transform_str).unwrap())
+    } else {
+        None
+    };
+    let period = if transforms.is_some() { Some(quote!(.))} else { None };
 
     quote! {
         #item
 
-        fn __butler_ #digest (app: &mut ) {
-            app.add_systems(#schedule, #sys_name.#transforms);
+        fn #butler_func_name (plugin: &#plugin, app: &mut #bevy_app::App) {
+            app.add_systems( #schedule, #sys_name #period #transforms );
         }
 
-        inventory::submit! {
-            #bevy_butler::__internal::ButlerFunc::new::<#plugin>(#)
-        }
+        #bevy_butler::__internal::inventory::submit! {
+            #bevy_butler::__internal::ButlerFunc::new::<#plugin>(#butler_func_name)
+        } 
     }.into()
 }

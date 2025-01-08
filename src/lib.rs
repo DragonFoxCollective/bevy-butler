@@ -32,7 +32,7 @@
 //!     info!("Hello, {}!", name.0);
 //! }
 //! 
-//! #[system(schedule = Update, plugin = MyPlugin, transforms = after(hello_plugin))]
+//! #[system(schedule = Update, plugin = MyPlugin, after = hello_plugin)]
 //! fn goodbye_plugin(name: Res<Hello>)
 //! {
 //!     info!("Goodbye, {}!", name.0);
@@ -77,7 +77,7 @@ pub use bevy_butler_core::__internal;
 ///     info!("Hello, world!");
 /// }
 /// 
-/// #[system(schedule = Startup, transforms = after(hello_world))]
+/// #[system(schedule = Startup, after = hello_world)]
 /// fn goodbye_world()
 /// {
 ///     info!("Goodbye, world!");

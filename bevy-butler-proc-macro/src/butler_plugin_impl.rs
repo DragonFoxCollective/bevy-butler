@@ -8,7 +8,7 @@
 use proc_macro::TokenStream;
 use proc_macro2::Span;
 use quote::{quote, ToTokens};
-use syn::{parse, Error, FnArg, Ident, ImplItem, ImplItemFn, ItemImpl, ItemStruct, Pat, Path, Type};
+use syn::{Error, FnArg, Ident, ImplItem, ImplItemFn, ItemImpl, ItemStruct, Pat, Path, Type};
 
 use crate::utils::get_crate;
 
