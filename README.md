@@ -34,7 +34,7 @@ fn hello_plugin(name: Res<Hello>)
     info!("Hello, {}!", name.0);
 }
 
-#[system(schedule = Update, plugin = MyPlugin, transforms = after(hello_plugin))]
+#[system(schedule = Update, plugin = MyPlugin, after = hello_plugin)]
 fn goodbye_plugin(name: Res<Hello>)
 {
     info!("Goodbye, {}!", name.0);
