@@ -1,6 +1,6 @@
 [package]
 name = "bevy-butler-proc-macro"
-version = "0.1.2"
+version = "0.2.0"
 edition = "2024"
 description = "Procedural macro definitions for bevy-butler"
 license = "MIT OR Apache-2.0"
@@ -17,3 +17,7 @@ proc-macro-crate = "3.2.0"
 proc-macro2 = "1.0.92"
 sha256 = { version = "1.5.0", default-features = false }
 itertools = { version = "0.14.0", default-features = false, features = ["use_std"] }
+
+[dev-dependencies]
+bevy = { version = "0.15.1", default-features = false }
+bevy-butler = { path = ".." }

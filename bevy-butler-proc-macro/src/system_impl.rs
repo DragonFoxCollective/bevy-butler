@@ -83,6 +83,24 @@ impl Parse for SystemArgs {
     }
 }
 
+/// Implementation for `#[system]` on free-standing functions
+/// 
+/// ```
+/// # use bevy_butler_proc_macro::*;
+/// # use bevy_butler::BevyButlerPlugin;
+/// # use bevy::prelude::*;
+/// # #[butler_plugin]
+/// # struct MyPlugin;
+/// #[system(schedule = Startup, plugin = MyPlugin, run_if = || true)]
+/// fn hello_world() {
+///     info!("Hello, world!")
+/// }
+/// #
+/// # fn main() {
+/// #   App::new().add_plugins((BevyButlerPlugin, MyPlugin)).run();
+/// # }
+/// #
+/// ```
 pub(crate) fn system_free_standing_impl(args: TokenStream, item: ItemFn) -> TokenStream {
     let args = parse_macro_input!(args as SystemArgs);
 

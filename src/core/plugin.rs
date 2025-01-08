@@ -4,6 +4,9 @@ use bevy_log::info;
 use std::any::TypeId;
 use crate::__internal::*;
 
+/// [`Plugin`] that enables the usage of [`#[system]`](crate::system)
+/// and [`#[butler_plugin]`](crate::butler_plugin). It should be added to the [`App`] before any
+/// `#[butler_plugin]` plugins are.
 pub struct BevyButlerPlugin;
 
 impl Plugin for BevyButlerPlugin {

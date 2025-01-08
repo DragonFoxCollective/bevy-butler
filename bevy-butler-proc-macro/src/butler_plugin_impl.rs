@@ -12,6 +12,7 @@ use syn::{Error, FnArg, Ident, ImplItem, ImplItemFn, ItemImpl, ItemStruct, Pat, 
 
 use crate::utils::get_crate;
 
+/// Butler initialization function injected at the start of a Plugin's `build` function
 fn butler_plugin_block(app_ident: &Ident, bevy_butler: &Path, plugin: &Path) -> TokenStream {
     quote! {{
         let funcs = #app_ident.world().get_resource::<#bevy_butler::__internal::ButlerRegistry>()
@@ -32,8 +33,7 @@ fn butler_plugin_block(app_ident: &Ident, bevy_butler: &Path, plugin: &Path) -> 
     }}.into()
 }
 
-/// Modify an existing `Plugin::build` function and insert our
-/// prep code either at the top or the bottom
+/// Modify an existing `Plugin::build` function and insert our hook at the start
 fn butler_plugin_modify_build(plugin: &Path, bevy_butler: &Path, item_func: &mut ImplItemFn) -> Result<(), TokenStream> {
     let app_ident = match &item_func.sig.inputs[1] {
         FnArg::Typed(pat) => match &(*pat.pat) {
@@ -49,17 +49,25 @@ fn butler_plugin_modify_build(plugin: &Path, bevy_butler: &Path, item_func: &mut
     Ok(())
 }
 
-/// Implementation for impl-style butler-plugin invocations
+/// Implementation for impl-style #[butler-plugin] invocations
 /// 
-/// i.e.
-/// ```ignore
+/// ```
+/// # use bevy_butler_proc_macro::butler_plugin;
+/// # use bevy::prelude::*;
+/// # use bevy_butler::BevyButlerPlugin;
+/// # struct MyPlugin;
 /// #[butler_plugin]
-/// impl Plugin for TestPlugin {
-///     fn build(&self, &mut App)
+/// impl Plugin for MyPlugin {
+///     fn build(&self, app: &mut App)
 ///     {
 ///         // Some code
 ///     }
 /// }
+/// #
+/// # fn main() {
+/// #   App::new().add_plugins((BevyButlerPlugin, MyPlugin)).run();
+/// # }
+/// #
 /// ```
 pub(crate) fn butler_plugin_impl(_args: TokenStream, mut item_impl: ItemImpl) -> TokenStream {
     let bevy_butler: Path = match crate::utils::get_crate("bevy-butler").map_err(|e| {
@@ -119,6 +127,19 @@ pub(crate) fn butler_plugin_impl(_args: TokenStream, mut item_impl: ItemImpl) ->
     return item_impl.to_token_stream().into();
 }
 
+/// Implementation for struct-style #[butler-plugin] invocations
+/// 
+/// ```
+/// # use bevy_butler::BevyButlerPlugin;
+/// # use bevy_butler_proc_macro::butler_plugin;
+/// # use bevy::prelude::*;
+/// #[butler_plugin]
+/// struct MyPlugin;
+/// #
+/// # fn main() {
+/// #   App::new().add_plugins((BevyButlerPlugin, MyPlugin)).run();
+/// # }
+/// ```
 pub(crate) fn butler_plugin_struct(_args: TokenStream, item_struct: ItemStruct) -> TokenStream {
     let ident = &item_struct.ident;
 
