@@ -1,5 +1,3 @@
-#![feature(proc_macro_span)]
-
 use proc_macro::TokenStream;
 use syn::{parse_macro_input, Error, Item, ItemFn};
 
