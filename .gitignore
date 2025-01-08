@@ -1,3 +1,5 @@
+Cargo.lock
+
 /target
 bevy-butler-core/target
 bevy-butler-proc-macro/target

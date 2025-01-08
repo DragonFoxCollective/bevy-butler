@@ -1,7 +1,14 @@
+//! This file enables #[butler_plugin] to be used in two ways
+//! 
+//! 1. Attaching it to a struct definition will generate an `impl Plugin` for it
+//! 
+//! 2. Attaching it to an `impl Plugin` definition will add a hook at the beginning
+//!    of the `build` function, or create the `build` function if one isn't present.
+
 use proc_macro::TokenStream;
 use proc_macro2::Span;
 use quote::{quote, ToTokens};
-use syn::{parse, Error, FnArg, Ident, ImplItem, ImplItemFn, ItemImpl, ItemStruct, Meta, Pat, Path, PathSegment, Type};
+use syn::{parse, Error, FnArg, Ident, ImplItem, ImplItemFn, ItemImpl, ItemStruct, Pat, Path, Type};
 
 use crate::utils::get_crate;
 
@@ -115,12 +122,19 @@ pub(crate) fn butler_plugin_impl(_args: TokenStream, mut item_impl: ItemImpl) ->
 pub(crate) fn butler_plugin_struct(_args: TokenStream, item_struct: ItemStruct) -> TokenStream {
     let ident = &item_struct.ident;
 
-    let bevy_butler = get_crate("bevy-butler").unwrap();
+    let bevy_butler = get_crate("bevy-butler");
+    if let Err(e) = bevy_butler {
+        return Error::new(Span::call_site(), e).to_compile_error().into();
+    }
+    let bevy_butler = bevy_butler.unwrap();
 
     let bevy_app = get_crate("bevy")
         .map(|mut name| {name.segments.push(syn::parse_str("app").unwrap()); name})
-        .or_else(|_| get_crate("bevy_app"))
-        .expect("Failed to find bevy_app");
+        .or_else(|_| get_crate("bevy_app"));
+    if let Err(e) = bevy_app {
+        return Error::new(Span::call_site(), e).to_compile_error().into();
+    }
+    let bevy_app = bevy_app.unwrap();
 
     let butler_block: proc_macro2::TokenStream = butler_plugin_block(
         &syn::parse_str("app").unwrap(),
