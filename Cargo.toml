@@ -1,6 +1,6 @@
 [package]
 name = "bevy-butler"
-version = "0.1.1"
+version = "0.1.2"
 edition = "2021"
 categories = ["game-development", "rust-patterns"]
 description = "A crate for making Bevy systems more self-documenting"
@@ -11,13 +11,16 @@ license = "MIT OR Apache-2.0"
 
 [workspace]
 members = [
-    "bevy-butler-core",
     "bevy-butler-proc-macro",
 ]
 
 [dependencies]
-bevy-butler-proc-macro = { path = "./bevy-butler-proc-macro", version = "0.1.1" }
-bevy-butler-core = { path = "./bevy-butler-core", version = "0.1.1" }
+bevy-butler-proc-macro = { path = "./bevy-butler-proc-macro", version = "0.1.2" }
+bevy_app = { version = "0.15.1", default-features = false }
+bevy_ecs = { version = "0.15.1", default-features = false }
+bevy_log = { version = "0.15.1", default-features = false }
+bevy_utils = { version = "0.15.1", default-features = false }
+inventory = { version = "0.3.17", default-features = false }
 
 [dev-dependencies]
 bevy = { version = "0.15.1", default-features = false }

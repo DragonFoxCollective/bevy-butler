@@ -1,7 +1,9 @@
 #![doc = include_str!("../README.md")]
+#![feature(const_type_id)]
 
+mod core;
 #[doc(hidden)]
-pub use bevy_butler_core::__internal;
+pub use core::__internal;
 
 /// Include a system in a given [`Schedule`](bevy::prelude::Schedule). Optionally, define an
 /// [`#[butler_plugin]`][butler_plugin] to be registered with.
@@ -92,7 +94,4 @@ pub use bevy_butler_proc_macro::butler_plugin;
 /// ```
 pub use bevy_butler_proc_macro::configure_plugin;
 
-/// [`Plugin`](bevy::prelude::Plugin) that enables the usage of [`#[system]`](system)
-/// and [`#[butler_plugin]`](butler_plugin). It should be added to the [`App`](bevy::app::App) before any
-/// `#[butler_plugin]` plugins are.
-pub use bevy_butler_core::BevyButlerPlugin;
+pub use core::plugin::BevyButlerPlugin;
