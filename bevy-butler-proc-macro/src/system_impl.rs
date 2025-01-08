@@ -72,6 +72,10 @@ impl Parse for SystemArgs {
             }
             else {
                 input.parse::<Token![,]>()?;
+                // Allow trailing commas
+                if input.is_empty() {
+                    break;
+                }
             }
         }
 
