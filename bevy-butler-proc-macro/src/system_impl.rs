@@ -115,29 +115,11 @@ pub(crate) fn system_free_standing_impl(args: TokenStream, item: ItemFn) -> Toke
     }
     let bevy_butler = bevy_butler.unwrap();
 
-    let bevy_app = get_crate("bevy").map(|mut name| { name.segments.push(syn::parse_str("app").unwrap()); name })
-        .or_else(|_| get_crate("bevy_app"));
-    if let Err(e) = bevy_app {
-        return Error::new(Span::call_site(), e).into_compile_error().into();
-    }
-    let bevy_app = bevy_app.unwrap();
-
     let sys_name = &item.sig.ident;
     let plugin: Expr = match args.plugin {
         Some(plugin) => Expr::Path(plugin),
         None => syn::parse2(quote!{ #bevy_butler::BevyButlerPlugin }).unwrap(),
     };
-
-    let call_site = proc_macro::Span::call_site();
-    let source_file = call_site.source_file();
-    let line = call_site.line();
-
-    let digest = sha256::digest(format!("{}{}{}", sys_name.to_string(), source_file.path().to_string_lossy(), line));
-    let butler_func_name: syn::Result<Ident> = syn::parse_str(&format!("__butler_{}", digest));
-    if let Err(e) = butler_func_name {
-        return e.to_compile_error().into();
-    }
-    let butler_func_name = butler_func_name.unwrap();
 
     let transform_str = args.transforms
         .into_iter()
@@ -153,12 +135,8 @@ pub(crate) fn system_free_standing_impl(args: TokenStream, item: ItemFn) -> Toke
     quote! {
         #item
 
-        fn #butler_func_name (plugin: &#plugin, app: &mut #bevy_app::App) {
-            app.add_systems( #schedule, #sys_name #period #transforms );
-        }
-
         #bevy_butler::__internal::inventory::submit! {
-            #bevy_butler::__internal::ButlerFunc::new::<#plugin>(#butler_func_name)
+            #bevy_butler::__internal::ButlerFunc::new::<#plugin>(|app| { app.add_systems( #schedule, #sys_name #period #transforms ); })
         } 
     }.into()
 }

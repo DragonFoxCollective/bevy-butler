@@ -16,14 +16,14 @@ use crate::utils::get_crate;
 fn butler_plugin_block(app_ident: &Ident, bevy_butler: &Path, plugin: &Path) -> TokenStream {
     quote! {{
         let funcs = #app_ident.world().get_resource::<#bevy_butler::__internal::ButlerRegistry>()
-            .unwrap_or_else(|| panic!("#[butler_plugin] requires that the App contain BevyButlerPlugin!"))
+            .expect("#[butler_plugin] requires that the App contain BevyButlerPlugin!")
             .get_funcs::<#plugin>();
 
         let mut _butler_systems = 0;
         if let Some(funcs) = funcs {
             for butler_func in &(*funcs) {
                 if let Some(sys) = butler_func.try_get_func::<#plugin>() {
-                    (sys)(self, app);
+                    (sys)(app);
                     _butler_systems += 1;
                 }
             }

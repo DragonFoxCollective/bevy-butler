@@ -11,13 +11,10 @@ pub mod __internal {
     pub use inventory;
 
     #[derive(Debug)]
-    pub struct ButlerFunc(TypeId, * const ());
-
-    unsafe impl Sync for ButlerFunc {}
-    unsafe impl Send for ButlerFunc {}
+    pub struct ButlerFunc(TypeId, fn(&mut App) -> ());
 
     impl ButlerFunc {
-        pub const fn new<T: 'static + Send + Sync>(func: fn(&T, &mut App) -> ()) -> Self {
+        pub const fn new<T: 'static>(func: fn(&mut App) -> ()) -> Self {
             let func_ptr = unsafe { std::mem::transmute(func) };
             Self(TypeId::of::<T>(), func_ptr)
         }
@@ -26,14 +23,14 @@ pub mod __internal {
             self.0
         }
 
-        pub fn get_func<T: 'static + Send + Sync>(&self) -> fn(&T, &mut App) -> () {
+        pub fn get_func<T: 'static>(&self) -> fn(&mut App) -> () {
             assert_eq!(TypeId::of::<T>(), self.0);
             unsafe { std::mem::transmute(self.1) }
         }
 
-        pub fn try_get_func<T: 'static + Send + Sync>(&self) -> Option<fn(&T, &mut App) -> ()> {
+        pub fn try_get_func<T: 'static>(&self) -> Option<fn(&mut App) -> ()> {
             if self.0 == TypeId::of::<T>() {
-                return Some(self.get_func());
+                return Some(self.get_func::<T>());
             }
             None
         }

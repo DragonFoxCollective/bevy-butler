@@ -17,7 +17,7 @@ impl Plugin for BevyButlerPlugin {
         let mut plugin_systems = 0;
         for system in inventory::iter::<ButlerFunc> {
             if let Some(global_sys) = system.try_get_func::<Self>() {
-                (global_sys)(self, app);
+                (global_sys)(app);
                 global_systems += 1;
             }
             else {
