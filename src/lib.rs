@@ -17,9 +17,9 @@ pub use core::__internal;
 /// system should be registered with. If not defined, the system will be registered
 /// with [`BevyButlerPlugin`].
 /// 
-/// ## `transforms`
-/// Use to add additional definition methods to the system, such as [`run_if`](bevy::prelude::IntoSystemConfigs::run_if),
-/// [`before`](bevy::prelude::IntoSystemConfigs::before) and [`after`](bevy::prelude::IntoSystemConfigs::after).
+/// ## Extras
+/// Any name-value attributes that don't match the above will be interpreted as system transforms.
+/// For example, adding `after = hello_world` will resolve your system definiton as `system.after(hello_world)`.
 /// 
 /// ```
 /// # use bevy::prelude::*;
@@ -74,24 +74,7 @@ pub use bevy_butler_proc_macro::system;
 /// ```
 pub use bevy_butler_proc_macro::butler_plugin;
 
-/// Adds a configuration function to run within an [`#[butler_plugin]`](butler_plugin)'s [`build`](bevy::prelude::Plugin::build) function.
-/// 
-/// ```
-/// # use bevy_butler_proc_macro::*;
-/// # use bevy::prelude::*;
-/// #
-/// #[derive(Resource)]
-/// pub struct Hello(String);
-/// 
-/// #[butler_plugin]
-/// pub struct MyPlugin;
-/// 
-/// #[configure_plugin(MyPlugin)]
-/// fn configure(plugin: &MyPlugin, app: &mut App)
-/// {
-///     app.insert_resource(Hello("World".to_string()));
-/// }
-/// ```
-pub use bevy_butler_proc_macro::configure_plugin;
-
+/// [`Plugin`](bevy::prelude::Plugin) that enables the usage of [`#[system]`](system)
+/// and [`#[butler_plugin]`](butler_plugin). It should be added to the [`App`](bevy::app::App) before any
+/// `#[butler_plugin]` plugins are.
 pub use core::plugin::BevyButlerPlugin;
