@@ -143,17 +143,17 @@ pub(crate) fn system_free_standing_impl(args: SystemArgs, item: ItemFn) -> Resul
     };
 
     let butler_func_name = format_ident!("__butler_{}", sys_name);
-    let butler_sys_name = format_ident!("__butler_func_{}", sys_name);
 
     Ok(quote! {
         #item
 
         #[#bevy_butler::__internal::linkme::distributed_slice(#bevy_butler::__internal::BUTLER_SLICE)]
-        #[linkme(crate = #bevy_butler::__internal::linkme)]
-        pub fn #butler_func_name (registry: &mut #bevy_butler::__internal::ButlerRegistry) {
+        #[linkme(crate = #bevy_butler::__internal::linkme)] // I LOVE UNDOCUMENTED ATTRIBUTES!!! FUCK!!!
+        #[allow(non_upper_case_globals)]
+        static #butler_func_name: #bevy_butler::__internal::ButlerFunc = |registry: &mut #bevy_butler::__internal::ButlerRegistry| {
             registry.entry(std::any::TypeId::of::<#plugin>())
                 .or_default()
                 .push(|app| { app.add_systems( #schedule, #sys_name #transforms ); } );
-        }
+        };
     }.into())
 }

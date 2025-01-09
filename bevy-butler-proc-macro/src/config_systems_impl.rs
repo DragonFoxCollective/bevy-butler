@@ -28,7 +28,7 @@ use crate::system_impl::SystemArgs;
 ///     }
 /// }
 /// ```
-pub(crate) fn block_impl(args: SystemArgs, item: &mut ExprBlock) -> Result<(), TokenStream>
+pub(crate) fn block_impl(args: &SystemArgs, item: &mut ExprBlock) -> Result<(), TokenStream>
 {
     for stmt in item.block.stmts.iter_mut() {
         match stmt {

@@ -99,13 +99,43 @@ pub fn system(attr: TokenStream, item: TokenStream) -> TokenStream {
 mod config_systems_impl;
 /// Provide default attributes for all [`#[system]`](system) invocations within
 /// the annotated block. Supports all `#[system]` attributes.
+/// 
+/// <div class="warning">
+/// 
+/// This syntax can only be used with the `nightly` feature.
+/// 
+/// </div>
+/// 
+/// ```
+/// #![feature(stmt_expr_attributes)]
+/// #![feature(proc_macro_hygiene)]
+/// 
+/// # use bevy_butler_proc_macro::*;
+/// # use bevy::prelude::*;
+/// #
+/// # #[butler_plugin]
+/// # pub struct MyPlugin;
+/// #
+/// #[config_systems(plugin = MyPlugin, schedule = Update)]
+/// {
+///     #[system(schedule = Startup)]
+///     fn on_startup() {
+///         info!("Hello, world!");
+///     }
+/// 
+///     #[system]
+///     fn on_update(time: Res<Time>) {
+///         info!("The current time is {}", time.elapsed_secs());
+///     }
+/// }
+/// ```
 #[cfg(feature = "nightly")]
 #[proc_macro_attribute]
 pub fn config_systems(attr: TokenStream, item: TokenStream) -> TokenStream {
     let args = parse_macro_input!(attr as system_impl::SystemArgs);
     let mut item = parse_macro_input!(item as ExprBlock);
 
-    if let Err(tokens) = config_systems_impl::block_impl(args, &mut item) {
+    if let Err(tokens) = config_systems_impl::block_impl(&args, &mut item) {
         return tokens.into();
     }
 

@@ -10,6 +10,9 @@ keywords = ["game", "gamedev", "bevy", "systems", "macro"]
 license = "MIT OR Apache-2.0"
 rust-version = "1.81.0" # Determined by cargo-msrv
 
+[package.metadata.docs.rs]
+all-features = true
+
 [workspace]
 members = [
     "bevy-butler-proc-macro",
