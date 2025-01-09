@@ -8,6 +8,7 @@ exclude = [".direnv/", "*.nix", "flake.lock", ".envrc"]
 repository = "https://github.com/TGRCdev/bevy-butler"
 keywords = ["game", "gamedev", "bevy", "systems", "macro"]
 license = "MIT OR Apache-2.0"
+rust-version = "1.81.0" # Determined by cargo-msrv
 
 [workspace]
 members = [
