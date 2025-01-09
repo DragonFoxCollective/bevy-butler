@@ -5,17 +5,16 @@
 //! - When attached to a static struct function, will be registered
 //! to that struct
 
-use proc_macro2::Span;
-use quote::{quote, ToTokens};
-use syn::{parse::{Parse, ParseStream}, Error, Expr, ExprCall, ExprPath, ItemFn, Meta, Token};
-use itertools::Itertools;
+use proc_macro2::{Span, TokenStream};
+use quote::{quote, ToTokens, TokenStreamExt};
+use syn::{parse::{Parse, ParseStream}, Error, Expr, ExprPath, ItemFn, Meta, Path, Token};
 
 use crate::utils::get_crate;
 
 pub(crate) struct SystemArgs {
     pub schedule: Option<ExprPath>,
     pub plugin: Option<ExprPath>,
-    pub transforms: Vec<ExprCall>,
+    pub transforms: Vec<(Path, Expr)>,
 }
 
 impl Parse for SystemArgs {
@@ -27,6 +26,10 @@ impl Parse for SystemArgs {
         };
 
         loop {
+            if input.is_empty() {
+                break;
+            }
+            
             let meta = input.parse::<Meta>()?;
             let name_value = meta.require_name_value()?;
             match name_value.path
@@ -57,28 +60,46 @@ impl Parse for SystemArgs {
                         return Err(input.error("Expected a Plugin after \"plugin\""));
                     }
                 },
-                ident => {
+                _ => {
                     // Any other attributes, assume they're transformers for the system
-                    let transform_str = format!("{}({})", ident, name_value.value.to_token_stream().to_string());
-                    let call: ExprCall = syn::parse_str(&transform_str)?;
                     args.transforms
-                        .push(call);
+                        .push((name_value.path.clone(), name_value.value.clone()));
                 }
             }
 
             if input.is_empty() {
                 break;
             }
-            else {
-                input.parse::<Token![,]>()?;
-                // Allow trailing commas
-                if input.is_empty() {
-                    break;
-                }
-            }
+            input.parse::<Token![,]>()?;
         }
 
         Ok(args)
+    }
+}
+
+impl SystemArgs {
+    /// Returns a new SystemArgs, using `self` as the default values
+    /// and `new_args` as the overriding arguments.
+    pub fn splat(&self, new_args: &SystemArgs) -> SystemArgs {
+        Self {
+            plugin: new_args.plugin.clone().or(self.plugin.clone()),
+            schedule: new_args.schedule.clone().or(self.schedule.clone()),
+            transforms: [self.transforms.clone(), new_args.transforms.clone()].concat(),
+        }
+    }
+}
+
+impl ToTokens for SystemArgs {
+    fn to_tokens(&self, tokens: &mut TokenStream) {
+        if let Some(value) = self.plugin.clone() {
+            tokens.extend(quote! { plugin = #value, });
+        }
+        if let Some(value) = self.schedule.clone() {
+            tokens.extend(quote! { schedule = #value, });
+        }
+        for (path, value) in &self.transforms {
+            tokens.extend(quote! { #path = #value, });
+        }
     }
 }
 
@@ -110,16 +131,16 @@ pub(crate) fn system_free_standing_impl(args: SystemArgs, item: ItemFn) -> Resul
 
     let sys_name = &item.sig.ident;
 
-    let transform_str = args.transforms
-        .into_iter()
-        .map(|t| t.to_token_stream().to_string())
-        .join(".");
-    let transforms: Option<Expr> = if !transform_str.is_empty() {
-        Some(syn::parse_str(&transform_str).unwrap())
-    } else {
+    let transforms = if args.transforms.is_empty() {
         None
+    } else {
+        let transform_iter = args.transforms
+        .into_iter()
+        .map(|(path, expr)| quote! { #path(#expr) });
+        let mut transforms = quote! { . };
+        transforms.append_separated(transform_iter, Token![.](Span::call_site()));
+        Some(transforms)
     };
-    let period = if transforms.is_some() { Some(quote!(.))} else { None };
 
     Ok(quote! {
         #item
@@ -128,7 +149,7 @@ pub(crate) fn system_free_standing_impl(args: SystemArgs, item: ItemFn) -> Resul
             #bevy_butler::__internal::ButlerFunc(|registry| {
                 registry.entry(std::any::TypeId::of::<#plugin>())
                     .or_default()
-                    .push(|app| { app.add_systems( #schedule, #sys_name #period #transforms ); } );
+                    .push(|app| { app.add_systems( #schedule, #sys_name #transforms ); } );
             })
         } 
     }.into())

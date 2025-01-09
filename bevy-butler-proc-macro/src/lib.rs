@@ -1,5 +1,8 @@
+#![cfg_attr(feature = "nightly", feature(stmt_expr_attributes))]
+
 use proc_macro::TokenStream;
-use syn::{parse_macro_input, Error, Item, ItemFn};
+use quote::ToTokens;
+use syn::{parse_macro_input, Error, ExprBlock, Item, ItemFn};
 
 mod utils;
 
@@ -90,4 +93,20 @@ pub fn system(attr: TokenStream, item: TokenStream) -> TokenStream {
     match system_impl::system_free_standing_impl(args, item) {
         Ok(tokens) | Err(tokens) => tokens.into()
     }
+}
+#[cfg(feature = "nightly")]
+mod config_systems_impl;
+/// Provide default attributes for all [`#[system]`](system) invocations within
+/// the annotated block. Supports all `#[system]` attributes.
+#[cfg(feature = "nightly")]
+#[proc_macro_attribute]
+pub fn config_systems(attr: TokenStream, item: TokenStream) -> TokenStream {
+    let args = parse_macro_input!(attr as system_impl::SystemArgs);
+    let mut item = parse_macro_input!(item as ExprBlock);
+
+    if let Err(tokens) = config_systems_impl::block_impl(args, &mut item) {
+        return tokens.into();
+    }
+
+    item.to_token_stream().into()
 }

@@ -25,3 +25,6 @@ inventory = { version = "0.3.17", default-features = false }
 
 [dev-dependencies]
 bevy = { version = "0.15.1", default-features = false }
+
+[features]
+nightly = ["bevy-butler-proc-macro/nightly"]

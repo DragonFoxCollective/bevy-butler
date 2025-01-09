@@ -21,3 +21,6 @@ itertools = { version = "0.14.0", default-features = false, features = ["use_std
 [dev-dependencies]
 bevy = { version = "0.15.1", default-features = false }
 bevy-butler = { path = ".." }
+
+[features]
+nightly = []
