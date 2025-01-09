@@ -1,10 +1,10 @@
 [package]
 name = "bevy-butler"
-version = "0.2.0"
+version = "0.3.0"
 edition = "2021"
 categories = ["game-development", "rust-patterns"]
 description = "A crate for making Bevy systems more self-documenting"
-exclude = [".direnv/", "*.nix", "flake.lock", ".envrc"]
+exclude = [".direnv/", ".vscode/", "Cargo.lock", "*.nix", "flake.lock", ".envrc", ".github/"]
 repository = "https://github.com/TGRCdev/bevy-butler"
 keywords = ["game", "gamedev", "bevy", "systems", "macro"]
 license = "MIT OR Apache-2.0"
@@ -19,7 +19,7 @@ members = [
 ]
 
 [dependencies]
-bevy-butler-proc-macro = { path = "./bevy-butler-proc-macro", version = "0.2.0" }
+bevy-butler-proc-macro = { path = "./bevy-butler-proc-macro", version = "0.3.0" }
 bevy_app = { version = "0.15.1", default-features = false }
 bevy_ecs = { version = "0.15.1", default-features = false }
 bevy_log = { version = "0.15.1", default-features = false }
