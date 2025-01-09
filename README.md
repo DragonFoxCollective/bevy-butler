@@ -12,12 +12,6 @@ A crate for making Bevy systems more self-documenting.
 use bevy::prelude::*;
 use bevy_butler::*;
 
-#[system(schedule = Startup)]
-fn hello_world()
-{
-    info!("Hello, world!");
-}
-
 #[derive(Resource)]
 pub struct Hello(pub String);
 
@@ -26,7 +20,7 @@ pub struct MyPlugin;
 #[butler_plugin]
 impl Plugin for MyPlugin {
     fn build(&self, app: &mut App) {
-        app.insert_resource(Hello("MyPlugin".to_string()));
+        app.insert_resource(Hello("World".to_string()));
     }
 }
 
@@ -44,7 +38,7 @@ fn goodbye_plugin(name: Res<Hello>)
 
 fn main() {
     App::new()
-        .add_plugins((BevyButlerPlugin, MyPlugin))
+        .add_plugins(MyPlugin)
         .run();
 }
 ```

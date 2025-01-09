@@ -30,7 +30,7 @@ pub fn test() {
         marker.0 = true;
     }
 
-    #[system(schedule = Update, after = test_system, run_if = || true)]
+    #[system(schedule = Update, plugin = TestPlugin, after = test_system, run_if = || true)]
     fn assert_sys(marker: Res<Marker>, mut exit: EventWriter<AppExit>) {
         assert!(marker.0);
         exit.send(AppExit::Success);
@@ -38,7 +38,6 @@ pub fn test() {
 
     App::new()
         .add_plugins(MinimalPlugins)
-        .add_plugins(BevyButlerPlugin)
         .add_plugins((TestPlugin, OtherTestPlugin))
         .run();
 }

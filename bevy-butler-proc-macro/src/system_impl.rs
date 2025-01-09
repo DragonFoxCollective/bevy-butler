@@ -5,15 +5,14 @@
 //! - When attached to a static struct function, will be registered
 //! to that struct
 
-use proc_macro::TokenStream;
 use proc_macro2::Span;
 use quote::{quote, ToTokens};
-use syn::{parse::{Parse, ParseStream}, parse_macro_input, Error, Expr, ExprCall, ExprPath, ItemFn, Meta, Token};
+use syn::{parse::{Parse, ParseStream}, Error, Expr, ExprCall, ExprPath, ItemFn, Meta, Token};
 use itertools::Itertools;
 
 use crate::utils::get_crate;
 
-struct SystemArgs {
+pub(crate) struct SystemArgs {
     pub schedule: Option<ExprPath>,
     pub plugin: Option<ExprPath>,
     pub transforms: Vec<ExprCall>,
@@ -87,7 +86,6 @@ impl Parse for SystemArgs {
 /// 
 /// ```
 /// # use bevy_butler_proc_macro::*;
-/// # use bevy_butler::BevyButlerPlugin;
 /// # use bevy::prelude::*;
 /// # #[butler_plugin]
 /// # struct MyPlugin;
@@ -97,29 +95,20 @@ impl Parse for SystemArgs {
 /// }
 /// #
 /// # fn main() {
-/// #   App::new().add_plugins((BevyButlerPlugin, MyPlugin)).run();
+/// #   App::new().add_plugins(MyPlugin).run();
 /// # }
 /// #
 /// ```
-pub(crate) fn system_free_standing_impl(args: TokenStream, item: ItemFn) -> TokenStream {
-    let args = parse_macro_input!(args as SystemArgs);
+pub(crate) fn system_free_standing_impl(args: SystemArgs, item: ItemFn) -> Result<proc_macro2::TokenStream, proc_macro2::TokenStream> {
+    let schedule = args.schedule
+        .ok_or_else(|| Error::new(Span::call_site(), "#[system] requires either a defined or inherited `schedule`").into_compile_error())?;
+    let plugin = args.plugin
+        .ok_or_else(|| Error::new(Span::call_site(), "#[system] requires either a defined or inherited `plugin`").into_compile_error())?;
 
-    if args.schedule.is_none() {
-        return Error::new(Span::call_site(), "#[system] requires either a defined or inherited schedule").into_compile_error().into();
-    }
-    let schedule = args.schedule.unwrap();
-
-    let bevy_butler = get_crate("bevy-butler");
-    if let Err(e) = bevy_butler {
-        return Error::new(Span::call_site(), e).to_compile_error().into();
-    }
-    let bevy_butler = bevy_butler.unwrap();
+    let bevy_butler = get_crate("bevy-butler")
+        .map_err(|e| Error::new(Span::call_site(), e).to_compile_error())?;
 
     let sys_name = &item.sig.ident;
-    let plugin: Expr = match args.plugin {
-        Some(plugin) => Expr::Path(plugin),
-        None => syn::parse2(quote!{ #bevy_butler::BevyButlerPlugin }).unwrap(),
-    };
 
     let transform_str = args.transforms
         .into_iter()
@@ -132,11 +121,15 @@ pub(crate) fn system_free_standing_impl(args: TokenStream, item: ItemFn) -> Toke
     };
     let period = if transforms.is_some() { Some(quote!(.))} else { None };
 
-    quote! {
+    Ok(quote! {
         #item
 
         #bevy_butler::__internal::inventory::submit! {
-            #bevy_butler::__internal::ButlerFunc::new::<#plugin>(|app| { app.add_systems( #schedule, #sys_name #period #transforms ); })
+            #bevy_butler::__internal::ButlerFunc(|registry| {
+                registry.entry(std::any::TypeId::of::<#plugin>())
+                    .or_default()
+                    .push(|app| { app.add_systems( #schedule, #sys_name #period #transforms ); } );
+            })
         } 
-    }.into()
+    }.into())
 }

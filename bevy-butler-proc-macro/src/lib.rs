@@ -33,7 +33,7 @@ mod system_impl;
 #[proc_macro_attribute]
 pub fn butler_plugin(args: TokenStream, item: TokenStream) -> TokenStream
 {
-    let parsed: Item = parse_macro_input!(item as Item);
+    let parsed = parse_macro_input!(item as Item);
 
     match parsed {
         Item::Impl(item_impl) => butler_plugin_impl::butler_plugin_impl(args, item_impl),
@@ -55,10 +55,9 @@ pub fn butler_plugin(args: TokenStream, item: TokenStream) -> TokenStream
 /// ## `schedule` (Required)
 /// Defines the [`Schedule`](bevy::prelude::Schedule) that the system should run in.
 /// 
-/// ## `plugin`
+/// ## `plugin` (Required)
 /// Defines a struct marked with [`#[butler_plugin]`](butler_plugin) that the
-/// system should be registered with. If not defined, the system will be registered
-/// with [`BevyButlerPlugin`](bevy_butler::BevyButlerPlugin).
+/// system should be registered with.
 /// 
 /// ## Extras
 /// Any name-value attributes that don't match the above will be interpreted as system transforms.
@@ -71,25 +70,24 @@ pub fn butler_plugin(args: TokenStream, item: TokenStream) -> TokenStream
 /// # #[butler_plugin]
 /// # pub struct MyPlugin;
 /// #
-/// #[system(schedule = Startup)]
+/// #[system(schedule = Startup, plugin = MyPlugin)]
 /// fn hello_world()
 /// {
 ///     info!("Hello, world!");
 /// }
 /// 
-/// #[system(schedule = Startup, after = hello_world)]
+/// #[system(schedule = Startup, plugin = MyPlugin, after = hello_world)]
 /// fn goodbye_world()
 /// {
 ///     info!("Goodbye, world!");
 /// }
-/// 
-/// #[system(schedule = Startup, plugin = MyPlugin)]
-/// fn hello_plugin()
-/// {
-///     info!("Hello from MyPlugin!");
-/// }
 /// ```
 #[proc_macro_attribute]
 pub fn system(attr: TokenStream, item: TokenStream) -> TokenStream {
-    system_impl::system_free_standing_impl(attr, parse_macro_input!(item as ItemFn))
+    let args = parse_macro_input!(attr as system_impl::SystemArgs);
+    let item = parse_macro_input!(item as ItemFn);
+
+    match system_impl::system_free_standing_impl(args, item) {
+        Ok(tokens) | Err(tokens) => tokens.into()
+    }
 }

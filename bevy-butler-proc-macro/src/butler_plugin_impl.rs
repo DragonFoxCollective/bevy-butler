@@ -15,17 +15,14 @@ use crate::utils::get_crate;
 /// Butler initialization function injected at the start of a Plugin's `build` function
 fn butler_plugin_block(app_ident: &Ident, bevy_butler: &Path, plugin: &Path) -> TokenStream {
     quote! {{
-        let funcs = #app_ident.world().get_resource::<#bevy_butler::__internal::ButlerRegistry>()
-            .expect("#[butler_plugin] requires that the App contain BevyButlerPlugin!")
-            .get_funcs::<#plugin>();
+        let registry = &*#bevy_butler::__internal::BUTLER_REGISTRY;
+        let plugin_systems = registry.get(&std::any::TypeId::of::<#plugin>()).map(Vec::as_slice);
 
         let mut _butler_systems = 0;
-        if let Some(funcs) = funcs {
+        if let Some(funcs) = plugin_systems {
             for butler_func in &(*funcs) {
-                if let Some(sys) = butler_func.try_get_func::<#plugin>() {
-                    (sys)(app);
-                    _butler_systems += 1;
-                }
+                (butler_func)(#app_ident);
+                _butler_systems += 1;
             }
         }
 
@@ -54,7 +51,6 @@ fn butler_plugin_modify_build(plugin: &Path, bevy_butler: &Path, item_func: &mut
 /// ```
 /// # use bevy_butler_proc_macro::butler_plugin;
 /// # use bevy::prelude::*;
-/// # use bevy_butler::BevyButlerPlugin;
 /// # struct MyPlugin;
 /// #[butler_plugin]
 /// impl Plugin for MyPlugin {
@@ -65,7 +61,7 @@ fn butler_plugin_modify_build(plugin: &Path, bevy_butler: &Path, item_func: &mut
 /// }
 /// #
 /// # fn main() {
-/// #   App::new().add_plugins((BevyButlerPlugin, MyPlugin)).run();
+/// #   App::new().add_plugins(MyPlugin).run();
 /// # }
 /// #
 /// ```
@@ -130,14 +126,13 @@ pub(crate) fn butler_plugin_impl(_args: TokenStream, mut item_impl: ItemImpl) ->
 /// Implementation for struct-style #[butler-plugin] invocations
 /// 
 /// ```
-/// # use bevy_butler::BevyButlerPlugin;
 /// # use bevy_butler_proc_macro::butler_plugin;
 /// # use bevy::prelude::*;
 /// #[butler_plugin]
 /// struct MyPlugin;
 /// #
 /// # fn main() {
-/// #   App::new().add_plugins((BevyButlerPlugin, MyPlugin)).run();
+/// #   App::new().add_plugins(MyPlugin).run();
 /// # }
 /// ```
 pub(crate) fn butler_plugin_struct(_args: TokenStream, item_struct: ItemStruct) -> TokenStream {
