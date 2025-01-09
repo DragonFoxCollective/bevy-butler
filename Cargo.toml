@@ -21,10 +21,10 @@ bevy_app = { version = "0.15.1", default-features = false }
 bevy_ecs = { version = "0.15.1", default-features = false }
 bevy_log = { version = "0.15.1", default-features = false }
 bevy_utils = { version = "0.15.1", default-features = false }
-inventory = { version = "0.3.17", default-features = false }
+linkme = "0.3.31"
 
 [dev-dependencies]
 bevy = { version = "0.15.1", default-features = false }
 
 [features]
-nightly = ["bevy-butler-proc-macro/nightly"]
+nightly = ["bevy-butler-proc-macro/nightly", "linkme/used_linker"]

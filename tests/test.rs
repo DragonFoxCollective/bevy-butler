@@ -1,5 +1,6 @@
-#![cfg_attr(feature = "nightly", feature(stmt_expr_attributes))]
-#![cfg_attr(feature = "nightly", feature(proc_macro_hygiene))]
+#![cfg_attr(feature="nightly", feature(stmt_expr_attributes))]
+#![cfg_attr(feature="nightly", feature(proc_macro_hygiene))]
+#![cfg_attr(feature="nightly", feature(used_with_arg))]
 
 use bevy::MinimalPlugins;
 use bevy_app::{App, AppExit, Plugin, Startup, Update};

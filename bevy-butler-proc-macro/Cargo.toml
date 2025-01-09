@@ -23,4 +23,4 @@ bevy = { version = "0.15.1", default-features = false }
 bevy-butler = { path = ".." }
 
 [features]
-nightly = []
+nightly = ["bevy-butler/nightly"]

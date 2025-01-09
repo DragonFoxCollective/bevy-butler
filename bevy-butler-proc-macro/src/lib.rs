@@ -1,4 +1,5 @@
 #![cfg_attr(feature = "nightly", feature(stmt_expr_attributes))]
+#![doc(test(attr(cfg_attr(feature = "nightly", feature(used_with_arg)))))]
 
 use proc_macro::TokenStream;
 use quote::ToTokens;

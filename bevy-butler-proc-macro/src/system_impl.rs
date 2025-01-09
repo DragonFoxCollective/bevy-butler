@@ -6,7 +6,7 @@
 //! to that struct
 
 use proc_macro2::{Span, TokenStream};
-use quote::{quote, ToTokens, TokenStreamExt};
+use quote::{format_ident, quote, ToTokens, TokenStreamExt};
 use syn::{parse::{Parse, ParseStream}, Error, Expr, ExprPath, ItemFn, Meta, Path, Token};
 
 use crate::utils::get_crate;
@@ -142,15 +142,18 @@ pub(crate) fn system_free_standing_impl(args: SystemArgs, item: ItemFn) -> Resul
         Some(transforms)
     };
 
+    let butler_func_name = format_ident!("__butler_{}", sys_name);
+    let butler_sys_name = format_ident!("__butler_func_{}", sys_name);
+
     Ok(quote! {
         #item
 
-        #bevy_butler::__internal::inventory::submit! {
-            #bevy_butler::__internal::ButlerFunc(|registry| {
-                registry.entry(std::any::TypeId::of::<#plugin>())
-                    .or_default()
-                    .push(|app| { app.add_systems( #schedule, #sys_name #transforms ); } );
-            })
-        } 
+        #[#bevy_butler::__internal::linkme::distributed_slice(#bevy_butler::__internal::BUTLER_SLICE)]
+        #[linkme(crate = #bevy_butler::__internal::linkme)]
+        pub fn #butler_func_name (registry: &mut #bevy_butler::__internal::ButlerRegistry) {
+            registry.entry(std::any::TypeId::of::<#plugin>())
+                .or_default()
+                .push(|app| { app.add_systems( #schedule, #sys_name #transforms ); } );
+        }
     }.into())
 }
