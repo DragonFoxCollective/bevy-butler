@@ -1,9 +1,13 @@
-#![cfg_attr(feature="nightly", feature(used_with_arg))]
+#![cfg_attr(feature = "nightly", feature(used_with_arg))]
 
 use bevy::MinimalPlugins;
 use bevy_app::{App, AppExit, Plugin, Startup, Update};
-use bevy_ecs::{event::EventWriter, schedule::IntoSystemConfigs, system::{Res, ResMut, Resource}};
 use bevy_butler::*;
+use bevy_ecs::{
+    event::EventWriter,
+    schedule::IntoSystemConfigs,
+    system::{Res, ResMut, Resource},
+};
 
 #[test]
 pub fn test() {
@@ -25,9 +29,7 @@ pub fn test() {
     pub struct OtherTestPlugin;
 
     #[system(schedule = Startup, plugin = TestPlugin, run_if = || true)]
-    fn test_system(
-        mut marker: ResMut<Marker>,
-    ) {
+    fn test_system(mut marker: ResMut<Marker>) {
         println!("HELLO, WORLD!!!!");
         marker.0 = true;
     }

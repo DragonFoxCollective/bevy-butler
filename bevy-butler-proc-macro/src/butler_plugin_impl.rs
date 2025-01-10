@@ -1,7 +1,7 @@
 //! This file enables #[butler_plugin] to be used in two ways
-//! 
+//!
 //! 1. Attaching it to a struct definition will generate an `impl Plugin` for it
-//! 
+//!
 //! 2. Attaching it to an `impl Plugin` definition will add a hook at the beginning
 //!    of the `build` function, or create the `build` function if one isn't present.
 
@@ -31,7 +31,11 @@ fn butler_plugin_block(app_ident: &Ident, bevy_butler: &Path, plugin: &Path) -> 
 }
 
 /// Modify an existing `Plugin::build` function and insert our hook at the start
-fn butler_plugin_modify_build(plugin: &Path, bevy_butler: &Path, item_func: &mut ImplItemFn) -> Result<(), TokenStream> {
+fn butler_plugin_modify_build(
+    plugin: &Path,
+    bevy_butler: &Path,
+    item_func: &mut ImplItemFn,
+) -> Result<(), TokenStream> {
     let app_ident = match &item_func.sig.inputs[1] {
         FnArg::Typed(pat) => match &(*pat.pat) {
             Pat::Ident(ident) => &ident.ident,
@@ -41,7 +45,10 @@ fn butler_plugin_modify_build(plugin: &Path, bevy_butler: &Path, item_func: &mut
     };
 
     let butler_block = butler_plugin_block(app_ident, &bevy_butler, plugin);
-    item_func.block.stmts.insert(0, syn::parse(butler_block.into()).unwrap());
+    item_func
+        .block
+        .stmts
+        .insert(0, syn::parse(butler_block.into()).unwrap());
 
     Ok(())
 }
@@ -57,18 +64,30 @@ pub(crate) fn butler_plugin_impl(_args: TokenStream, mut item_impl: ItemImpl) ->
     };
 
     // Check that the impl block is for the Plugin trait
-    if item_impl.trait_.as_ref().unwrap().1.segments.last().unwrap().ident != "Plugin" {
-        return Error::new(Span::call_site(), "#[butler_plugin] can only modify `impl Plugin` blocks")
-            .into_compile_error()
-            .into();
+    if item_impl
+        .trait_
+        .as_ref()
+        .unwrap()
+        .1
+        .segments
+        .last()
+        .unwrap()
+        .ident
+        != "Plugin"
+    {
+        return Error::new(
+            Span::call_site(),
+            "#[butler_plugin] can only modify `impl Plugin` blocks",
+        )
+        .into_compile_error()
+        .into();
     }
     // We can't fully guarantee that the `Plugin` is actually `bevy::prelude::Plugin`... oh well.
 
     // Get the struct name
     let plugin = if let Type::Path(plugin) = &(*item_impl.self_ty) {
         &plugin.path
-    }
-    else {
+    } else {
         panic!("Failed to get plugin identifier");
     };
 
@@ -82,18 +101,13 @@ pub(crate) fn butler_plugin_impl(_args: TokenStream, mut item_impl: ItemImpl) ->
         None
     }) {
         // We found an existing build function, modify it.
-        if let Err(e) = butler_plugin_modify_build(plugin, &bevy_butler, item)
-        {
+        if let Err(e) = butler_plugin_modify_build(plugin, &bevy_butler, item) {
             return e;
         }
-    }
-    else {
+    } else {
         // There's no build function, inject our own.
-        let butler_block: proc_macro2::TokenStream = butler_plugin_block(
-            &Ident::new("app", Span::call_site()),
-            &bevy_butler,
-            plugin
-        ).into();
+        let butler_block: proc_macro2::TokenStream =
+            butler_plugin_block(&Ident::new("app", Span::call_site()), &bevy_butler, plugin).into();
         let build = quote! {
             fn build(&self, app: &mut App) {
                 #butler_block
@@ -106,7 +120,7 @@ pub(crate) fn butler_plugin_impl(_args: TokenStream, mut item_impl: ItemImpl) ->
 }
 
 /// Implementation for struct-style #[butler-plugin] invocations
-/// 
+///
 /// ```
 /// # use bevy_butler_proc_macro::butler_plugin;
 /// # use bevy::prelude::*;
@@ -127,7 +141,10 @@ pub(crate) fn butler_plugin_struct(_args: TokenStream, item_struct: ItemStruct) 
     let bevy_butler = bevy_butler.unwrap();
 
     let bevy_app = get_crate("bevy")
-        .map(|mut name| {name.segments.push(syn::parse_str("app").unwrap()); name})
+        .map(|mut name| {
+            name.segments.push(syn::parse_str("app").unwrap());
+            name
+        })
         .or_else(|_| get_crate("bevy_app"));
     if let Err(e) = bevy_app {
         return Error::new(Span::call_site(), e).to_compile_error().into();
@@ -137,8 +154,9 @@ pub(crate) fn butler_plugin_struct(_args: TokenStream, item_struct: ItemStruct) 
     let butler_block: proc_macro2::TokenStream = butler_plugin_block(
         &syn::parse_str("app").unwrap(),
         &bevy_butler,
-        &Path::from(ident.clone())
-    ).into();
+        &Path::from(ident.clone()),
+    )
+    .into();
 
     quote! {
         #item_struct
@@ -148,5 +166,6 @@ pub(crate) fn butler_plugin_struct(_args: TokenStream, item_struct: ItemStruct) 
                 #butler_block
             }
         }
-    }.into()
+    }
+    .into()
 }

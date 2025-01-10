@@ -1,8 +1,8 @@
+use bevy_app::App;
+use bevy_log::{debug, info};
+use bevy_utils::HashMap;
 use std::any::TypeId;
 use std::sync::LazyLock;
-use bevy_app::App;
-use bevy_utils::HashMap;
-use bevy_log::{debug, info};
 
 pub use linkme;
 use linkme::distributed_slice;

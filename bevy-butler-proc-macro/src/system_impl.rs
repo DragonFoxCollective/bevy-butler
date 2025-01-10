@@ -1,5 +1,5 @@
 //! This file enables #[system] to be used as follows
-//! 
+//!
 //! - When attached to a free-standing function, will be registered
 //! to a butler plugin as defined by its attribute args
 //! - When attached to a static struct function, will be registered
@@ -7,7 +7,10 @@
 
 use proc_macro2::{Span, TokenStream};
 use quote::{format_ident, quote, ToTokens, TokenStreamExt};
-use syn::{parse::{Parse, ParseStream}, Error, Expr, ExprPath, ItemFn, Meta, Path, Token};
+use syn::{
+    parse::{Parse, ParseStream},
+    Error, Expr, ExprPath, ItemFn, Meta, Path, Token,
+};
 
 use crate::utils::get_crate;
 
@@ -30,10 +33,11 @@ impl Parse for SystemArgs {
             if input.is_empty() {
                 break;
             }
-            
+
             let meta = input.parse::<Meta>()?;
             let name_value = meta.require_name_value()?;
-            match name_value.path
+            match name_value
+                .path
                 .get_ident()
                 .ok_or(input.error("Expected a name-value identifier"))?
                 .to_string()
@@ -42,25 +46,21 @@ impl Parse for SystemArgs {
                 "schedule" => {
                     if args.schedule.is_some() {
                         return Err(input.error("\"schedule\" defined more than once"));
-                    }
-                    else if let Expr::Path(path) = name_value.value.clone() {
+                    } else if let Expr::Path(path) = name_value.value.clone() {
                         args.schedule = Some(path);
-                    }
-                    else {
+                    } else {
                         return Err(input.error("Expected a Schedule after \"schedule\""));
                     }
-                },
+                }
                 "plugin" => {
                     if args.plugin.is_some() {
                         return Err(input.error("\"plugin\" defined more than once"));
-                    }
-                    else if let Expr::Path(path) = name_value.value.clone() {
+                    } else if let Expr::Path(path) = name_value.value.clone() {
                         args.plugin = Some(path);
-                    }
-                    else {
+                    } else {
                         return Err(input.error("Expected a Plugin after \"plugin\""));
                     }
-                },
+                }
                 _ => {
                     // Any other attributes, assume they're transformers for the system
                     args.transforms
@@ -88,12 +88,6 @@ impl SystemArgs {
             transforms: [self.transforms.clone(), new_args.transforms.clone()].concat(),
         }
     }
-
-    pub fn is_empty(&self) -> bool {
-        self.plugin.is_none() &&
-        self.schedule.is_none() &&
-        self.transforms.is_empty()
-    }
 }
 
 impl ToTokens for SystemArgs {
@@ -111,11 +105,24 @@ impl ToTokens for SystemArgs {
 }
 
 /// Implementation for `#[system]` on free-standing functions
-pub(crate) fn system_free_standing_impl(args: SystemArgs, item: ItemFn) -> Result<proc_macro2::TokenStream, proc_macro2::TokenStream> {
-    let schedule = args.schedule
-        .ok_or_else(|| Error::new(Span::call_site(), "#[system] requires either a defined or inherited `schedule`").into_compile_error())?;
-    let plugin = args.plugin
-        .ok_or_else(|| Error::new(Span::call_site(), "#[system] requires either a defined or inherited `plugin`").into_compile_error())?;
+pub(crate) fn system_free_standing_impl(
+    args: SystemArgs,
+    item: ItemFn,
+) -> Result<proc_macro2::TokenStream, proc_macro2::TokenStream> {
+    let schedule = args.schedule.ok_or_else(|| {
+        Error::new(
+            Span::call_site(),
+            "#[system] requires either a defined or inherited `schedule`",
+        )
+        .into_compile_error()
+    })?;
+    let plugin = args.plugin.ok_or_else(|| {
+        Error::new(
+            Span::call_site(),
+            "#[system] requires either a defined or inherited `plugin`",
+        )
+        .into_compile_error()
+    })?;
 
     let bevy_butler = get_crate("bevy-butler")
         .map_err(|e| Error::new(Span::call_site(), e).to_compile_error())?;
@@ -125,9 +132,10 @@ pub(crate) fn system_free_standing_impl(args: SystemArgs, item: ItemFn) -> Resul
     let transforms = if args.transforms.is_empty() {
         None
     } else {
-        let transform_iter = args.transforms
-        .into_iter()
-        .map(|(path, expr)| quote! { #path(#expr) });
+        let transform_iter = args
+            .transforms
+            .into_iter()
+            .map(|(path, expr)| quote! { #path(#expr) });
         let mut transforms = quote! { . };
         transforms.append_separated(transform_iter, Token![.](Span::call_site()));
         Some(transforms)

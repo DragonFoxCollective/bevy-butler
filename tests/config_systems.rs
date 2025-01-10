@@ -1,13 +1,13 @@
-#![cfg_attr(feature="nightly", feature(stmt_expr_attributes))]
-#![cfg_attr(feature="nightly", feature(proc_macro_hygiene))]
-#![cfg_attr(feature="nightly", feature(used_with_arg))]
+#![cfg_attr(feature = "nightly", feature(stmt_expr_attributes))]
+#![cfg_attr(feature = "nightly", feature(proc_macro_hygiene))]
+#![cfg_attr(feature = "nightly", feature(used_with_arg))]
 
-use bevy_ecs::system::Resource;
 use bevy_butler::*;
+use bevy_ecs::system::Resource;
 
-#[cfg(feature="nightly")]
+#[cfg(feature = "nightly")]
 #[test]
-fn config_systems_attr_test() {
+fn config_systems_block_attr() {
     use bevy::prelude::*;
 
     struct MyPlugin;
@@ -25,16 +25,12 @@ fn config_systems_attr_test() {
     #[config_systems_block(plugin = MyPlugin, schedule = Update)]
     {
         #[system(schedule = Startup)]
-        fn hello_world()
-        {
+        fn hello_world() {
             info!("Hello, world!");
         }
 
         #[system]
-        fn goodbye_world(
-            time: Res<Time>,
-            mut marker: ResMut<Marker>,
-        ) {
+        fn goodbye_world(time: Res<Time>, mut marker: ResMut<Marker>) {
             info!("The time is {}", time.elapsed_secs());
             marker.0 = true;
         }
@@ -42,15 +38,18 @@ fn config_systems_attr_test() {
 
     App::new()
         .add_plugins((MinimalPlugins, MyPlugin))
-        .add_systems(PostUpdate, |marker: Res<Marker>, mut exit: EventWriter<AppExit>| {
-            assert!(marker.0, "Other systems failed to run");
-            exit.send(AppExit::Success);
-        })
+        .add_systems(
+            PostUpdate,
+            |marker: Res<Marker>, mut exit: EventWriter<AppExit>| {
+                assert!(marker.0, "Other systems failed to run");
+                exit.send(AppExit::Success);
+            },
+        )
         .run();
 }
 
 #[test]
-fn config_systems_test() {
+fn config_systems_function_macro() {
     use bevy::prelude::*;
 
     struct MyPlugin;
@@ -91,9 +90,12 @@ fn config_systems_test() {
 
     App::new()
         .add_plugins((MinimalPlugins, MyPlugin))
-        .add_systems(PostUpdate, |marker: Res<Marker>, mut exit: EventWriter<AppExit>| {
-            assert!(marker.0, "Other systems failed to run");
-            exit.send(AppExit::Success);
-        })
+        .add_systems(
+            PostUpdate,
+            |marker: Res<Marker>, mut exit: EventWriter<AppExit>| {
+                assert!(marker.0, "Other systems failed to run");
+                exit.send(AppExit::Success);
+            },
+        )
         .run();
 }

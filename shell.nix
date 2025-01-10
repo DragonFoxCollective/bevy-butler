@@ -19,6 +19,8 @@ in
       pkgs.udev.dev
       pkgs.wayland.dev
       mold
+      cargo-expand
+      cargo-msrv
     ];
     RUSTC_VERSION = overrides.toolchain.channel;
     # https://github.com/rust-lang/rust-bindgen#environment-variables

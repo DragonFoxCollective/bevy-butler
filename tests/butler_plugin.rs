@@ -9,9 +9,7 @@ fn butler_plugin_struct() {
     #[butler_plugin]
     struct MyPlugin;
 
-    App::new()
-        .add_plugins(MyPlugin)
-        .run();
+    App::new().add_plugins(MyPlugin).run();
 }
 
 #[test]
