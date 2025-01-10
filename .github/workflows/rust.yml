@@ -17,7 +17,7 @@ jobs:
     - name: Build
       run: cargo build --verbose
     - name: Run bevy-butler tests
-      run: cargo test --all --verbose
+      run: cargo test --verbose
   build-nightly:
     runs-on: ubuntu-latest
     steps:
@@ -26,4 +26,4 @@ jobs:
     - name: Build
       run: cargo +nightly build --verbose --features nightly
     - name: Run bevy-butler tests
-      run: cargo +nightly test --all --verbose --features nightly
+      run: cargo +nightly test --verbose --features nightly

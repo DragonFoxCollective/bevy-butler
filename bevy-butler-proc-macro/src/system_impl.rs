@@ -11,6 +11,7 @@ use syn::{parse::{Parse, ParseStream}, Error, Expr, ExprPath, ItemFn, Meta, Path
 
 use crate::utils::get_crate;
 
+#[derive(Debug)]
 pub(crate) struct SystemArgs {
     pub schedule: Option<ExprPath>,
     pub plugin: Option<ExprPath>,
@@ -87,6 +88,12 @@ impl SystemArgs {
             transforms: [self.transforms.clone(), new_args.transforms.clone()].concat(),
         }
     }
+
+    pub fn is_empty(&self) -> bool {
+        self.plugin.is_none() &&
+        self.schedule.is_none() &&
+        self.transforms.is_empty()
+    }
 }
 
 impl ToTokens for SystemArgs {
@@ -104,22 +111,6 @@ impl ToTokens for SystemArgs {
 }
 
 /// Implementation for `#[system]` on free-standing functions
-/// 
-/// ```
-/// # use bevy_butler_proc_macro::*;
-/// # use bevy::prelude::*;
-/// # #[butler_plugin]
-/// # struct MyPlugin;
-/// #[system(schedule = Startup, plugin = MyPlugin, run_if = || true)]
-/// fn hello_world() {
-///     info!("Hello, world!")
-/// }
-/// #
-/// # fn main() {
-/// #   App::new().add_plugins(MyPlugin).run();
-/// # }
-/// #
-/// ```
 pub(crate) fn system_free_standing_impl(args: SystemArgs, item: ItemFn) -> Result<proc_macro2::TokenStream, proc_macro2::TokenStream> {
     let schedule = args.schedule
         .ok_or_else(|| Error::new(Span::call_site(), "#[system] requires either a defined or inherited `schedule`").into_compile_error())?;

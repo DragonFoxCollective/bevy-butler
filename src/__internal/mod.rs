@@ -30,5 +30,5 @@ pub static BUTLER_REGISTRY: LazyLock<ButlerRegistry> = LazyLock::new(|| {
 });
 
 pub fn _butler_debug(msg: &str) {
-    debug!("{}", msg);
+    debug!(target: "bevy-butler", "{}", msg);
 }

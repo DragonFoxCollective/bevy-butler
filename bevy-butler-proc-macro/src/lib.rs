@@ -1,39 +1,18 @@
 #![cfg_attr(feature = "nightly", feature(stmt_expr_attributes))]
-#![doc(test(attr(cfg_attr(feature = "nightly", feature(used_with_arg)))))]
 
+use config_systems_impl::ConfigSystems;
 use proc_macro::TokenStream;
-use quote::ToTokens;
-use syn::{parse_macro_input, Error, ExprBlock, Item, ItemFn};
+use quote::quote;
+use syn::{parse_macro_input, Error, Item, ItemFn};
+#[cfg(feature = "nightly")]
+use syn::{ExprBlock};
+use system_impl::SystemArgs;
 
 mod utils;
 
 mod butler_plugin_impl;
 mod system_impl;
 
-/// Macro for defining a Plugin that automatically registers [`#[system]`](system).
-/// 
-/// You can either mark a struct to generate a Plugin implementation, or
-/// mark a Plugin implementation to include code for handling [`#[system]`](system) invocations.
-/// 
-/// ```
-/// # use bevy_butler_proc_macro::*;
-/// # use bevy::prelude::*;
-/// # #[derive(Resource)]
-/// # struct Hello(pub String);
-/// // Generates a plugin impl for a plugin struct
-/// #[butler_plugin]
-/// pub struct PluginOne;
-/// 
-/// pub struct PluginTwo;
-/// 
-/// // Inserts itself into a user-defined plugin impl
-/// #[butler_plugin]
-/// impl Plugin for PluginTwo {
-///     fn build(&self, app: &mut App) {
-///         app.insert_resource(Hello("World".to_string()));
-///     }
-/// }
-/// ```
 #[proc_macro_attribute]
 pub fn butler_plugin(args: TokenStream, item: TokenStream) -> TokenStream
 {
@@ -52,92 +31,54 @@ pub fn butler_plugin(args: TokenStream, item: TokenStream) -> TokenStream
     }
 }
 
-/// Include a system in a given [`Schedule`](bevy::prelude::Schedule). Optionally, define an
-/// [`#[butler_plugin]`][butler_plugin] to be registered with.
-/// 
-/// # Attributes
-/// ## `schedule` (Required)
-/// Defines the [`Schedule`](bevy::prelude::Schedule) that the system should run in.
-/// 
-/// ## `plugin` (Required)
-/// Defines a struct marked with [`#[butler_plugin]`](butler_plugin) that the
-/// system should be registered with.
-/// 
-/// ## Extras
-/// Any name-value attributes that don't match the above will be interpreted as system transforms.
-/// For example, adding `after = hello_world` will resolve your system definiton as `system.after(hello_world)`.
-/// 
-/// ```
-/// # use bevy::prelude::*;
-/// # use bevy_butler_proc_macro::*;
-/// #
-/// # #[butler_plugin]
-/// # pub struct MyPlugin;
-/// #
-/// #[system(schedule = Startup, plugin = MyPlugin)]
-/// fn hello_world()
-/// {
-///     info!("Hello, world!");
-/// }
-/// 
-/// #[system(schedule = Startup, plugin = MyPlugin, after = hello_world)]
-/// fn goodbye_world()
-/// {
-///     info!("Goodbye, world!");
-/// }
-/// ```
 #[proc_macro_attribute]
 pub fn system(attr: TokenStream, item: TokenStream) -> TokenStream {
-    let args = parse_macro_input!(attr as system_impl::SystemArgs);
+    let args = parse_macro_input!(attr as SystemArgs);
     let item = parse_macro_input!(item as ItemFn);
 
     match system_impl::system_free_standing_impl(args, item) {
         Ok(tokens) | Err(tokens) => tokens.into()
     }
 }
-#[cfg(feature = "nightly")]
+
 mod config_systems_impl;
-/// Provide default attributes for all [`#[system]`](system) invocations within
-/// the annotated block. Supports all `#[system]` attributes.
-/// 
-/// <div class="warning">
-/// 
-/// This syntax can only be used with the `nightly` feature.
-/// 
-/// </div>
-/// 
-/// ```
-/// #![feature(stmt_expr_attributes)]
-/// #![feature(proc_macro_hygiene)]
-/// 
-/// # use bevy_butler_proc_macro::*;
-/// # use bevy::prelude::*;
-/// #
-/// # #[butler_plugin]
-/// # pub struct MyPlugin;
-/// #
-/// #[config_systems(plugin = MyPlugin, schedule = Update)]
-/// {
-///     #[system(schedule = Startup)]
-///     fn on_startup() {
-///         info!("Hello, world!");
-///     }
-/// 
-///     #[system]
-///     fn on_update(time: Res<Time>) {
-///         info!("The current time is {}", time.elapsed_secs());
-///     }
-/// }
-/// ```
 #[cfg(feature = "nightly")]
 #[proc_macro_attribute]
-pub fn config_systems(attr: TokenStream, item: TokenStream) -> TokenStream {
-    let args = parse_macro_input!(attr as system_impl::SystemArgs);
+pub fn config_systems_block(attr: TokenStream, item: TokenStream) -> TokenStream {
+    let args = parse_macro_input!(attr as SystemArgs);
     let mut item = parse_macro_input!(item as ExprBlock);
 
-    if let Err(tokens) = config_systems_impl::block_impl(&args, &mut item) {
+    let mut config = ConfigSystems {
+        args,
+        stmts: item.block.stmts,
+    };
+
+    if let Err(tokens) = config_systems_impl::config_impl(&mut config) {
         return tokens.into();
     }
 
-    item.to_token_stream().into()
+    let stmts = &config.stmts;
+    quote! {{
+        #(#stmts)*
+    }}.into()
+}
+
+#[proc_macro]
+pub fn config_systems(block: TokenStream) -> TokenStream {
+    let mut args: ConfigSystems = match syn::parse(block.clone())
+        .map_err(|e| e.to_compile_error().into())
+    {
+        Ok(args) => args,
+        Err(e) => return e,
+    };
+
+    if let Err(tokens) = config_systems_impl::config_impl(&mut args) {
+        return tokens.into();
+    }
+
+    let stmts = &args.stmts;
+
+    quote! {
+        #( #stmts )*
+    }.into()
 }

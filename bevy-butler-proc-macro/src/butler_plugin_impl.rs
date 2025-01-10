@@ -47,24 +47,6 @@ fn butler_plugin_modify_build(plugin: &Path, bevy_butler: &Path, item_func: &mut
 }
 
 /// Implementation for impl-style #[butler-plugin] invocations
-/// 
-/// ```
-/// # use bevy_butler_proc_macro::butler_plugin;
-/// # use bevy::prelude::*;
-/// # struct MyPlugin;
-/// #[butler_plugin]
-/// impl Plugin for MyPlugin {
-///     fn build(&self, app: &mut App)
-///     {
-///         // Some code
-///     }
-/// }
-/// #
-/// # fn main() {
-/// #   App::new().add_plugins(MyPlugin).run();
-/// # }
-/// #
-/// ```
 pub(crate) fn butler_plugin_impl(_args: TokenStream, mut item_impl: ItemImpl) -> TokenStream {
     let bevy_butler: Path = match crate::utils::get_crate("bevy-butler").map_err(|e| {
         let err = Error::new(Span::call_site(), e.to_string()).to_compile_error();
