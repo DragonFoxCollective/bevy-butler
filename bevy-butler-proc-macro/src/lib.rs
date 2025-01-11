@@ -45,7 +45,7 @@ mod config_systems_impl;
 #[proc_macro_attribute]
 pub fn config_systems_block(attr: TokenStream, item: TokenStream) -> TokenStream {
     let args = parse_macro_input!(attr as SystemArgs);
-    let mut item = parse_macro_input!(item as ExprBlock);
+    let item = parse_macro_input!(item as ExprBlock);
 
     let mut config = ConfigSystems {
         args,

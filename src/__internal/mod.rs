@@ -11,7 +11,7 @@ use linkme::distributed_slice;
 pub type ButlerRegistry = HashMap<TypeId, HashSet<fn(&mut App)>>;
 
 #[distributed_slice]
-pub static BUTLER_SLICE: [&'static dyn ButlerSystem];
+pub static BUTLER_SLICE: [&'static dyn ButlerStaticSystem];
 
 pub static BUTLER_REGISTRY: LazyLock<ButlerRegistry> = LazyLock::new(|| {
     let mut registry = ButlerRegistry::new();
@@ -30,6 +30,8 @@ pub static BUTLER_REGISTRY: LazyLock<ButlerRegistry> = LazyLock::new(|| {
 });
 
 pub trait ButlerPlugin: Plugin {
+    type Marker;
+
     fn register_butler_plugins(app: &mut App) {
         match BUTLER_REGISTRY.get(&TypeId::of::<Self>()) {
             None => warn!(
@@ -45,8 +47,34 @@ pub trait ButlerPlugin: Plugin {
             }
         }
     }
+
+    /// Used to implement a marker that is only accessible by pub(crate)
+    fn _marker() -> Self::Marker;
 }
 
-pub trait ButlerSystem: 'static + Sync + Send {
+pub trait ButlerSystem
+where
+    Self: 'static + Sync + Send,
+{
+    type Plugin: ButlerPlugin;
+
+    fn system(&self) -> fn(&mut App);
+}
+
+// dyn-compatible form of ButlerSystem<Plugin>
+pub trait ButlerStaticSystem
+where
+    Self: 'static + Sync + Send,
+{
     fn registry_entry(&self) -> (TypeId, fn(&mut App));
+}
+
+impl<TSys, TPlugin> ButlerStaticSystem for TSys
+where
+    TSys: ButlerSystem<Plugin = TPlugin>,
+    TPlugin: ButlerPlugin,
+{
+    fn registry_entry(&self) -> (TypeId, fn(&mut App)) {
+        (TypeId::of::<TPlugin>(), self.system())
+    }
 }

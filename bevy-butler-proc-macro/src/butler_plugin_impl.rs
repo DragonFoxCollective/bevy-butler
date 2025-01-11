@@ -7,7 +7,7 @@
 
 use proc_macro::TokenStream;
 use proc_macro2::Span;
-use quote::{quote, ToTokens};
+use quote::{format_ident, quote, ToTokens};
 use syn::{
     spanned::Spanned, Error, Expr, ExprCall, FnArg, Ident, ImplItem, ImplItemFn, ItemImpl,
     ItemStruct, Pat, Path, Stmt, Token, Type,
@@ -26,16 +26,33 @@ fn butler_plugin_block(app_ident: &Ident, bevy_butler: &Path) -> ExprCall {
 /// `impl ButlerPlugin` block for a Plugin
 fn impl_butler_plugin_block(plugin: &Path, bevy_butler: &Path) -> proc_macro2::TokenStream {
     let ident = plugin.segments.last().unwrap().ident.clone();
+    let marker_mod_name = format_ident!(
+        "_butler_marker_{}",
+        &sha256::digest(plugin.to_token_stream().to_string())
+    );
+    let marker_name = format_ident!("{}CrateAccessMarker", ident);
+
     quote! {
-        impl #plugin {
-            /// Basic protection from crates registering systems to external plugins
-            pub(crate) fn _butler_internal_crate_protection() -> std::any::TypeId {
-                std::any::TypeId::of::<Self>()
+        mod #marker_mod_name {
+            pub struct #marker_name {
+                pub(crate) internal_crate_protection_marker: (),
+            }
+
+            impl #marker_name {
+                pub(crate) fn new() -> Self {
+                    Self { internal_crate_protection_marker: () }
+                }
             }
         }
 
         #[diagnostic::do_not_recommend]
-        impl #bevy_butler::__internal::ButlerPlugin for #ident {}
+        impl #bevy_butler::__internal::ButlerPlugin for #plugin {
+            type Marker = #marker_mod_name::#marker_name;
+
+            fn _marker() -> Self::Marker {
+                Self::Marker::new()
+            }
+        }
     }
 }
 

@@ -150,22 +150,19 @@ pub(crate) fn system_free_standing_impl(
         #[allow(non_camel_case_types)]
         struct #butler_sys_name;
 
-        impl #butler_sys_name {
-            /// Basic protection from crates registering systems to external plugins
-            pub(crate) fn _butler_internal_crate_protection() -> std::any::TypeId {
-                std::any::TypeId::of::<Self>()
-            }
-        }
-
         impl #bevy_butler::__internal::ButlerSystem for #butler_sys_name {
-            fn registry_entry(&self) -> (std::any::TypeId, fn(&mut App)) {
-                (#plugin::_butler_internal_crate_protection(), |app| { app.add_systems(#schedule, #sys_name #transforms); })
+            type Plugin = #plugin;
+
+            fn system(&self) -> fn(&mut App) {
+                use #bevy_butler::__internal::ButlerPlugin;
+                #plugin::_marker().internal_crate_protection_marker;
+                |app| { app.add_systems(#schedule, #sys_name #transforms); }
             }
         }
 
         #[#bevy_butler::__internal::linkme::distributed_slice(#bevy_butler::__internal::BUTLER_SLICE)]
         #[linkme(crate = #bevy_butler::__internal::linkme)] // I LOVE UNDOCUMENTED ATTRIBUTES!!! FUCK!!!
         #[allow(non_upper_case_globals)]
-        static #static_name: &'static dyn #bevy_butler::__internal::ButlerSystem = & #butler_sys_name;
+        static #static_name: &'static dyn #bevy_butler::__internal::ButlerStaticSystem = & #butler_sys_name;
     }.into())
 }
