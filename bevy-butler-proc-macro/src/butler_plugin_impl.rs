@@ -8,31 +8,39 @@
 use proc_macro::TokenStream;
 use proc_macro2::Span;
 use quote::{quote, ToTokens};
-use syn::{Error, FnArg, Ident, ImplItem, ImplItemFn, ItemImpl, ItemStruct, Pat, Path, Type};
+use syn::{
+    spanned::Spanned, Error, Expr, ExprCall, FnArg, Ident, ImplItem, ImplItemFn, ItemImpl,
+    ItemStruct, Pat, Path, Stmt, Token, Type,
+};
 
 use crate::utils::get_crate;
 
 /// Butler initialization function injected at the start of a Plugin's `build` function
-fn butler_plugin_block(app_ident: &Ident, bevy_butler: &Path, plugin: &Path) -> TokenStream {
-    quote! {{
-        let registry = &*#bevy_butler::__internal::BUTLER_REGISTRY;
-        let plugin_systems = registry.get(&std::any::TypeId::of::<#plugin>()).map(Vec::as_slice);
+fn butler_plugin_block(app_ident: &Ident, bevy_butler: &Path) -> ExprCall {
+    syn::parse2(quote! {
+        <Self as #bevy_butler::__internal::ButlerPlugin>::register_butler_plugins(#app_ident)
+    })
+    .expect("Failed to parse butler initialization block")
+}
 
-        let mut _butler_systems = 0;
-        if let Some(funcs) = plugin_systems {
-            for butler_func in &(*funcs) {
-                (butler_func)(#app_ident);
-                _butler_systems += 1;
+/// `impl ButlerPlugin` block for a Plugin
+fn impl_butler_plugin_block(plugin: &Path, bevy_butler: &Path) -> proc_macro2::TokenStream {
+    let ident = plugin.segments.last().unwrap().ident.clone();
+    quote! {
+        impl #plugin {
+            /// Basic protection from crates registering systems to external plugins
+            pub(crate) fn _butler_internal_crate_protection() -> std::any::TypeId {
+                std::any::TypeId::of::<Self>()
             }
         }
 
-        #bevy_butler::__internal::_butler_debug(&format!("{} added {_butler_systems} systems", stringify!(#plugin)));
-    }}.into()
+        #[diagnostic::do_not_recommend]
+        impl #bevy_butler::__internal::ButlerPlugin for #ident {}
+    }
 }
 
 /// Modify an existing `Plugin::build` function and insert our hook at the start
 fn butler_plugin_modify_build(
-    plugin: &Path,
     bevy_butler: &Path,
     item_func: &mut ImplItemFn,
 ) -> Result<(), TokenStream> {
@@ -44,11 +52,13 @@ fn butler_plugin_modify_build(
         _ => unreachable!(),
     };
 
-    let butler_block = butler_plugin_block(app_ident, &bevy_butler, plugin);
-    item_func
-        .block
-        .stmts
-        .insert(0, syn::parse(butler_block.into()).unwrap());
+    item_func.block.stmts.insert(
+        0,
+        Stmt::Expr(
+            Expr::Call(butler_plugin_block(app_ident, &bevy_butler)),
+            Some(Token![;](item_func.span())),
+        ),
+    );
 
     Ok(())
 }
@@ -82,7 +92,6 @@ pub(crate) fn butler_plugin_impl(_args: TokenStream, mut item_impl: ItemImpl) ->
         .into_compile_error()
         .into();
     }
-    // We can't fully guarantee that the `Plugin` is actually `bevy::prelude::Plugin`... oh well.
 
     // Get the struct name
     let plugin = if let Type::Path(plugin) = &(*item_impl.self_ty) {
@@ -101,13 +110,12 @@ pub(crate) fn butler_plugin_impl(_args: TokenStream, mut item_impl: ItemImpl) ->
         None
     }) {
         // We found an existing build function, modify it.
-        if let Err(e) = butler_plugin_modify_build(plugin, &bevy_butler, item) {
+        if let Err(e) = butler_plugin_modify_build(&bevy_butler, item) {
             return e;
         }
     } else {
         // There's no build function, inject our own.
-        let butler_block: proc_macro2::TokenStream =
-            butler_plugin_block(&Ident::new("app", Span::call_site()), &bevy_butler, plugin).into();
+        let butler_block = butler_plugin_block(&Ident::new("app", Span::call_site()), &bevy_butler);
         let build = quote! {
             fn build(&self, app: &mut App) {
                 #butler_block
@@ -116,7 +124,14 @@ pub(crate) fn butler_plugin_impl(_args: TokenStream, mut item_impl: ItemImpl) ->
         item_impl.items.push(syn::parse(build.into()).unwrap());
     }
 
-    return item_impl.to_token_stream().into();
+    let butler_plugin_impl = impl_butler_plugin_block(plugin, &bevy_butler);
+
+    return quote! {
+        #item_impl
+
+        #butler_plugin_impl
+    }
+    .into();
 }
 
 /// Implementation for struct-style #[butler-plugin] invocations
@@ -140,32 +155,21 @@ pub(crate) fn butler_plugin_struct(_args: TokenStream, item_struct: ItemStruct) 
     }
     let bevy_butler = bevy_butler.unwrap();
 
-    let bevy_app = get_crate("bevy")
-        .map(|mut name| {
-            name.segments.push(syn::parse_str("app").unwrap());
-            name
-        })
-        .or_else(|_| get_crate("bevy_app"));
-    if let Err(e) = bevy_app {
-        return Error::new(Span::call_site(), e).to_compile_error().into();
-    }
-    let bevy_app = bevy_app.unwrap();
+    let butler_block = butler_plugin_block(&syn::parse_str("app").unwrap(), &bevy_butler);
 
-    let butler_block: proc_macro2::TokenStream = butler_plugin_block(
-        &syn::parse_str("app").unwrap(),
-        &bevy_butler,
-        &Path::from(ident.clone()),
-    )
-    .into();
+    let butler_plugin_impl =
+        impl_butler_plugin_block(&syn::parse2(ident.to_token_stream()).unwrap(), &bevy_butler);
 
     quote! {
         #item_struct
 
-        impl #bevy_app::Plugin for #ident {
-            fn build(&self, app: &mut #bevy_app::App) {
+        impl #bevy_butler::__internal::bevy_app::Plugin for #ident {
+            fn build(&self, app: &mut #bevy_butler::__internal::bevy_app::App) {
                 #butler_block
             }
         }
+
+        #butler_plugin_impl
     }
     .into()
 }
