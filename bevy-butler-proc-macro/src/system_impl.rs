@@ -8,7 +8,7 @@
 use proc_macro2::{Span, TokenStream};
 use quote::{format_ident, quote, ToTokens};
 use syn::{
-    parse::{Parse, ParseStream}, punctuated::Punctuated, spanned::Spanned, Attribute, Error, Expr, ExprPath, ItemFn, Meta, Path, Token
+    parse::{Parse, ParseStream}, punctuated::Punctuated, spanned::Spanned, Attribute, Error, Expr, ExprPath, ItemFn, Meta, MetaList, Path, Token
 };
 
 use crate::utils::get_crate;
@@ -121,8 +121,23 @@ impl TryFrom<&Attribute> for SystemAttr {
 
         match value.meta {
             Meta::Path(_) => Ok(Self { span: value.span(), args: None }),
-            Meta::NameValue(_) => Ok(Self { span: value.span(), args: Some(value.parse_args()?) }),
-            Meta::List(_) => Err(Error::new(value.span(), "Unexpected list in #[system] declaration"))
+            _ => Ok(Self { span: value.span(), args: Some(value.parse_args()?) }),
+        }
+    }
+}
+
+impl Into<Attribute> for &SystemAttr {
+    fn into(self) -> Attribute {
+        let meta = match &self.args {
+            None => Meta::Path(syn::parse_str("system").unwrap()),
+            Some(args) => Meta::List(MetaList { path: syn::parse_str("system").unwrap(), delimiter: syn::MacroDelimiter::Brace(Default::default()), tokens: args.into_token_stream()}),
+        };
+
+        Attribute {
+            pound_token: Default::default(),
+            style: syn::AttrStyle::Outer,
+            bracket_token: Default::default(),
+            meta,
         }
     }
 }

@@ -2,20 +2,18 @@ use proc_macro2::TokenStream;
 use quote::{quote, ToTokens, TokenStreamExt};
 use syn::{
     parse::{Parse, ParseStream},
-    spanned::Spanned,
-    token::Paren,
-    Error, Expr, Item, MacroDelimiter, Meta, MetaList, Stmt,
+    Expr, Item, Stmt,
 };
 
-use crate::{system_impl::SystemArgs, utils::Parenthesized};
+use crate::{system_impl::{SystemArgs, SystemAttr}, utils::Parenthesized};
 
 #[derive(Debug)]
-pub(crate) struct ConfigSystems {
+pub(crate) struct ConfigSystemsInput {
     pub args: SystemArgs,
     pub stmts: Vec<Stmt>,
 }
 
-impl Parse for ConfigSystems {
+impl Parse for ConfigSystemsInput {
     fn parse(input: ParseStream) -> syn::Result<Self> {
         let args = Parenthesized::parse(input)?;
         let mut stmts = Vec::new();
@@ -31,7 +29,7 @@ impl Parse for ConfigSystems {
     }
 }
 
-impl ToTokens for ConfigSystems {
+impl ToTokens for ConfigSystemsInput {
     fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
         let args = &self.args;
         let statements = &self.stmts;
@@ -44,41 +42,22 @@ impl ToTokens for ConfigSystems {
 }
 
 /// Implementation for config_systems! and #[config_systems_block]
-pub(crate) fn config_impl(input: &mut ConfigSystems) -> Result<(), TokenStream> {
+pub(crate) fn config_impl(input: &mut ConfigSystemsInput) -> Result<(), TokenStream> {
     for stmt in input.stmts.iter_mut() {
         match stmt {
             Stmt::Item(Item::Fn(item)) => {
-                if let Some(attr) = item.attrs.iter_mut().find(|attr| {
-                    attr.path()
-                        .get_ident()
-                        .map(|i| i.to_string())
-                        .is_some_and(|i| i == "system")
-                }) {
-                    // Found #[system], modify
-                    match &mut attr.meta {
-                        Meta::List(list) => {
-                            // Splat old arguments with new arguments and rewrite attribute
-                            let new_args: SystemArgs = syn::parse2(list.tokens.clone())
-                                .map_err(|e| Error::new(list.span(), e).into_compile_error())?;
-
-                            list.tokens = input.args.splat(&new_args).to_token_stream();
-                        }
-                        Meta::Path(path) => {
-                            // Replace #[system] with #[system(...)]
-                            attr.meta = Meta::List(MetaList {
-                                path: path.clone(),
-                                delimiter: MacroDelimiter::Paren(Paren(path.span())),
-                                tokens: input.args.to_token_stream(),
-                            })
-                        }
-                        meta @ Meta::NameValue(_) => {
-                            return Err(Error::new(
-                                meta.span(),
-                                "Unexpected name-value meta format",
-                            )
-                            .into_compile_error())
-                        }
+                if let Some((attr, mut sys_attr)) = item.attrs.iter_mut().find_map(|attr| {
+                    if let Ok(sys_attr) = SystemAttr::try_from(&*attr) {
+                        return Some((attr, sys_attr));
                     }
+                    None
+                }) {
+                    sys_attr.args = match sys_attr.args {
+                        None => Some(input.args.clone()),
+                        Some(new_args) => Some(input.args.splat(&new_args)),
+                    };
+
+                    *attr = (&sys_attr).into();
                 }
             }
             Stmt::Expr(Expr::Block(block), _) => {
@@ -92,7 +71,7 @@ pub(crate) fn config_impl(input: &mut ConfigSystems) -> Result<(), TokenStream> 
                     let new_args: SystemArgs =
                         attr.parse_args().map_err(|e| e.to_compile_error())?;
 
-                    let config = ConfigSystems {
+                    let config = ConfigSystemsInput {
                         args: input.args.splat(&new_args),
                         stmts: block.block.stmts.clone(),
                     };
@@ -106,7 +85,7 @@ pub(crate) fn config_impl(input: &mut ConfigSystems) -> Result<(), TokenStream> 
                 }
             }
             Stmt::Macro(mc) => {
-                let mut config: ConfigSystems =
+                let mut config: ConfigSystemsInput =
                     mc.mac.parse_body().map_err(|e| e.to_compile_error())?;
                 config.args = input.args.splat(&config.args);
                 mc.mac.tokens = config.to_token_stream();

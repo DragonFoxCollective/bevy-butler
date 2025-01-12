@@ -1,6 +1,6 @@
 #![cfg_attr(feature = "nightly", feature(stmt_expr_attributes))]
 
-use config_systems_impl::ConfigSystems;
+use config_systems_impl::ConfigSystemsInput;
 use proc_macro::TokenStream;
 use quote::quote;
 #[cfg(feature = "nightly")]
@@ -49,7 +49,7 @@ pub fn config_systems_block(attr: TokenStream, item: TokenStream) -> TokenStream
     let args = parse_macro_input!(attr as SystemArgs);
     let item = parse_macro_input!(item as ExprBlock);
 
-    let mut config = ConfigSystems {
+    let mut config = ConfigSystemsInput {
         args,
         stmts: item.block.stmts,
     };
@@ -67,7 +67,7 @@ pub fn config_systems_block(attr: TokenStream, item: TokenStream) -> TokenStream
 
 #[proc_macro]
 pub fn config_systems(block: TokenStream) -> TokenStream {
-    let mut args: ConfigSystems =
+    let mut args: ConfigSystemsInput =
         match syn::parse(block.clone()).map_err(|e| e.to_compile_error().into()) {
             Ok(args) => args,
             Err(e) => return e,
