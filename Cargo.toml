@@ -1,6 +1,6 @@
 [package]
 name = "bevy-butler"
-version = "0.3.0"
+version = "0.4.0"
 edition = "2021"
 categories = ["game-development", "rust-patterns"]
 description = "A crate for making Bevy systems more self-documenting"
@@ -19,7 +19,7 @@ members = [
 ]
 
 [dependencies]
-bevy-butler-proc-macro = { path = "./bevy-butler-proc-macro", version = "0.3.0" }
+bevy-butler-proc-macro = { path = "./bevy-butler-proc-macro", version = "0.4.0" }
 bevy_app = { version = "0.15.1", default-features = false }
 bevy_ecs = { version = "0.15.1", default-features = false }
 bevy_log = { version = "0.15.1", default-features = false }
