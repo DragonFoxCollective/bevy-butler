@@ -31,20 +31,20 @@ pub mod __internal;
 /// ```
 pub use bevy_butler_proc_macro::butler_plugin;
 
-/// Include a system in a given [`Schedule`](bevy::prelude::Schedule). Optionally, define an
-/// [`#[butler_plugin]`][butler_plugin] to be registered with.
+/// Register a system to a [`#[butler_plugin]`](butler_plugin)
+/// to run with a given [`Schedule`](bevy_ecs::prelude::Schedule).
 ///
 /// # Attributes
-/// ## `schedule` (Required)
-/// Defines the [`Schedule`](bevy::prelude::Schedule) that the system should run in.
+/// ## `schedule`
+/// Defines the [`Schedule`](bevy_ecs::prelude::Schedule) that the system should run in.
 ///
-/// ## `plugin` (Required)
+/// ## `plugin`
 /// Defines a struct marked with [`#[butler_plugin]`](butler_plugin) that the
 /// system should be registered with.
 ///
-/// ## Extras
-/// Any name-value attributes that don't match the above will be interpreted as system transforms.
-/// For example, adding `after = hello_world` will resolve your system definiton as `system.after(hello_world)`.
+/// ## Others
+/// Any other attributes that don't match the above will be interpreted as system transforms.
+/// For example, you can define ordering with `#[system(after = hello_world)]` or `#[system(after(hello_world))]`.
 ///
 /// ```
 /// # use bevy::prelude::*;
@@ -68,7 +68,11 @@ pub use bevy_butler_proc_macro::butler_plugin;
 pub use bevy_butler_proc_macro::system;
 
 /// Provide default attributes for all [`#[system]`](system) invocations within
-/// the block. Supports all `#[system]` attributes.
+/// the block. Accepts all `#[system]` attributes, and will insert the given arguments onto
+/// every contained `#[system]` attribute.
+/// 
+/// `plugin` and `schedule` can be overriden in the `#[system]` invocation, but transformations
+/// will be applied after the transformations defined in `config_systems!`.
 ///
 /// ```
 /// # use bevy::prelude::*;
@@ -79,8 +83,46 @@ pub use bevy_butler_proc_macro::system;
 /// struct MyPlugin;
 ///
 /// config_systems! {
-///     (plugin = MyPlugin, schedule = Update)
+///     (plugin = MyPlugin, schedule = Startup)
 ///
+///     #[system]
+///     fn on_startup() {
+///         info!("Hello, world!");
+///     }
+///
+///     #[system(schedule = Update)]
+///     fn on_update(time: Res<Time>) {
+///         info!("The current time is {}", time.elapsed_secs());
+///     }
+/// }
+/// ```
+pub use bevy_butler_proc_macro::config_systems;
+
+///<div class="warning">
+/// 
+/// This syntax is only available with the `nightly` feature. For the stable syntax, see [`config_systems!`](config_systems).
+/// 
+/// </div>
+/// 
+/// Provide default attributes for all [`#[system]`](system) invocations within
+/// the block. Accepts all `#[system]` attributes, and will insert the given arguments onto
+/// every contained `#[system]` attribute.
+/// 
+/// `plugin` and `schedule` can be overriden in the `#[system]` invocation, but transformations
+/// will be applied after the transformations defined in `#[config_systems_block]`.
+///
+/// ```
+/// #![cfg_attr(feature = "nightly", feature(stmt_expr_attributes))]
+/// #![cfg_attr(feature = "nightly", feature(proc_macro_hygiene))]
+/// # use bevy::prelude::*;
+/// # use bevy_butler::*;
+/// # use bevy_log::info;
+///
+/// #[butler_plugin]
+/// struct MyPlugin;
+///
+/// #[config_systems_block(plugin = MyPlugin, schedule = Update)]
+/// {
 ///     #[system(schedule = Startup)]
 ///     fn on_startup() {
 ///         info!("Hello, world!");
@@ -92,9 +134,51 @@ pub use bevy_butler_proc_macro::system;
 ///     }
 /// }
 /// ```
-pub use bevy_butler_proc_macro::config_systems;
-
 #[cfg(feature = "nightly")]
 pub use bevy_butler_proc_macro::config_systems_block;
 
+/// Groups all enclosed [`#[system]`](system) invocations into a system set, which
+/// can have transformations applied to it.
+/// 
+/// Unlike [`config_systems!`](config_systems), instead of reconfiguring the contained
+/// `#[system]` blocks, `system_set!` will wrap all the systems in one system set and
+/// add it to the plugin under the given schedule. This can be used to run set-level
+/// transformations, such as [`chain`][bevy_ecs::prelude::IntoSystemConfigs::chain]. However,
+/// because of this, you cannot redefine `schedule` or `plugin`, as the entire set is
+/// added under one invocation of `app.add_systems`.
+/// 
+/// Transforms can still be defined on both a system-level and the set-level.
+/// 
+/// ```
+/// # use bevy::prelude::*;
+/// # use bevy_butler::*;
+/// #
+/// # #[butler_plugin]
+/// # struct MyPlugin;
+/// // Adds (one, two, three).chain() to MyPlugin
+/// // When run, these systems will print
+/// // ```
+/// // One
+/// // Two
+/// // Three
+/// // ```
+/// system_set! {
+///     (plugin = MyPlugin, schedule = Startup, chain)
+/// 
+///     #[system]
+///     fn one() {
+///         info!("One");
+///     }
+/// 
+///     #[system]
+///     fn two() {
+///         info!("Two");
+///     }
+/// 
+///     #[system]
+///     fn three() {
+///         info!("Three");
+///     }
+/// }
+/// ```
 pub use bevy_butler_proc_macro::system_set;
