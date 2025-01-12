@@ -6,7 +6,7 @@ use quote::quote;
 #[cfg(feature = "nightly")]
 use syn::ExprBlock;
 use syn::{parse_macro_input, Error, Item, ItemFn};
-use system_impl::SystemArgs;
+use system_impl::{SystemArgs, SystemAttr, SystemInput};
 
 mod utils;
 
@@ -35,7 +35,9 @@ pub fn system(attr: TokenStream, item: TokenStream) -> TokenStream {
     let args = parse_macro_input!(attr as SystemArgs);
     let item = parse_macro_input!(item as ItemFn);
 
-    match system_impl::system_free_standing_impl(args, item) {
+    let input = SystemInput { attr: SystemAttr { span: args.span, args: Some(args) }, item };
+
+    match system_impl::free_standing_impl(input) {
         Ok(tokens) | Err(tokens) => tokens.into(),
     }
 }

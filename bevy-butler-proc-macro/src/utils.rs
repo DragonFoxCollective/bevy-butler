@@ -1,8 +1,6 @@
 use proc_macro_crate::{crate_name, FoundCrate};
 use syn::{
-    parenthesized,
-    parse::{Parse, ParseStream},
-    Path,
+    parenthesized, parse::{Parse, ParseStream}, Path
 };
 
 pub(crate) fn get_crate(name: &str) -> Result<Path, proc_macro_crate::Error> {
