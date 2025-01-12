@@ -5,9 +5,11 @@ use syn::{
     Expr, Item, Stmt,
 };
 
-use crate::{system_impl::{SystemArgs, SystemAttr}, utils::Parenthesized};
+use crate::{
+    system_impl::{SystemArgs, SystemAttr},
+    utils::Parenthesized,
+};
 
-#[derive(Debug)]
 pub(crate) struct ConfigSystemsInput {
     pub args: SystemArgs,
     pub stmts: Vec<Stmt>,

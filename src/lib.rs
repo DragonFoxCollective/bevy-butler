@@ -96,3 +96,5 @@ pub use bevy_butler_proc_macro::config_systems;
 
 #[cfg(feature = "nightly")]
 pub use bevy_butler_proc_macro::config_systems_block;
+
+pub use bevy_butler_proc_macro::system_set;

@@ -7,6 +7,7 @@ use quote::quote;
 use syn::ExprBlock;
 use syn::{parse_macro_input, Error, Item, ItemFn};
 use system_impl::{SystemArgs, SystemAttr, SystemInput};
+use system_set_impl::SystemSetInput;
 
 mod utils;
 
@@ -35,7 +36,13 @@ pub fn system(attr: TokenStream, item: TokenStream) -> TokenStream {
     let args = parse_macro_input!(attr as SystemArgs);
     let item = parse_macro_input!(item as ItemFn);
 
-    let input = SystemInput { attr: SystemAttr { span: args.span, args: Some(args) }, item };
+    let input = SystemInput {
+        attr: SystemAttr {
+            span: args.span,
+            args: Some(args),
+        },
+        item,
+    };
 
     match system_impl::free_standing_impl(input) {
         Ok(tokens) | Err(tokens) => tokens.into(),
@@ -83,4 +90,14 @@ pub fn config_systems(block: TokenStream) -> TokenStream {
         #( #stmts )*
     }
     .into()
+}
+
+mod system_set_impl;
+#[proc_macro]
+pub fn system_set(block: TokenStream) -> TokenStream {
+    let input: SystemSetInput = parse_macro_input!(block as SystemSetInput);
+
+    match system_set_impl::macro_impl(input) {
+        Ok(tokens) | Err(tokens) => tokens.into(),
+    }
 }
