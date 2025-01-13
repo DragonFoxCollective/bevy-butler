@@ -70,7 +70,7 @@ pub use bevy_butler_proc_macro::system;
 /// Provide default attributes for all [`#[system]`](system) invocations within
 /// the block. Accepts all `#[system]` attributes, and will insert the given arguments onto
 /// every contained `#[system]` attribute.
-/// 
+///
 /// `plugin` and `schedule` can be overriden in the `#[system]` invocation, but transformations
 /// will be applied after the transformations defined in `config_systems!`.
 ///
@@ -99,15 +99,15 @@ pub use bevy_butler_proc_macro::system;
 pub use bevy_butler_proc_macro::config_systems;
 
 ///<div class="warning">
-/// 
+///
 /// This syntax is only available with the `nightly` feature. For the stable syntax, see [`config_systems!`](config_systems).
-/// 
+///
 /// </div>
-/// 
+///
 /// Provide default attributes for all [`#[system]`](system) invocations within
 /// the block. Accepts all `#[system]` attributes, and will insert the given arguments onto
 /// every contained `#[system]` attribute.
-/// 
+///
 /// `plugin` and `schedule` can be overriden in the `#[system]` invocation, but transformations
 /// will be applied after the transformations defined in `#[config_systems_block]`.
 ///
@@ -139,16 +139,16 @@ pub use bevy_butler_proc_macro::config_systems_block;
 
 /// Groups all enclosed [`#[system]`](system) invocations into a system set, which
 /// can have transformations applied to it.
-/// 
+///
 /// Unlike [`config_systems!`](config_systems), instead of reconfiguring the contained
 /// `#[system]` blocks, `system_set!` will wrap all the systems in one system set and
 /// add it to the plugin under the given schedule. This can be used to run set-level
 /// transformations, such as [`chain`][bevy_ecs::prelude::IntoSystemConfigs::chain]. However,
 /// because of this, you cannot redefine `schedule` or `plugin`, as the entire set is
 /// added under one invocation of `app.add_systems`.
-/// 
+///
 /// Transforms can still be defined on both a system-level and the set-level.
-/// 
+///
 /// ```
 /// # use bevy::prelude::*;
 /// # use bevy_butler::*;
@@ -164,17 +164,17 @@ pub use bevy_butler_proc_macro::config_systems_block;
 /// // ```
 /// system_set! {
 ///     (plugin = MyPlugin, schedule = Startup, chain)
-/// 
+///
 ///     #[system]
 ///     fn one() {
 ///         info!("One");
 ///     }
-/// 
+///
 ///     #[system]
 ///     fn two() {
 ///         info!("Two");
 ///     }
-/// 
+///
 ///     #[system]
 ///     fn three() {
 ///         info!("Three");

@@ -59,7 +59,7 @@ pub(crate) fn register_system_set_block(
 
             fn system(&self) -> fn(&mut App) {
                 use ::bevy_butler::__internal::ButlerPlugin;
-                #plugin::_marker().internal_crate_protection_marker;
+                #plugin::_marker()._marker;
                 |app| { app.add_systems(#schedule, #sys_transform); }
             }
         }
@@ -86,6 +86,7 @@ impl Parse for SystemArgs {
             }
 
             let meta = input.parse::<Meta>()?;
+            eprintln!("META: {}", meta.to_token_stream());
 
             match meta {
                 Meta::Path(path) => {
@@ -216,7 +217,7 @@ impl SystemArgs {
     pub fn require_schedule(&self) -> Result<&ExprPath, TokenStream> {
         match &self.schedule {
             None => {
-                Err(Error::new(self.span, "Expected a `plugin` name-value").into_compile_error())
+                Err(Error::new(self.span, "Expected a `schedule` name-value").into_compile_error())
             }
             Some(schedule) => Ok(schedule),
         }

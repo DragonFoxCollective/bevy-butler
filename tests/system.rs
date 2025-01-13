@@ -1,7 +1,7 @@
 #![cfg_attr(feature = "nightly", feature(used_with_arg))]
 
 use bevy::MinimalPlugins;
-use bevy_app::{App, AppExit, Plugin, Startup, Update};
+use bevy_app::{App, AppExit, Plugin, PostStartup, Startup, Update};
 use bevy_butler::*;
 use bevy_ecs::{
     event::EventWriter,
@@ -10,12 +10,12 @@ use bevy_ecs::{
 };
 
 #[test]
-pub fn test() {
+fn system() {
     #[derive(Resource)]
-    pub struct Marker(pub bool);
+    struct Marker(pub bool);
 
     #[derive(Debug)]
-    pub struct TestPlugin;
+    struct TestPlugin;
 
     #[butler_plugin]
     impl Plugin for TestPlugin {
@@ -26,7 +26,7 @@ pub fn test() {
 
     #[butler_plugin]
     #[derive(Debug)]
-    pub struct OtherTestPlugin;
+    struct OtherTestPlugin;
 
     #[system(schedule = Startup, plugin = TestPlugin, run_if = || true)]
     fn test_system(mut marker: ResMut<Marker>) {
@@ -43,5 +43,44 @@ pub fn test() {
     App::new()
         .add_plugins(MinimalPlugins)
         .add_plugins((TestPlugin, OtherTestPlugin))
+        .run();
+}
+
+#[test]
+fn systems_with_advanced_plugin() {
+    #[derive(Resource)]
+    struct MarkerOne(pub u8);
+
+    #[derive(Resource)]
+    struct MarkerTwo(pub u8);
+
+    struct MyPlugin;
+
+    #[butler_plugin]
+    #[build = insert_resource(MarkerOne(1))]
+    impl Plugin for MyPlugin {
+        fn build(&self, nonstandard_name: &mut App) {
+            nonstandard_name.insert_resource(MarkerTwo(2));
+        }
+    }
+
+    #[system(plugin = MyPlugin, schedule = Startup)]
+    fn marker_one(mut marker: ResMut<MarkerOne>) {
+        assert_eq!(marker.0, 1);
+        marker.0 = 2;
+    }
+
+    #[system(schedule = Startup, plugin = MyPlugin)]
+    fn marker_two(mut marker: ResMut<MarkerTwo>) {
+        assert_eq!(marker.0, 2);
+        marker.0 = 4;
+    }
+
+    App::new()
+        .add_plugins(MyPlugin)
+        .add_systems(PostStartup, |marker1: Res<MarkerOne>, marker2: Res<MarkerTwo>| {
+            assert_eq!(marker1.0, 2);
+            assert_eq!(marker2.0, 4);
+        })
         .run();
 }
