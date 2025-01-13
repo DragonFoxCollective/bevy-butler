@@ -1,12 +1,12 @@
 #![cfg_attr(feature = "nightly", feature(stmt_expr_attributes))]
 
-use butler_plugin_impl::ButlerPluginInput;
+use butler_plugin_impl::{ButlerPluginInput, PluginStageData};
 use config_systems_impl::ConfigSystemsInput;
 use proc_macro::TokenStream;
 use quote::quote;
 #[cfg(feature = "nightly")]
 use syn::ExprBlock;
-use syn::{parse_macro_input, ItemFn};
+use syn::{parse::Parser, parse_macro_input, ItemFn};
 use system_impl::{SystemArgs, SystemAttr, SystemInput};
 use system_set_impl::SystemSetInput;
 
@@ -14,8 +14,19 @@ mod utils;
 
 mod butler_plugin_impl;
 #[proc_macro_attribute]
-pub fn butler_plugin(_args: TokenStream, item: TokenStream) -> TokenStream {
-    match butler_plugin_impl::macro_impl(parse_macro_input!(item as ButlerPluginInput)) {
+pub fn butler_plugin(args: TokenStream, item: TokenStream) -> TokenStream {
+    let mut item = parse_macro_input!(item as ButlerPluginInput);
+
+    match PluginStageData::parse_as_list.parse(args) {
+        Ok(data) => {
+            if let Err(e) = item.stage_data().merge(data).map_err(|e| e.to_compile_error().into()) {
+                return e;
+            }
+        },
+        Err(e) => { return e.to_compile_error().into(); },
+    }
+
+    match butler_plugin_impl::macro_impl(item) {
         Ok(tokens) | Err(tokens) => tokens.into(),
     }
 }

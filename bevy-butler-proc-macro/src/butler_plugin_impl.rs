@@ -5,19 +5,20 @@
 //! 2. Attaching it to an `impl Plugin` definition will add a hook at the beginning
 //!    of the `build` function, or create the `build` function if one isn't present.
 
-use std::collections::HashSet;
+use std::{collections::HashSet, fmt::Display};
 
+use itertools::Itertools;
 use proc_macro2::{Span, TokenStream};
 use quote::{format_ident, quote, ToTokens};
 use syn::{
-    parse::{Parse, ParseStream, Parser},
-    punctuated::Punctuated,
-    Attribute, Error, Expr, FnArg, Ident, ImplItem, Item, ItemImpl, ItemStruct, Meta, Pat, Type,
+    parse::{Parse, ParseStream, Parser}, punctuated::Punctuated, spanned::Spanned, Attribute, Error, Expr, FnArg, Ident, ImplItem, Item, ItemImpl, ItemStruct, Meta, Pat, Path, Token, Type
 };
 
 pub(crate) type PluginStageOps = Vec<Expr>;
-pub(crate) type PluginStageData = [Option<PluginStageOps>; 3];
+#[derive(Debug)]
+pub(crate) struct PluginStageData(pub [Option<PluginStageOps>; 3], pub Span);
 
+#[derive(Debug)]
 pub(crate) enum ButlerPluginInput {
     /// ```ignore
     /// #[butler_plugin]
@@ -34,6 +35,123 @@ pub(crate) enum ButlerPluginInput {
     Impl(ItemImpl, PluginStageData),
 }
 
+impl ButlerPluginInput {
+    pub fn stage_data(&mut self) -> &mut PluginStageData {
+        match self {
+            ButlerPluginInput::Impl(_, data) => data,
+            ButlerPluginInput::Struct(_, data) => data,
+        }
+    }
+}
+
+fn parse_stage_ops(input: ParseStream) -> syn::Result<PluginStageOps> {
+    let mut ops = Vec::new();
+    let metas: Punctuated<Meta, Token![,]> = Punctuated::parse_terminated(input)?;
+
+    for meta in metas {
+        match meta {
+            Meta::Path(path) => {
+                // Just a simple `app.function()`
+                ops.push(syn::parse2(quote!(#path ()))?);
+            }
+            Meta::List(list) => {
+                // Call with arguments `app.function(arg1, arg2)`
+                let path = list.path;
+                let args: Punctuated<Expr, syn::token::Comma> =
+                    Punctuated::parse_terminated.parse2(list.tokens)?; // What do you mean I need to call `parse2` on the fucking parse function
+                ops.push(syn::parse2(quote!( #path (#args) ))?);
+            }
+            Meta::NameValue(name_value) => {
+                // Call with a single argument `app.name(value)`
+                let name = name_value.path;
+                let value = name_value.value;
+                ops.push(syn::parse2(quote!( #name (#value)))?);
+            }
+        }
+    }
+
+    Ok(ops)
+}
+
+/// Parse a single stage invocation, i.e. `#[build(...)]`
+/// Return None if it's not a PluginStage
+/// Return Some if it's a valid PluginStage path and successfully parsed
+/// Return Err if it's a valid PluginStage path, but failed to parse
+pub fn parse_stage(meta: &Meta) -> syn::Result<Option<(PluginStage, PluginStageOps)>> {
+    let stage = PluginStage::try_from(meta.path());
+    if stage.is_err() {
+        // This isn't a PluginStage attr
+        return Ok(None);
+    }
+    let stage = stage.unwrap();
+
+    match meta {
+        Meta::Path(path) => return Err(Error::new(path.span(), "Expected list or name-value, got path")),
+        Meta::List(list) => return Ok(Some((stage, list.parse_args_with(parse_stage_ops)?))),
+        Meta::NameValue(name_value) => Ok(Some((stage, vec![name_value.value.clone()]))),
+    }
+}
+
+impl PluginStageData {
+    pub fn merge(&mut self, other: PluginStageData) -> syn::Result<()> {
+        for (stage, ops) in other.0.into_iter().enumerate().filter_map(|(stage, ops)| ops.map(|ops| (PluginStage::try_from(stage).unwrap(), ops))) {
+            self.insert(stage, ops)?;
+        }
+
+        Ok(())
+    }
+
+    pub fn insert(&mut self, stage: PluginStage, ops: PluginStageOps) -> syn::Result<()> {
+        if self.0[stage as usize].is_some() {
+            return Err(Error::new(self.1, format!("Plugin stage `{stage}` declared multiple times")));
+        }
+
+        self.0[stage as usize] = Some(ops);
+        Ok(())
+    }
+
+    /// Parse args from #[butler_plugin(...)]
+    pub fn parse_as_list(list: ParseStream) -> syn::Result<PluginStageData> {
+        let list: Punctuated<Meta, Token![,]> = Punctuated::parse_terminated(list)?;
+        let mut stage_data = PluginStageData(
+            Default::default(),
+            list.span()
+        );
+
+        for meta in list {
+            if let Some((stage, ops)) = parse_stage(&meta)? {
+                stage_data.insert(stage, ops)?;
+            }
+        }
+        
+        Ok(stage_data)
+    }
+
+    /// Parse args from
+    /// ```ignore
+    /// #[butler_plugin]
+    /// #[build = ...]
+    /// #[cleanup = ...]
+    /// ```
+    pub fn parse_from_attrs(attrs: &mut Vec<Attribute>) -> syn::Result<PluginStageData> {
+        let mut removes = HashSet::new();
+        let mut stage_data = PluginStageData(
+            Default::default(),
+            Span::call_site(),
+        );
+
+        for (pos, attr) in attrs.iter().enumerate() {
+            if let Some((stage, ops)) = parse_stage(&attr.meta)? {
+                stage_data.insert(stage, ops)?;
+                removes.insert(pos);
+            }
+        }
+
+        removes.into_iter().sorted_unstable().rev().for_each(|rem| { attrs.remove(rem); });
+        Ok(stage_data)
+    }
+}
+
 /// ```ignore
 /// #[butler_plugin]
 /// #[build(/* Some app.* functions */)]
@@ -45,6 +163,12 @@ pub(crate) enum PluginStage {
     Build = 0,
     Finish,
     Cleanup,
+}
+
+impl Display for PluginStage {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_str(self.into())
+    }
 }
 
 impl TryFrom<&Ident> for PluginStage {
@@ -92,6 +216,16 @@ impl TryFrom<usize> for PluginStage {
     }
 }
 
+impl TryFrom<&Path> for PluginStage {
+    type Error = syn::Error;
+
+    fn try_from(value: &Path) -> Result<Self, Self::Error> {
+        value.get_ident()
+            .and_then(|i| PluginStage::try_from(i).ok())
+            .ok_or_else(|| Error::new(value.span(), format!("Unknown plugin stage \"{}\"", value.to_token_stream().to_string())))
+    }
+}
+
 impl Into<&'static str> for &PluginStage {
     fn into(self) -> &'static str {
         match self {
@@ -112,105 +246,15 @@ impl ToTokens for PluginStage {
     }
 }
 
-fn parse_stage_ops(input: ParseStream) -> syn::Result<PluginStageOps> {
-    let mut ops = Vec::new();
-
-    while !input.is_empty() {
-        match input.parse::<Meta>()? {
-            Meta::Path(path) => {
-                // Just a simple `app.function()`
-                ops.push(syn::parse2(quote!(#path ()))?);
-            }
-            Meta::List(list) => {
-                // Call with arguments `app.function(arg1, arg2)`
-                let path = list.path;
-                let args: Punctuated<Expr, syn::token::Comma> =
-                    Punctuated::parse_terminated.parse2(list.tokens)?; // What do you mean I need to call `parse2` on the fucking parse function
-                ops.push(syn::parse2(quote!( #path (#args) ))?);
-            }
-            Meta::NameValue(name_value) => {
-                // Call with a single argument `app.name(value)`
-                let name = name_value.path;
-                let value = name_value.value;
-                ops.push(syn::parse2(quote!( #name (#value)))?);
-            }
-        }
-        if !input.is_empty() {
-            input.parse::<syn::token::Comma>()?;
-        }
-    }
-
-    Ok(ops)
-}
-
-fn parse_plugin_stage_data(attrs: &mut Vec<Attribute>) -> syn::Result<PluginStageData> {
-    let mut plugin_stages: PluginStageData = Default::default();
-
-    let mut removes = HashSet::new();
-
-    for (meta, stage) in attrs.iter().enumerate().filter_map(|(pos, attr)| {
-        if let Ok(stage) = PluginStage::try_from(attr) {
-            removes.insert(pos);
-            return Some((attr.meta.clone(), stage));
-        }
-        None
-    }) {
-        if plugin_stages[stage as usize].is_some() {
-            return Err(Error::new_spanned(
-                meta,
-                format!("Multiple declarations of `{}`", Into::<&str>::into(&stage)),
-            ));
-        }
-        match &meta {
-            Meta::List(list) => {
-                // #[build(...)]
-                plugin_stages[stage as usize] = Some(list.parse_args_with(parse_stage_ops)?);
-            }
-            Meta::NameValue(name_value) => {
-                // #[build = ...]
-                if let Ok(func) = syn::parse2(name_value.value.to_token_stream()) {
-                    plugin_stages[stage as usize] = Some(vec![func]);
-                } else {
-                    let value = &name_value.value;
-                    // Assume it's just missing the parenthesis and try to convert it
-                    let func = syn::parse2(quote!( #value () ))?;
-                    plugin_stages[stage as usize] = Some(vec![func])
-                }
-            }
-            Meta::Path(_) => {
-                // #[build], invalid
-                return Err(Error::new_spanned(
-                    meta,
-                    "Expected a name-value attribute or list of attributes, got path",
-                ));
-            }
-        }
-    }
-
-    *attrs = attrs
-        .into_iter()
-        .enumerate()
-        .filter_map(|(i, attr)| {
-            if removes.contains(&i) {
-                None
-            } else {
-                Some(attr.clone())
-            }
-        })
-        .collect();
-
-    Ok(plugin_stages)
-}
-
 impl Parse for ButlerPluginInput {
     fn parse(input: syn::parse::ParseStream) -> syn::Result<Self> {
         match input.parse::<Item>()? {
             Item::Struct(mut plugin_struct) => {
-                let stages = parse_plugin_stage_data(&mut plugin_struct.attrs)?;
+                let stages = PluginStageData::parse_from_attrs(&mut plugin_struct.attrs)?;
                 Ok(Self::Struct(plugin_struct, stages))
             }
             Item::Impl(mut plugin_impl) => {
-                let stages = parse_plugin_stage_data(&mut plugin_impl.attrs)?;
+                let stages = PluginStageData::parse_from_attrs(&mut plugin_impl.attrs)?;
                 Ok(Self::Impl(plugin_impl, stages))
             }
             _ => Err(Error::new(
@@ -279,9 +323,9 @@ pub(crate) fn struct_impl(
     plugin: ItemStruct,
     mut args: PluginStageData,
 ) -> Result<TokenStream, TokenStream> {
-    args[PluginStage::Build as usize].get_or_insert(vec![]); // `build` is a required stage
-                                                             // For a struct, generate an `impl Plugin` statement below the struct declaration
-    let stage_iter = args.into_iter().enumerate().map(|(stage, ops)| {
+    let _ = args.insert(PluginStage::Build, vec![]); // Inject a dummy `fn build` to generate the plugin registration method
+
+    let stage_iter = args.0.into_iter().enumerate().map(|(stage, ops)| {
         let stage = PluginStage::try_from(stage).unwrap();
         ops.map(|ops| generate_plugin_stage(stage, ops))
     });
@@ -307,12 +351,12 @@ pub(crate) fn impl_impl(
     mut plugin: ItemImpl,
     mut args: PluginStageData,
 ) -> Result<TokenStream, TokenStream> {
-    args[PluginStage::Build as usize].get_or_insert(vec![]); // Inject a dummy `fn build` to generate the plugin registration method
+    let _ = args.insert(PluginStage::Build, vec![]); // Inject a dummy `fn build` to generate the plugin registration method
 
     for item in plugin.items.iter_mut() {
         if let ImplItem::Fn(item) = item {
             if let Ok(stage) = PluginStage::try_from(&item.sig.ident) {
-                if let Some(ops) = args[stage as usize].take() {
+                if let Some(ops) = args.0[stage as usize].take() {
                     let app_ident;
                     // Why does this fucking suck so much
                     if let FnArg::Typed(pat) = &item.sig.inputs[1] {
@@ -338,7 +382,7 @@ pub(crate) fn impl_impl(
     }
 
     // Insert any blocks that werent user-defined, but had attributes
-    for (stage, ops) in args.into_iter().enumerate() {
+    for (stage, ops) in args.0.into_iter().enumerate() {
         let stage = PluginStage::try_from(stage).unwrap();
         if let Some(ops) = ops {
             // Insert a new function block

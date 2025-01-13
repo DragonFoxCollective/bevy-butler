@@ -70,3 +70,34 @@ fn butler_advanced_plugin_impl() {
     );
     app.run();
 }
+
+#[test]
+fn butler_advanced_plugin_single_attr_impl() {
+    struct MyPlugin;
+
+    #[derive(Resource)]
+    struct MarkerOne(pub u8);
+
+    #[derive(Resource)]
+    struct MarkerTwo(pub u8);
+
+    #[butler_plugin(
+        build = insert_resource(MarkerOne(1))
+    )]
+    impl Plugin for MyPlugin {
+        fn build(&self, nonstandard_name: &mut App) {
+            nonstandard_name.insert_resource(MarkerTwo(2));
+        }
+    }
+
+    let mut app = App::new();
+    app.add_plugins(MyPlugin);
+    app.add_systems(
+        PostStartup,
+        |marker1: Res<MarkerOne>, marker2: Res<MarkerTwo>| {
+            assert_eq!(marker1.0, 1);
+            assert_eq!(marker2.0, 2);
+        },
+    );
+    app.run();
+}

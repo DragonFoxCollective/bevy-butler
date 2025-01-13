@@ -1,16 +1,7 @@
-use proc_macro_crate::{crate_name, FoundCrate};
 use syn::{
     parenthesized,
     parse::{Parse, ParseStream},
-    Path,
 };
-
-pub(crate) fn get_crate(name: &str) -> Result<Path, proc_macro_crate::Error> {
-    crate_name(name).map(|found| match found {
-        FoundCrate::Itself => syn::parse_str(&name.replace("-", "_")).unwrap(),
-        FoundCrate::Name(actual) => syn::parse_str(&format!("::{}", actual)).unwrap(),
-    })
-}
 
 #[derive(Debug)]
 pub(crate) struct Parenthesized<T>(pub T);
