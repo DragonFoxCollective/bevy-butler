@@ -1,33 +1,10 @@
 use bevy_app::{App, Plugin};
-use bevy_log::{debug, info, warn};
-use bevy_utils::{HashMap, HashSet};
+use bevy_log::{debug, warn};
 use std::any::{type_name, TypeId};
-use std::sync::LazyLock;
+use registry::BUTLER_REGISTRY;
 
+pub mod registry;
 pub use bevy_app;
-pub use linkme;
-use linkme::distributed_slice;
-
-pub type ButlerRegistry = HashMap<TypeId, HashSet<fn(&mut App)>>;
-
-#[distributed_slice]
-pub static BUTLER_SLICE: [&'static dyn ButlerStaticSystem];
-
-pub static BUTLER_REGISTRY: LazyLock<ButlerRegistry> = LazyLock::new(|| {
-    let mut registry = ButlerRegistry::new();
-
-    let mut sys_count = 0;
-    for system in BUTLER_SLICE {
-        let (plugin, func) = system.registry_entry();
-        let duplicate_system = !registry.entry(plugin).or_default().insert(func);
-
-        assert!(!duplicate_system, "Tried to insert a butler system twice?");
-        sys_count += 1;
-    }
-
-    info!("Loaded {sys_count} systems for {} plugins", registry.len());
-    registry
-});
 
 pub trait ButlerPlugin: Plugin {
     type Marker;

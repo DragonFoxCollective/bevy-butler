@@ -8,10 +8,7 @@
 use proc_macro2::{Span, TokenStream};
 use quote::{format_ident, quote, ToTokens};
 use syn::{
-    parse::{Parse, ParseStream},
-    punctuated::Punctuated,
-    spanned::Spanned,
-    Attribute, Error, Expr, ExprPath, Ident, ItemFn, Meta, MetaList, Token,
+    parse::{Parse, ParseStream}, punctuated::Punctuated, spanned::Spanned, Attribute, Error, Expr, ExprPath, Ident, ItemFn, Macro, Meta, MetaList, Token
 };
 
 #[derive(Clone)]
@@ -47,6 +44,12 @@ pub(crate) fn register_system_set_block(
     let hash = sha256::digest(systems_strings);
     let butler_sys_struct = format_ident!("_butler_{}", hash);
     let static_name = format_ident!("_butler_static_{}", hash);
+    let register_macro = Macro {
+        bang_token: Default::default(),
+        path: syn::parse_quote!(::bevy_butler::__register_system),
+        delimiter: syn::MacroDelimiter::Paren(Default::default()),
+        tokens: quote! { #static_name, #butler_sys_struct },
+    };
 
     let sys_transform = args.transform_system(&sys_set.to_token_stream());
 
@@ -64,10 +67,7 @@ pub(crate) fn register_system_set_block(
             }
         }
 
-        #[::bevy_butler::__internal::linkme::distributed_slice(::bevy_butler::__internal::BUTLER_SLICE)]
-        #[linkme(crate = ::bevy_butler::__internal::linkme)] // I LOVE UNDOCUMENTED ATTRIBUTES!!! FUCK!!!
-        #[allow(non_upper_case_globals)]
-        static #static_name: &'static dyn ::bevy_butler::__internal::ButlerStaticSystem = & #butler_sys_struct;
+        #register_macro;
     }
 }
 
