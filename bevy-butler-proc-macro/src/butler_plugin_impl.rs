@@ -16,7 +16,7 @@ use syn::{
 };
 
 pub(crate) type PluginStageOps = Vec<Expr>;
-pub(crate) type PluginStageData = [Option<PluginStageOps>; 4];
+pub(crate) type PluginStageData = [Option<PluginStageOps>; 3];
 
 pub(crate) enum ButlerPluginInput {
     /// ```ignore
@@ -37,14 +37,12 @@ pub(crate) enum ButlerPluginInput {
 /// ```ignore
 /// #[butler_plugin]
 /// #[build(/* Some app.* functions */)]
-/// #[ready(/* Some app.* functions */)]
 /// #[finish(/* Some app.* functions */)]
 /// #[cleanup(/* Some app.* functions */)]
 /// ```
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 pub(crate) enum PluginStage {
     Build = 0,
-    Ready,
     Finish,
     Cleanup,
 }
@@ -71,7 +69,6 @@ impl TryFrom<&str> for PluginStage {
     fn try_from(value: &str) -> Result<Self, Self::Error> {
         match value.to_lowercase().as_str() {
             "build" => Ok(PluginStage::Build),
-            "ready" => Ok(PluginStage::Ready),
             "finish" => Ok(PluginStage::Finish),
             "cleanup" => Ok(PluginStage::Cleanup),
             other => Err(Error::new(
@@ -88,9 +85,8 @@ impl TryFrom<usize> for PluginStage {
     fn try_from(value: usize) -> Result<Self, Self::Error> {
         match value {
             0 => Ok(PluginStage::Build),
-            1 => Ok(PluginStage::Ready),
-            2 => Ok(PluginStage::Finish),
-            3 => Ok(PluginStage::Cleanup),
+            1 => Ok(PluginStage::Finish),
+            2 => Ok(PluginStage::Cleanup),
             _ => Err("PluginStage index out of bounds"),
         }
     }
@@ -100,7 +96,6 @@ impl Into<&'static str> for &PluginStage {
     fn into(self) -> &'static str {
         match self {
             PluginStage::Build => "build",
-            PluginStage::Ready => "ready",
             PluginStage::Finish => "finish",
             PluginStage::Cleanup => "cleanup",
         }
@@ -111,7 +106,6 @@ impl ToTokens for PluginStage {
     fn to_tokens(&self, tokens: &mut TokenStream) {
         match self {
             PluginStage::Build => tokens.extend(quote!(build)),
-            PluginStage::Ready => tokens.extend(quote!(ready)),
             PluginStage::Finish => tokens.extend(quote!(finish)),
             PluginStage::Cleanup => tokens.extend(quote!(cleanup)),
         }
@@ -161,10 +155,6 @@ fn parse_plugin_stage_data(attrs: &mut Vec<Attribute>) -> syn::Result<PluginStag
         }
         None
     }) {
-        // TODO: Handle #[ready] completely differently
-        if stage == PluginStage::Ready {
-            return Err(Error::new_spanned(meta, "#[ready] attributes are currently unsupported. You should define them in an annotated `impl Plugin` block."));
-        }
         if plugin_stages[stage as usize].is_some() {
             return Err(Error::new_spanned(
                 meta,
@@ -174,12 +164,6 @@ fn parse_plugin_stage_data(attrs: &mut Vec<Attribute>) -> syn::Result<PluginStag
         match &meta {
             Meta::List(list) => {
                 // #[build(...)]
-                if stage == PluginStage::Ready {
-                    return Err(Error::new_spanned(
-                        meta,
-                        "`ready` only supports name-value style (`#[ready = func]`",
-                    ));
-                }
                 plugin_stages[stage as usize] = Some(list.parse_args_with(parse_stage_ops)?);
             }
             Meta::NameValue(name_value) => {
@@ -242,40 +226,27 @@ fn generate_plugin_stage_stmts(
     app_ident: &Ident,
     ops: PluginStageOps,
 ) -> TokenStream {
-    if stage == PluginStage::Ready {
-        let stmt_iter = ops.into_iter().map(|op| quote!(#app_ident.#op));
-        quote! {{
-            #(#stmt_iter)*
-        }}
+    let build_stmt = if stage == PluginStage::Build {
+        Some(quote! {
+            <Self as ::bevy_butler::__internal::ButlerPlugin>::register_butler_plugins(#app_ident);
+        })
     } else {
-        let build_stmt = if stage == PluginStage::Build {
-            Some(quote! {
-                <Self as ::bevy_butler::__internal::ButlerPlugin>::register_butler_plugins(#app_ident);
-            })
-        } else {
-            None
-        };
+        None
+    };
 
-        let stmt_iter = ops.into_iter().map(|op| quote!(#app_ident.#op;));
-        quote! {{
-            #build_stmt
+    let stmt_iter = ops.into_iter().map(|op| quote!(#app_ident.#op;));
+    quote! {{
+        #build_stmt
 
-            #(#stmt_iter)*
-        }}
-    }
+        #(#stmt_iter)*
+    }}
 }
 
 fn generate_plugin_stage(stage: PluginStage, ops: PluginStageOps) -> TokenStream {
-    let app_arg = if stage == PluginStage::Ready {
-        quote!(app: &::bevy_butler::__internal::bevy_app::App)
-    } else {
-        quote!(app: &mut ::bevy_butler::__internal::bevy_app::App)
-    };
-
     let stage_block = generate_plugin_stage_stmts(stage, &syn::parse2(quote!(app)).unwrap(), ops);
 
     quote! {
-        fn #stage(&self, #app_arg) {
+        fn #stage(&self, app: &mut ::bevy_butler::__internal::bevy_app::App) {
             #stage_block
         }
     }
