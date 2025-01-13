@@ -78,9 +78,12 @@ fn systems_with_advanced_plugin() {
 
     App::new()
         .add_plugins(MyPlugin)
-        .add_systems(PostStartup, |marker1: Res<MarkerOne>, marker2: Res<MarkerTwo>| {
-            assert_eq!(marker1.0, 2);
-            assert_eq!(marker2.0, 4);
-        })
+        .add_systems(
+            PostStartup,
+            |marker1: Res<MarkerOne>, marker2: Res<MarkerTwo>| {
+                assert_eq!(marker1.0, 2);
+                assert_eq!(marker2.0, 4);
+            },
+        )
         .run();
 }

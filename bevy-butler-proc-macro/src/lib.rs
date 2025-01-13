@@ -6,7 +6,7 @@ use proc_macro::TokenStream;
 use quote::quote;
 #[cfg(feature = "nightly")]
 use syn::ExprBlock;
-use syn::{parse_macro_input, Error, Item, ItemFn};
+use syn::{parse_macro_input, ItemFn};
 use system_impl::{SystemArgs, SystemAttr, SystemInput};
 use system_set_impl::SystemSetInput;
 
@@ -14,9 +14,9 @@ mod utils;
 
 mod butler_plugin_impl;
 #[proc_macro_attribute]
-pub fn butler_plugin(args: TokenStream, item: TokenStream) -> TokenStream {
+pub fn butler_plugin(_args: TokenStream, item: TokenStream) -> TokenStream {
     match butler_plugin_impl::macro_impl(parse_macro_input!(item as ButlerPluginInput)) {
-        Ok(tokens) | Err(tokens) => tokens.into()
+        Ok(tokens) | Err(tokens) => tokens.into(),
     }
 }
 

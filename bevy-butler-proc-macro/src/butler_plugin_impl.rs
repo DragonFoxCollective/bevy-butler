@@ -10,7 +10,9 @@ use std::collections::HashSet;
 use proc_macro2::{Span, TokenStream};
 use quote::{format_ident, quote, ToTokens};
 use syn::{
-    parse::{Parse, ParseStream}, punctuated::Punctuated, Attribute, Error, Expr, FnArg, Ident, ImplItem, Item, ItemImpl, ItemStruct, Meta, Pat, Type
+    parse::{Parse, ParseStream, Parser},
+    punctuated::Punctuated,
+    Attribute, Error, Expr, FnArg, Ident, ImplItem, Item, ItemImpl, ItemStruct, Meta, Pat, Type,
 };
 
 pub(crate) type PluginStageOps = Vec<Expr>;
@@ -124,13 +126,14 @@ fn parse_stage_ops(input: ParseStream) -> syn::Result<PluginStageOps> {
             Meta::Path(path) => {
                 // Just a simple `app.function()`
                 ops.push(syn::parse2(quote!(#path ()))?);
-            },
+            }
             Meta::List(list) => {
                 // Call with arguments `app.function(arg1, arg2)`
                 let path = list.path;
-                let args = Punctuated::<Expr, syn::token::Comma>::parse_terminated(input)?;
+                let args: Punctuated<Expr, syn::token::Comma> =
+                    Punctuated::parse_terminated.parse2(list.tokens)?; // What do you mean I need to call `parse2` on the fucking parse function
                 ops.push(syn::parse2(quote!( #path (#args) ))?);
-            },
+            }
             Meta::NameValue(name_value) => {
                 // Call with a single argument `app.name(value)`
                 let name = name_value.path;
@@ -151,54 +154,66 @@ fn parse_plugin_stage_data(attrs: &mut Vec<Attribute>) -> syn::Result<PluginStag
 
     let mut removes = HashSet::new();
 
-    for (meta, stage) in attrs.iter().enumerate()
-        .filter_map(|(pos, attr)| {
-            if let Ok(stage) = PluginStage::try_from(attr) {
-                removes.insert(pos);
-                return Some((attr.meta.clone(), stage));
-            }
-            None
-        })
-    {
+    for (meta, stage) in attrs.iter().enumerate().filter_map(|(pos, attr)| {
+        if let Ok(stage) = PluginStage::try_from(attr) {
+            removes.insert(pos);
+            return Some((attr.meta.clone(), stage));
+        }
+        None
+    }) {
         // TODO: Handle #[ready] completely differently
         if stage == PluginStage::Ready {
             return Err(Error::new_spanned(meta, "#[ready] attributes are currently unsupported. You should define them in an annotated `impl Plugin` block."));
         }
         if plugin_stages[stage as usize].is_some() {
-            return Err(Error::new_spanned(meta, format!("Multiple declarations of `{}`", Into::<&str>::into(&stage))));
+            return Err(Error::new_spanned(
+                meta,
+                format!("Multiple declarations of `{}`", Into::<&str>::into(&stage)),
+            ));
         }
         match &meta {
             Meta::List(list) => {
                 // #[build(...)]
                 if stage == PluginStage::Ready {
-                    return Err(Error::new_spanned(meta, "`ready` only supports name-value style (`#[ready = func]`"))
+                    return Err(Error::new_spanned(
+                        meta,
+                        "`ready` only supports name-value style (`#[ready = func]`",
+                    ));
                 }
                 plugin_stages[stage as usize] = Some(list.parse_args_with(parse_stage_ops)?);
-            },
+            }
             Meta::NameValue(name_value) => {
                 // #[build = ...]
                 if let Ok(func) = syn::parse2(name_value.value.to_token_stream()) {
                     plugin_stages[stage as usize] = Some(vec![func]);
-                }
-                else {
+                } else {
                     let value = &name_value.value;
                     // Assume it's just missing the parenthesis and try to convert it
                     let func = syn::parse2(quote!( #value () ))?;
                     plugin_stages[stage as usize] = Some(vec![func])
                 }
-            },
+            }
             Meta::Path(_) => {
                 // #[build], invalid
-                return Err(Error::new_spanned(meta, "Expected a name-value attribute or list of attributes, got path"));
+                return Err(Error::new_spanned(
+                    meta,
+                    "Expected a name-value attribute or list of attributes, got path",
+                ));
             }
         }
     }
 
-
-
-    *attrs = attrs.into_iter().enumerate().filter_map(|(i, attr)| if removes.contains(&i) {None} else {Some(attr.clone())} ).collect();
-
-    eprintln!("ATTRS: {attrs:?}");
+    *attrs = attrs
+        .into_iter()
+        .enumerate()
+        .filter_map(|(i, attr)| {
+            if removes.contains(&i) {
+                None
+            } else {
+                Some(attr.clone())
+            }
+        })
+        .collect();
 
     Ok(plugin_stages)
 }
@@ -209,17 +224,24 @@ impl Parse for ButlerPluginInput {
             Item::Struct(mut plugin_struct) => {
                 let stages = parse_plugin_stage_data(&mut plugin_struct.attrs)?;
                 Ok(Self::Struct(plugin_struct, stages))
-            },
+            }
             Item::Impl(mut plugin_impl) => {
                 let stages = parse_plugin_stage_data(&mut plugin_impl.attrs)?;
                 Ok(Self::Impl(plugin_impl, stages))
-            },
-            _ => Err(Error::new(input.span(), "#[butler_plugin] can only be used for `struct` or `impl Plugin`")),
+            }
+            _ => Err(Error::new(
+                input.span(),
+                "#[butler_plugin] can only be used for `struct` or `impl Plugin`",
+            )),
         }
     }
 }
 
-fn generate_plugin_stage_stmts(stage: PluginStage, app_ident: &Ident, ops: PluginStageOps) -> TokenStream {
+fn generate_plugin_stage_stmts(
+    stage: PluginStage,
+    app_ident: &Ident,
+    ops: PluginStageOps,
+) -> TokenStream {
     if stage == PluginStage::Ready {
         let stmt_iter = ops.into_iter().map(|op| quote!(#app_ident.#op));
         quote! {{
@@ -230,8 +252,9 @@ fn generate_plugin_stage_stmts(stage: PluginStage, app_ident: &Ident, ops: Plugi
             Some(quote! {
                 <Self as ::bevy_butler::__internal::ButlerPlugin>::register_butler_plugins(#app_ident);
             })
-        }
-        else { None };
+        } else {
+            None
+        };
 
         let stmt_iter = ops.into_iter().map(|op| quote!(#app_ident.#op;));
         quote! {{
@@ -245,8 +268,7 @@ fn generate_plugin_stage_stmts(stage: PluginStage, app_ident: &Ident, ops: Plugi
 fn generate_plugin_stage(stage: PluginStage, ops: PluginStageOps) -> TokenStream {
     let app_arg = if stage == PluginStage::Ready {
         quote!(app: &::bevy_butler::__internal::bevy_app::App)
-    }
-    else {
+    } else {
         quote!(app: &mut ::bevy_butler::__internal::bevy_app::App)
     };
 
@@ -260,7 +282,12 @@ fn generate_plugin_stage(stage: PluginStage, ops: PluginStageOps) -> TokenStream
 }
 
 fn register_plugin_block(plugin: &Type) -> Result<TokenStream, TokenStream> {
-    let ident = &plugin.to_token_stream().to_string().replace("::", "_").replace("<", "_").replace(">", "_");
+    let ident = &plugin
+        .to_token_stream()
+        .to_string()
+        .replace("::", "_")
+        .replace("<", "_")
+        .replace(">", "_");
     let marker_ident = format_ident!("{}ButlerInternalPluginMarker", ident);
     Ok(quote! {
         pub struct #marker_ident {
@@ -277,9 +304,12 @@ fn register_plugin_block(plugin: &Type) -> Result<TokenStream, TokenStream> {
     })
 }
 
-pub(crate) fn struct_impl(plugin: ItemStruct, mut args: PluginStageData) -> Result<TokenStream, TokenStream> {
+pub(crate) fn struct_impl(
+    plugin: ItemStruct,
+    mut args: PluginStageData,
+) -> Result<TokenStream, TokenStream> {
     args[PluginStage::Build as usize].get_or_insert(vec![]); // `build` is a required stage
-    // For a struct, generate an `impl Plugin` statement below the struct declaration
+                                                             // For a struct, generate an `impl Plugin` statement below the struct declaration
     let stage_iter = args.into_iter().enumerate().map(|(stage, ops)| {
         let stage = PluginStage::try_from(stage).unwrap();
         ops.map(|ops| generate_plugin_stage(stage, ops))
@@ -287,7 +317,9 @@ pub(crate) fn struct_impl(plugin: ItemStruct, mut args: PluginStageData) -> Resu
 
     let ident = &plugin.ident;
 
-    let register_block = register_plugin_block(&syn::parse2(ident.to_token_stream()).map_err(|e| e.to_compile_error())?)?;
+    let register_block = register_plugin_block(
+        &syn::parse2(ident.to_token_stream()).map_err(|e| e.to_compile_error())?,
+    )?;
 
     Ok(quote! {
         #plugin
@@ -300,36 +332,39 @@ pub(crate) fn struct_impl(plugin: ItemStruct, mut args: PluginStageData) -> Resu
     })
 }
 
-pub(crate) fn impl_impl(mut plugin: ItemImpl, mut args: PluginStageData) -> Result<TokenStream, TokenStream> {
+pub(crate) fn impl_impl(
+    mut plugin: ItemImpl,
+    mut args: PluginStageData,
+) -> Result<TokenStream, TokenStream> {
     args[PluginStage::Build as usize].get_or_insert(vec![]); // Inject a dummy `fn build` to generate the plugin registration method
 
     for item in plugin.items.iter_mut() {
         if let ImplItem::Fn(item) = item {
             if let Ok(stage) = PluginStage::try_from(&item.sig.ident) {
-                if let Some(ops) = args[stage as usize].take()
-                {
+                if let Some(ops) = args[stage as usize].take() {
                     let app_ident;
                     // Why does this fucking suck so much
                     if let FnArg::Typed(pat) = &item.sig.inputs[1] {
                         if let Pat::Ident(arg) = &*pat.pat {
                             app_ident = &arg.ident;
-                        }
-                        else {
+                        } else {
                             panic!("Argument isnt an identifier?");
                         }
-                    }
-                    else {
+                    } else {
                         panic!("&self in the second argument???");
                     }
 
                     // Inject the setup into the existing stage
                     let stage_block = generate_plugin_stage_stmts(stage, app_ident, ops);
 
-                    item.block.stmts.insert(0, syn::parse2(stage_block).map_err(|e| e.to_compile_error())?);
+                    item.block.stmts.insert(
+                        0,
+                        syn::parse2(stage_block).map_err(|e| e.to_compile_error())?,
+                    );
                 }
             }
         }
-    };
+    }
 
     // Insert any blocks that werent user-defined, but had attributes
     for (stage, ops) in args.into_iter().enumerate() {
@@ -337,9 +372,11 @@ pub(crate) fn impl_impl(mut plugin: ItemImpl, mut args: PluginStageData) -> Resu
         if let Some(ops) = ops {
             // Insert a new function block
             let stage = generate_plugin_stage(stage, ops);
-            plugin.items.push(syn::parse2(stage).map_err(|e| e.to_compile_error())?);
+            plugin
+                .items
+                .push(syn::parse2(stage).map_err(|e| e.to_compile_error())?);
         }
-    };
+    }
 
     let register_block = register_plugin_block(&*plugin.self_ty)?;
 

@@ -1,14 +1,14 @@
 #![cfg_attr(feature = "nightly", feature(used_with_arg))]
 
-use bevy::prelude::{Res, ResMut, Resource};
+use bevy::prelude::{Res, Resource};
 use bevy_app::{App, Plugin, PostStartup, Startup};
-use bevy_butler::{butler_plugin, system};
+use bevy_butler::*;
 
 #[test]
 fn butler_plugin_struct() {
     #[derive(Resource)]
     struct Marker(pub usize);
-    
+
     #[butler_plugin]
     #[build(insert_resource = Marker(12))]
     struct MyPlugin;
@@ -18,7 +18,6 @@ fn butler_plugin_struct() {
         .add_systems(Startup, |marker: Res<Marker>| assert_eq!(marker.0, 12))
         .run();
 }
-
 
 #[test]
 fn butler_plugin_impl() {
@@ -42,7 +41,6 @@ fn butler_plugin_impl() {
     app.run();
 }
 
-
 #[test]
 fn butler_advanced_plugin_impl() {
     struct MyPlugin;
@@ -63,9 +61,12 @@ fn butler_advanced_plugin_impl() {
 
     let mut app = App::new();
     app.add_plugins(MyPlugin);
-    app.add_systems(PostStartup, |marker1: Res<MarkerOne>, marker2: Res<MarkerTwo>| {
-        assert_eq!(marker1.0, 1);
-        assert_eq!(marker2.0, 2);
-    });
+    app.add_systems(
+        PostStartup,
+        |marker1: Res<MarkerOne>, marker2: Res<MarkerTwo>| {
+            assert_eq!(marker1.0, 1);
+            assert_eq!(marker2.0, 2);
+        },
+    );
     app.run();
 }

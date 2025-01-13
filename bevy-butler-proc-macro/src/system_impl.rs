@@ -85,10 +85,7 @@ impl Parse for SystemArgs {
                 break;
             }
 
-            let meta = input.parse::<Meta>()?;
-            eprintln!("META: {}", meta.to_token_stream());
-
-            match meta {
+            match input.parse::<Meta>()? {
                 Meta::Path(path) => {
                     // Just a function to call on the system, no args
                     let ident = path.get_ident();
