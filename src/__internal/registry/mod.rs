@@ -15,9 +15,11 @@ pub use backend_linkme::*;
 pub use ::linkme;
 
 #[cfg(feature="inventory")]
-pub mod inventory;
+mod backend_inventory;
 #[cfg(feature="inventory")]
-use inventory as backend;
+pub use backend_inventory::*;
+#[cfg(feature="inventory")]
+pub use ::inventory;
 
 pub type ButlerRegistry = HashMap<TypeId, HashSet<fn(&mut App)>>;
 
