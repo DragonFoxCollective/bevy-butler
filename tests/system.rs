@@ -1,13 +1,12 @@
 #![cfg_attr(feature = "nightly", feature(used_with_arg))]
 
-use bevy::MinimalPlugins;
-use bevy_app::{App, AppExit, Plugin, PostStartup, Startup, Update};
+use bevy_app::{App, Plugin, PostStartup, Startup};
 use bevy_butler::*;
 use bevy_ecs::{
-    event::EventWriter,
     schedule::IntoSystemConfigs,
     system::{Res, ResMut, Resource},
 };
+use bevy_log::{Level, LogPlugin};
 use wasm_bindgen_test::wasm_bindgen_test;
 
 #[wasm_bindgen_test(unsupported = test)]
@@ -35,14 +34,13 @@ fn system() {
         marker.0 = true;
     }
 
-    #[system(schedule = Update, plugin = TestPlugin, after = test_system, run_if = || true)]
-    fn assert_sys(marker: Res<Marker>, mut exit: EventWriter<AppExit>) {
+    #[system(schedule = PostStartup, plugin = TestPlugin, after = test_system, run_if = || true)]
+    fn assert_sys(marker: Res<Marker>) {
         assert!(marker.0);
-        exit.send(AppExit::Success);
     }
 
     App::new()
-        .add_plugins(MinimalPlugins)
+        .add_plugins(LogPlugin {filter: "bevy_butler".to_string(), level: Level::TRACE, ..Default::default() })
         .add_plugins((TestPlugin, OtherTestPlugin))
         .run();
 }
@@ -78,6 +76,7 @@ fn systems_with_advanced_plugin() {
     }
 
     App::new()
+        .add_plugins(LogPlugin {filter: "bevy_butler".to_string(), level: Level::TRACE, ..Default::default() })
         .add_plugins(MyPlugin)
         .add_systems(
             PostStartup,

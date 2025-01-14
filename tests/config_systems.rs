@@ -4,12 +4,14 @@
 
 use bevy_butler::*;
 use bevy_ecs::system::Resource;
+use bevy_log::{Level, LogPlugin};
 use wasm_bindgen_test::wasm_bindgen_test;
 
 #[cfg(feature = "nightly")]
 #[wasm_bindgen_test(unsupported = test)]
 fn config_systems_block_attr() {
     use bevy::prelude::*;
+    use bevy_app::{PostStartup, Startup};
 
     struct MyPlugin;
 
@@ -23,7 +25,7 @@ fn config_systems_block_attr() {
     #[derive(Resource)]
     struct Marker(pub bool);
 
-    #[config_systems_block(plugin = MyPlugin, schedule = Update)]
+    #[config_systems_block(plugin = MyPlugin, schedule = Startup)]
     {
         #[system(schedule = Startup)]
         fn hello_world() {
@@ -38,12 +40,11 @@ fn config_systems_block_attr() {
     }
 
     App::new()
-        .add_plugins((MinimalPlugins, MyPlugin))
+        .add_plugins((LogPlugin {filter: "bevy_butler".to_string(), level: Level::TRACE, ..Default::default() }, MyPlugin))
         .add_systems(
-            PostUpdate,
-            |marker: Res<Marker>, mut exit: EventWriter<AppExit>| {
+            PostStartup,
+            |marker: Res<Marker>| {
                 assert!(marker.0, "Other systems failed to run");
-                exit.send(AppExit::Success);
             },
         )
         .run();
@@ -88,7 +89,7 @@ fn config_systems_function_macro() {
     }
 
     App::new()
-        .add_plugins(MyPlugin)
+        .add_plugins((LogPlugin {filter: "bevy_butler".to_string(), level: Level::TRACE, ..Default::default() }, MyPlugin))
         .add_systems(
             PostStartup,
             |marker: Res<Marker>| {

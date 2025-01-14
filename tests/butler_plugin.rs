@@ -3,6 +3,7 @@
 use bevy::prelude::{Res, Resource};
 use bevy_app::{App, Plugin, PostStartup, Startup};
 use bevy_butler::*;
+use bevy_log::{Level, LogPlugin};
 use wasm_bindgen_test::wasm_bindgen_test;
 
 #[wasm_bindgen_test(unsupported = test)]
@@ -15,7 +16,7 @@ fn butler_plugin_struct() {
     struct MyPlugin;
 
     App::new()
-        .add_plugins(MyPlugin)
+        .add_plugins((LogPlugin {filter: "bevy_butler".to_string(), level: Level::TRACE, ..Default::default() }, MyPlugin))
         .add_systems(Startup, |marker: Res<Marker>| assert_eq!(marker.0, 12))
         .run();
 }
@@ -35,7 +36,7 @@ fn butler_plugin_impl() {
     }
 
     let mut app = App::new();
-    app.add_plugins(MyPlugin);
+    app.add_plugins((LogPlugin {filter: "bevy_butler".to_string(), level: Level::TRACE, ..Default::default() }, MyPlugin));
     app.add_systems(PostStartup, |marker: Res<Marker>| {
         assert_eq!(marker.0, "MyMarker");
     });
@@ -61,7 +62,7 @@ fn butler_advanced_plugin_impl() {
     }
 
     let mut app = App::new();
-    app.add_plugins(MyPlugin);
+    app.add_plugins((LogPlugin {filter: "bevy_butler".to_string(), level: Level::TRACE, ..Default::default() }, MyPlugin));
     app.add_systems(
         PostStartup,
         |marker1: Res<MarkerOne>, marker2: Res<MarkerTwo>| {
@@ -92,7 +93,7 @@ fn butler_advanced_plugin_single_attr_impl() {
     }
 
     let mut app = App::new();
-    app.add_plugins(MyPlugin);
+    app.add_plugins((LogPlugin {filter: "bevy_butler".to_string(), level: Level::TRACE, ..Default::default() }, MyPlugin));
     app.add_systems(
         PostStartup,
         |marker1: Res<MarkerOne>, marker2: Res<MarkerTwo>| {

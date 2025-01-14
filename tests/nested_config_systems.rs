@@ -42,6 +42,8 @@ fn nested_config_systems() {
 #[cfg(feature = "nightly")]
 #[wasm_bindgen_test(unsupported = test)]
 fn nested_config_systems_block() {
+    use bevy_log::{Level, LogPlugin};
+
     struct MyPlugin;
 
     #[butler_plugin]
@@ -66,7 +68,7 @@ fn nested_config_systems_block() {
     }
 
     App::new()
-        .add_plugins(MyPlugin)
+        .add_plugins((LogPlugin {filter: "bevy_butler".to_string(), level: Level::TRACE, ..Default::default() }, MyPlugin))
         .add_systems(PostStartup, |marker: Res<Marker>| assert!(marker.0))
         .run();
 }

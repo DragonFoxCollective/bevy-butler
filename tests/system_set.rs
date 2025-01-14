@@ -1,5 +1,6 @@
 #![cfg_attr(feature = "nightly", feature(used_with_arg))]
 
+use bevy_log::{Level, LogPlugin};
 use wasm_bindgen_test::wasm_bindgen_test;
 
 #[wasm_bindgen_test(unsupported = test)]
@@ -42,7 +43,7 @@ fn system_set_test() {
     }
 
     App::new()
-        .add_plugins(MyPlugin)
+        .add_plugins((LogPlugin {filter: "bevy_butler".to_string(), level: Level::TRACE, ..Default::default() }, MyPlugin))
         .add_systems(PostStartup, |marker: Res<Marker>| assert_eq!(marker.0, 3))
         .run();
 }
