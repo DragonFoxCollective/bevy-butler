@@ -23,6 +23,6 @@ macro_rules! __register_system {
     ($static_name:ident, $sys_struct:expr) => {
         static $static_name: &'static dyn ::bevy_butler::__internal::ButlerStaticSystem = & $sys_struct;
 
-        ::bevy_butler::__internal::registry::inventory::submit!($static_name)
+        ::bevy_butler::__internal::registry::inventory::submit!($static_name);
     };
 }
