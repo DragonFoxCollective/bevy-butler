@@ -58,15 +58,15 @@ fn config_systems_function_macro() {
     #[butler_plugin]
     impl Plugin for MyPlugin {
         fn build(&self, app: &mut App) {
-            app.insert_resource(Marker(false));
+            app.insert_resource(Marker("".to_string()));
         }
     }
 
     #[derive(Resource)]
-    struct Marker(pub bool);
+    struct Marker(pub String);
 
     config_systems! {
-        (plugin = MyPlugin, schedule = Update)
+        (plugin = MyPlugin, schedule = Startup)
 
         // Non-#[system] functions are unaffected
         fn get_world_name() -> &'static str {
@@ -74,28 +74,25 @@ fn config_systems_function_macro() {
         }
 
         #[system(schedule = Startup)]
-        fn hello_world()
+        fn hello_world(mut marker: ResMut<Marker>)
         {
-            println!("Hello, {}!", get_world_name());
+            marker.0 += "A";
         }
 
         #[system]
         fn get_time(
-            time: Res<Time>,
             mut marker: ResMut<Marker>,
         ) {
-            println!("The time is {}", time.elapsed_secs());
-            marker.0 = true;
+            marker.0 += "B";
         }
     }
 
     App::new()
-        .add_plugins((MinimalPlugins, MyPlugin))
+        .add_plugins(MyPlugin)
         .add_systems(
-            PostUpdate,
-            |marker: Res<Marker>, mut exit: EventWriter<AppExit>| {
-                assert!(marker.0, "Other systems failed to run");
-                exit.send(AppExit::Success);
+            PostStartup,
+            |marker: Res<Marker>| {
+                assert_eq!(marker.0, "AB");
             },
         )
         .run();
