@@ -29,6 +29,7 @@ linkme = "0.3.31"
 
 [dev-dependencies]
 bevy = { version = "0.15.1", default-features = false }
+wasm-bindgen-test = "0.3.50"
 
 [features]
 nightly = ["bevy-butler-proc-macro/nightly", "linkme/used_linker"]

@@ -3,8 +3,9 @@
 use bevy::prelude::{Res, Resource};
 use bevy_app::{App, Plugin, PostStartup, Startup};
 use bevy_butler::*;
+use wasm_bindgen_test::wasm_bindgen_test;
 
-#[test]
+#[wasm_bindgen_test(unsupported = test)]
 fn butler_plugin_struct() {
     #[derive(Resource)]
     struct Marker(pub usize);
@@ -19,7 +20,7 @@ fn butler_plugin_struct() {
         .run();
 }
 
-#[test]
+#[wasm_bindgen_test(unsupported = test)]
 fn butler_plugin_impl() {
     struct MyPlugin;
 
@@ -41,7 +42,7 @@ fn butler_plugin_impl() {
     app.run();
 }
 
-#[test]
+#[wasm_bindgen_test(unsupported = test)]
 fn butler_advanced_plugin_impl() {
     struct MyPlugin;
 
@@ -71,7 +72,7 @@ fn butler_advanced_plugin_impl() {
     app.run();
 }
 
-#[test]
+#[wasm_bindgen_test(unsupported = test)]
 fn butler_advanced_plugin_single_attr_impl() {
     struct MyPlugin;
 

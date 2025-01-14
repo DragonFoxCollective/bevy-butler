@@ -44,3 +44,12 @@ jobs:
       run: cargo +nightly build --features inventory,nightly --verbose
     - name: Run bevy-butler tests
       run: cargo +nightly test --features inventory,nightly --verbose
+  build-wasm:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - uses: jetli/wasm-pack-action@v0.4.0
+      with:
+        version: 'latest'
+    - name: Run bevy-butler tests
+      run: wasm-pack test --node --features inventory --verbose
