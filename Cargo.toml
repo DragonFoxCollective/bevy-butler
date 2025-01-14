@@ -11,7 +11,7 @@ license = "MIT OR Apache-2.0"
 rust-version = "1.81.0" # Determined by cargo-msrv
 
 [package.metadata.docs.rs]
-all-features = true
+features = ["nightly"]
 
 [workspace]
 members = [
@@ -25,13 +25,11 @@ bevy_ecs = { version = "0.15.1", default-features = false }
 bevy_log = { version = "0.15.1", default-features = false }
 bevy_utils = { version = "0.15.1", default-features = false }
 inventory = { version = "0.3.17", optional = true }
-linkme = { version=  "0.3.31", optional = true }
+linkme = "0.3.31"
 
 [dev-dependencies]
 bevy = { version = "0.15.1", default-features = false }
 
 [features]
-default = ["linkme"]
 nightly = ["bevy-butler-proc-macro/nightly", "linkme/used_linker"]
-linkme = ["dep:linkme"]
 inventory = ["dep:inventory"]

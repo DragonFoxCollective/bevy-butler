@@ -24,6 +24,23 @@ jobs:
     - uses: actions/checkout@v4
     - uses: dtolnay/rust-toolchain@nightly
     - name: Build
-      run: cargo +nightly build --verbose --features nightly
+      run: cargo +nightly build --features nightly --verbose
     - name: Run bevy-butler tests
-      run: cargo +nightly test --verbose --features nightly
+      run: cargo +nightly test --features nightly --verbose
+  build-inventory:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - name: Build
+      run: cargo build --features inventory --verbose
+    - name: Run bevy-butler tests
+      run: cargo test --features inventory --verbose
+  build-inventory-nightly:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - uses: dtolnay/rust-toolchain@nightly
+    - name: Build
+      run: cargo +nightly build --features inventory,nightly --verbose
+    - name: Run bevy-butler tests
+      run: cargo +nightly test --features inventory,nightly --verbose
