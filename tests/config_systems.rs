@@ -58,12 +58,12 @@ fn config_systems_function_macro() {
     #[butler_plugin]
     impl Plugin for MyPlugin {
         fn build(&self, app: &mut App) {
-            app.insert_resource(Marker("".to_string()));
+            app.insert_resource(Marker(0));
         }
     }
 
     #[derive(Resource)]
-    struct Marker(pub String);
+    struct Marker(pub u8);
 
     config_systems! {
         (plugin = MyPlugin, schedule = Startup)
@@ -76,14 +76,14 @@ fn config_systems_function_macro() {
         #[system(schedule = Startup)]
         fn hello_world(mut marker: ResMut<Marker>)
         {
-            marker.0 += "A";
+            marker.0 += 1;
         }
 
         #[system]
         fn get_time(
             mut marker: ResMut<Marker>,
         ) {
-            marker.0 += "B";
+            marker.0 += 1;
         }
     }
 
@@ -92,7 +92,7 @@ fn config_systems_function_macro() {
         .add_systems(
             PostStartup,
             |marker: Res<Marker>| {
-                assert_eq!(marker.0, "AB");
+                assert_eq!(marker.0, 2);
             },
         )
         .run();
