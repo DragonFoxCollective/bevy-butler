@@ -1,6 +1,8 @@
 #![cfg_attr(feature = "nightly", feature(used_with_arg))]
 
-#[test]
+use wasm_bindgen_test::wasm_bindgen_test;
+
+#[wasm_bindgen_test(unsupported = test)]
 fn system_set_test() {
     use bevy::prelude::*;
     use bevy_butler::*;

@@ -8,8 +8,9 @@ use bevy_ecs::{
     schedule::IntoSystemConfigs,
     system::{Res, ResMut, Resource},
 };
+use wasm_bindgen_test::wasm_bindgen_test;
 
-#[test]
+#[wasm_bindgen_test(unsupported = test)]
 fn system() {
     #[derive(Resource)]
     struct Marker(pub bool);
@@ -46,7 +47,7 @@ fn system() {
         .run();
 }
 
-#[test]
+#[wasm_bindgen_test(unsupported = test)]
 fn systems_with_advanced_plugin() {
     #[derive(Resource)]
     struct MarkerOne(pub u8);

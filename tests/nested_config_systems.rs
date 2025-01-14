@@ -4,8 +4,9 @@
 
 use bevy::prelude::*;
 use bevy_butler::*;
+use wasm_bindgen_test::wasm_bindgen_test;
 
-#[test]
+#[wasm_bindgen_test(unsupported = test)]
 fn nested_config_systems() {
     struct MyPlugin;
 
@@ -39,7 +40,7 @@ fn nested_config_systems() {
 }
 
 #[cfg(feature = "nightly")]
-#[test]
+#[wasm_bindgen_test(unsupported = test)]
 fn nested_config_systems_block() {
     struct MyPlugin;
 

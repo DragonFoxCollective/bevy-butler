@@ -21,6 +21,7 @@ inventory::collect!(&'static dyn ButlerStaticSystem);
 #[macro_export]
 macro_rules! __register_system {
     ($static_name:ident, $sys_struct:expr) => {
+        #[allow(non_upper_case_globals)]
         static $static_name: &'static dyn ::bevy_butler::__internal::ButlerStaticSystem = & $sys_struct;
 
         ::bevy_butler::__internal::registry::inventory::submit!($static_name);

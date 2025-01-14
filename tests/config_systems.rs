@@ -4,9 +4,10 @@
 
 use bevy_butler::*;
 use bevy_ecs::system::Resource;
+use wasm_bindgen_test::wasm_bindgen_test;
 
 #[cfg(feature = "nightly")]
-#[test]
+#[wasm_bindgen_test(unsupported = test)]
 fn config_systems_block_attr() {
     use bevy::prelude::*;
 
@@ -48,7 +49,7 @@ fn config_systems_block_attr() {
         .run();
 }
 
-#[test]
+#[wasm_bindgen_test(unsupported = test)]
 fn config_systems_function_macro() {
     use bevy::prelude::*;
 
