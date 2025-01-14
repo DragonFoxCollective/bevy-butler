@@ -33,8 +33,8 @@ fn config_systems_block_attr() {
         }
 
         #[system]
-        fn goodbye_world(time: Res<Time>, mut marker: ResMut<Marker>) {
-            info!("The time is {}", time.elapsed_secs());
+        fn goodbye_world(mut marker: ResMut<Marker>) {
+            info!("Goodbye, world!");
             marker.0 = true;
         }
     }
