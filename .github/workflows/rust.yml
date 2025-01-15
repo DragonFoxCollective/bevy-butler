@@ -2,7 +2,7 @@ name: Rust
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [ "*" ]
   pull_request:
     branches: [ "main" ]
 
@@ -46,6 +46,7 @@ jobs:
       run: cargo +nightly test --features inventory,nightly --verbose
   build-wasm:
     runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/wasm'
     steps:
     - uses: actions/checkout@v4
     - uses: jetli/wasm-pack-action@v0.4.0
