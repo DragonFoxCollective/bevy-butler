@@ -1,5 +1,5 @@
 use proc_macro2::Span;
-use syn::{parse::{ParseStream, Parser}, punctuated::Punctuated, spanned::Spanned, Error, Item, ItemImpl, ItemStruct, Token};
+use syn::{parse::{Parse, ParseStream, Parser}, spanned::Spanned, Error, Item, ItemImpl, ItemStruct, Token};
 
 use super::PluginStageData;
 
@@ -15,7 +15,7 @@ impl ButlerPluginAttr {
             stages: Default::default(),
         };
 
-        for (stage, data) in Punctuated::<PluginStageData, Token![,]>::parse_terminated(input)?
+        for (stage, data) in input.parse_terminated(PluginStageData::parse, Token![,])?
             .into_iter()
             .map(|d| (d.stage, d))
         {

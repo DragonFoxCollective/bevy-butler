@@ -1,13 +1,12 @@
 use proc_macro::TokenStream as TokenStream1;
 use proc_macro2::TokenStream as TokenStream2;
-use quote::{quote, ToTokens};
+use quote::quote;
 use structs::{ButlerPluginAttr, ButlerPluginInput};
 use syn::{parse::Parser, ItemStruct};
 
-mod structs;
+pub mod structs;
 
 pub(crate) fn macro_impl(attr: TokenStream1, item: TokenStream1) -> syn::Result<TokenStream2> {
-    eprintln!("TOKENS: {}", attr.to_string());
     let attr = ButlerPluginAttr::parse_inner.parse(attr)?;
     let input = ButlerPluginInput::parse_with_attr(attr).parse(item)?;
 

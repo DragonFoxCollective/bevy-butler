@@ -12,6 +12,8 @@ pub fn butler_plugin(attr: TokenStream, body: TokenStream) -> TokenStream {
 mod system;
 #[proc_macro_attribute]
 pub fn system(attr: TokenStream, body: TokenStream) -> TokenStream {
-    // TODO
-    body
+    match system::macro_impl(attr, body) {
+        Ok(tokens) => tokens.into(),
+        Err(e) => e.to_compile_error().into(),
+    }
 }

@@ -9,7 +9,11 @@ struct MyPlugin;
 #[derive(Resource, Default)]
 struct Marker(bool);
 
-#[system(plugin = MyPlugin, schedule = Startup)]
+#[system(
+    generics = <TypeA, TypeB>,
+    plugin = MyPlugin,
+    schedule = Startup
+)]
 fn hello_world(mut marker: ResMut<Marker>) {
     info!("Hello, world!");
     marker.0 = true;
