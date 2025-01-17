@@ -1,6 +1,6 @@
 [package]
 name = "bevy-butler-proc-macro"
-version = "0.4.0"
+version = "1.0.0"
 edition = "2021"
 description = "Procedural macro definitions for bevy-butler"
 license = "MIT OR Apache-2.0"
@@ -10,16 +10,6 @@ repository = "https://github.com/TGRCdev/bevy-butler"
 proc-macro = true
 
 [dependencies]
+proc-macro2 = "1.0.93"
 quote = "1.0.38"
-syn = { version = "2.0.95", features = ["derive"] }
-proc-macro-crate = "3.2.0"
-proc-macro2 = "1.0.92"
-sha256 = { version = "1.5.0", default-features = false }
-itertools = { version = "0.14.0", default-features = false, features = ["use_std"] }
-
-[dev-dependencies]
-bevy = { version = "0.15.1", default-features = false }
-bevy-butler = { path = ".." }
-
-[features]
-nightly = ["bevy-butler/nightly"]
+syn = { version = "2.0.96", features = ["full"] }
