@@ -1,5 +1,5 @@
 use proc_macro2::Span;
-use syn::{parse::{ParseStream, Parser}, punctuated::Punctuated, spanned::Spanned, Error, Item, ItemImpl, ItemStruct, Meta, Token};
+use syn::{parse::{ParseStream, Parser}, punctuated::Punctuated, spanned::Spanned, Error, Item, ItemImpl, ItemStruct, Token};
 
 use super::PluginStageData;
 

@@ -8,3 +8,10 @@ pub fn butler_plugin(attr: TokenStream, body: TokenStream) -> TokenStream {
         Err(e) => e.to_compile_error().into(),
     }
 }
+
+mod system;
+#[proc_macro_attribute]
+pub fn system(attr: TokenStream, body: TokenStream) -> TokenStream {
+    // TODO
+    body
+}

@@ -1,6 +1,6 @@
 use proc_macro::TokenStream as TokenStream1;
 use proc_macro2::TokenStream as TokenStream2;
-use quote::ToTokens;
+use quote::{quote, ToTokens};
 use structs::{ButlerPluginAttr, ButlerPluginInput};
 use syn::{parse::Parser, ItemStruct};
 
@@ -18,6 +18,16 @@ pub(crate) fn macro_impl(attr: TokenStream1, item: TokenStream1) -> syn::Result<
 }
 
 pub(crate) fn struct_impl(attr: ButlerPluginAttr, body: ItemStruct) -> syn::Result<TokenStream2> {
-    // TODO
-    Ok(body.to_token_stream())
+    let plugin_struct = &body.ident;
+    Ok(quote! {
+        #body
+
+        // TODO
+
+        impl ::bevy_butler::__internal::bevy_app::Plugin for #plugin_struct {
+            fn build(&self, app: &mut ::bevy_butler::__internal::bevy_app::App) {
+
+            }
+        }
+    })
 }
