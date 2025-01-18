@@ -1,3 +1,4 @@
+use proc_macro2::Span;
 use quote::{quote, ToTokens};
 use syn::{parse::{discouraged::Speculative, Parse, ParseStream, Parser}, punctuated::Punctuated, AngleBracketedGenericArguments, Error, ExprCall, GenericArgument, Ident, ItemFn, Meta, MetaList, MetaNameValue, Token, TypePath};
 
@@ -9,6 +10,14 @@ pub(crate) struct SystemAttr {
 }
 
 impl SystemAttr {
+    pub fn require_plugin(&self) -> syn::Result<&TypePath> {
+        self.plugin.as_ref().ok_or(Error::new(Span::call_site(), "#[system] requires a defined or inherited `plugin` argument"))
+    }
+
+    pub fn require_schedule(&self) -> syn::Result<&TypePath> {
+        self.schedule.as_ref().ok_or(Error::new(Span::call_site(), "#[system] requires a defined or inherited `schedule` argument"))
+    }
+
     fn parse_type_path_meta(meta: Meta) -> syn::Result<TypePath> {
         match meta {
             Meta::List(list) => Ok(syn::parse2(list.tokens)?),

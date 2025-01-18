@@ -22,16 +22,25 @@ pub(crate) fn struct_impl(mut attr: ButlerPluginAttr, body: ItemStruct) -> syn::
         .map(|data| data.stage_inner_block(syn::parse_quote!(app)));
     let fn_iter = attr.stages.into_iter()
         .filter_map(|a| a);
-    let marker_name = format_ident!("{plugin_struct}Marker");
+    let marker_name = format_ident!("_butler_{plugin_struct}SealedMarker");
     Ok(quote! {
         #body
 
-        pub(crate) struct #marker_name;
+        struct #marker_name;
+
+        impl #plugin_struct {
+            pub(crate) fn _butler_sealed_marker() -> ::std::any::TypeId {
+                ::std::any::TypeId::of::<#marker_name>()
+            }
+        }
 
         impl ::bevy_butler::__internal::bevy_app::Plugin for #plugin_struct {
             fn build(&self, app: &mut ::bevy_butler::__internal::bevy_app::App) {
+                <Self as ::bevy_butler::ButlerPlugin>::register_butler_systems(app, Self::_butler_sealed_marker());
                 #build_body
             }
+
+            // TODO: THE OTHER FUNCTION BLOCKS
         }
 
         impl ::bevy_butler::ButlerPlugin for #plugin_struct {

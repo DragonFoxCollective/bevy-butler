@@ -20,4 +20,4 @@ inventory = { version = "0.3.17", optional = true }
 linkme = "0.3.31"
 
 [features]
-inventory = ["dep:inventory"]
+inventory = ["dep:inventory", "bevy-butler-proc-macro/inventory"]
