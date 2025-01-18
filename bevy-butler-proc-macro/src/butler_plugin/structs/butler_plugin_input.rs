@@ -1,17 +1,14 @@
-use proc_macro2::Span;
 use syn::{parse::{Parse, ParseStream, Parser}, spanned::Spanned, Error, Item, ItemImpl, ItemStruct, Token};
 
 use super::PluginStageData;
 
 pub(crate) struct ButlerPluginAttr {
-    pub span: Span,
     pub stages: [Option<PluginStageData>; 3],
 }
 
 impl ButlerPluginAttr {
     pub fn parse_inner(input: ParseStream) -> syn::Result<Self> {
         let mut ret = ButlerPluginAttr {
-            span: input.span(),
             stages: Default::default(),
         };
 
@@ -19,10 +16,10 @@ impl ButlerPluginAttr {
             .into_iter()
             .map(|d| (d.stage, d))
         {
-            if ret.stages[stage as usize].is_some() {
+            if ret.stages[usize::from(stage)].is_some() {
                 return Err(Error::new(data.attr_span, format!("Multiple declarations of \"{}\"", data.stage)))
             }
-            ret.stages[stage as usize] = Some(data);
+            ret.stages[usize::from(stage)] = Some(data);
         }
 
         Ok(ret)

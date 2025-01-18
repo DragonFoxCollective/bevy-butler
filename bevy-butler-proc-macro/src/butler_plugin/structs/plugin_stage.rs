@@ -1,13 +1,14 @@
 use std::fmt::Display;
 
-use syn::{Error, Ident, Path};
+use quote::{ToTokens, TokenStreamExt};
+use syn::{spanned::Spanned, Error, Ident, Path};
 
 #[derive(Clone, Copy)]
 #[repr(u8)]
 pub(crate) enum PluginStage {
-    Build = 0,
+    Build,
     Finish,
-    Cleanup
+    Cleanup,
 }
 
 impl From<PluginStage> for &'static str {
@@ -16,6 +17,22 @@ impl From<PluginStage> for &'static str {
             PluginStage::Build => "build",
             PluginStage::Finish => "finish",
             PluginStage::Cleanup => "cleanup",
+        }
+    }
+}
+
+impl From<PluginStage> for Ident {
+    fn from(value: PluginStage) -> Self {
+        Ident::new(From::from(value), value.span())
+    }
+}
+
+impl From<PluginStage> for usize {
+    fn from(value: PluginStage) -> Self {
+        match value {
+            PluginStage::Build => 0,
+            PluginStage::Cleanup => 1,
+            PluginStage::Finish => 2,
         }
     }
 }
@@ -60,5 +77,11 @@ impl TryFrom<Path> for PluginStage {
 
     fn try_from(value: Path) -> Result<Self, Self::Error> {
         Self::try_from(&value)
+    }
+}
+
+impl ToTokens for PluginStage {
+    fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
+        tokens.append(Ident::from(*self));
     }
 }

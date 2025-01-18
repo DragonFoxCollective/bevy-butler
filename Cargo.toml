@@ -16,3 +16,8 @@ bevy-butler-proc-macro = { path = "./bevy-butler-proc-macro", version = "1.0.0" 
 bevy_app = { version = "0.15.1", default-features = false }
 bevy_ecs = { version = "0.15.1", default-features = false }
 bevy_log = { version = "0.15.1", default-features = false }
+inventory = { version = "0.3.17", optional = true }
+linkme = "0.3.31"
+
+[features]
+inventory = ["dep:inventory"]

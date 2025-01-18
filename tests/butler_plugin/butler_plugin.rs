@@ -2,7 +2,7 @@ use bevy_butler::*;
 use bevy_app::prelude::*;
 use bevy_ecs::prelude::*;
 
-#[derive(Resource)]
+#[derive(Resource, Default)]
 struct Counter(pub u8);
 
 #[butler_plugin(build = init_resource::<Counter>)]

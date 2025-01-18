@@ -12,7 +12,7 @@ struct Marker(bool);
 #[system(
     generics = <TypeA, TypeB>,
     plugin = MyPlugin,
-    schedule = Startup
+    schedule = Startup,
 )]
 fn hello_world(mut marker: ResMut<Marker>) {
     info!("Hello, world!");
