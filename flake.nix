@@ -1,7 +1,8 @@
 {
-  outputs = { self, nixpkgs }: {
-    devShells.x86_64-linux.default = let
-      pkgs = import nixpkgs { system = "x86_64-linux"; };
-    in pkgs.callPackage ./shell.nix {};
+  outputs = { self, nixpkgs }: let
+    system = "x86_64-linux";
+    pkgs = nixpkgs.legacyPackages.${system};
+  in {
+    devShells.${system}.default = pkgs.callPackage ./shell.nix {};
   };
 }

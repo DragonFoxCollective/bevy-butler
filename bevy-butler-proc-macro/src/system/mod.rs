@@ -26,7 +26,7 @@ pub(crate) fn macro_impl(attr: TokenStream1, item: TokenStream1) -> syn::Result<
 
     let transformed_system = quote!(#sys_ident #generics #(.#transforms)*);
 
-    #[cfg(not(feature="inventory"))]
+    #[cfg(not(any(target_arch = "wasm32", feature="inventory")))]
     let register_block = quote! {
         #[::bevy_butler::__internal::linkme::distributed_slice(::bevy_butler::__internal::BUTLER_SLICE)]
         #[linkme(crate = ::bevy_butler::__internal::linkme)]
@@ -36,7 +36,7 @@ pub(crate) fn macro_impl(attr: TokenStream1, item: TokenStream1) -> syn::Result<
                 |app| { app.add_systems( #schedule, #transformed_system ); }
             );
     };
-    #[cfg(feature="inventory")]
+    #[cfg(any(target_arch = "wasm32", feature="inventory"))]
     let register_block = quote! {
         ::bevy_butler::__internal::inventory::submit!(::bevy_butler::__internal::ButlerRegistryEntryFactory::new(
             || #plugin::_butler_sealed_marker(),

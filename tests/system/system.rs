@@ -2,6 +2,7 @@ use bevy_app::prelude::*;
 use bevy_ecs::prelude::*;
 use bevy_log::prelude::*;
 use bevy_butler::*;
+use wasm_bindgen_test::wasm_bindgen_test;
 
 use super::common::log_plugin;
 
@@ -20,7 +21,7 @@ fn hello_world(mut marker: ResMut<Marker>) {
     marker.0 = true;
 }
 
-#[test]
+#[wasm_bindgen_test(unsupported = test)]
 fn test() {
     App::new()
         .add_plugins(log_plugin())

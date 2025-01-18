@@ -4,6 +4,7 @@ use bevy_app::prelude::*;
 use bevy_butler::*;
 use bevy_ecs::prelude::*;
 use bevy_log::info;
+use wasm_bindgen_test::wasm_bindgen_test;
 
 use super::common::log_plugin;
 
@@ -26,7 +27,7 @@ fn test_sys<T: 'static + Sync + Send + Display>(res: Res<GenericResource<T>>) {
     info!("{} = {}", type_name::<T>(), res.0);
 }
 
-#[test]
+#[wasm_bindgen_test(unsupported = test)]
 fn test() {
     App::new()
         .add_plugins(log_plugin())

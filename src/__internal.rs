@@ -1,9 +1,9 @@
 use std::{any::TypeId, collections::HashMap, sync::LazyLock};
 use bevy_app::App;
 
-#[cfg(not(feature="inventory"))]
+#[cfg(not(any(target_arch = "wasm32", feature="inventory")))]
 pub use linkme;
-#[cfg(feature="inventory")]
+#[cfg(any(target_arch = "wasm32", feature="inventory"))]
 pub use inventory;
 
 pub use bevy_app;
@@ -30,13 +30,13 @@ impl ButlerRegistry {
 #[linkme::distributed_slice]
 pub static BUTLER_SLICE: [ButlerRegistryEntryFactory] = [..];
 
-#[cfg(feature="inventory")]
+#[cfg(any(target_arch = "wasm32", feature="inventory"))]
 ::inventory::collect!(ButlerRegistryEntryFactory);
 
 pub static BUTLER_REGISTRY: LazyLock<ButlerRegistry> = LazyLock::new(|| {
-    #[cfg(not(feature="inventory"))]
+    #[cfg(not(any(target_arch = "wasm32", feature="inventory")))]
     let iter = BUTLER_SLICE.into_iter();
-    #[cfg(feature="inventory")]
+    #[cfg(any(target_arch = "wasm32", feature="inventory"))]
     let iter = ::inventory::iter::<ButlerRegistryEntryFactory>.into_iter();
 
     let mut count = 0;

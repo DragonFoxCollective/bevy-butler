@@ -21,3 +21,6 @@ linkme = "0.3.31"
 
 [features]
 inventory = ["dep:inventory", "bevy-butler-proc-macro/inventory"]
+
+[dev-dependencies]
+wasm-bindgen-test = "0.3.50"
