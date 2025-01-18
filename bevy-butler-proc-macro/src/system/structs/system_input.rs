@@ -26,10 +26,12 @@ impl SystemAttr {
         }
     }
 
-    pub fn insert_generics(&mut self, generics: AngleBracketedGenericArguments) -> syn::Result<&mut AngleBracketedGenericArguments> {
+    pub fn insert_generics(&mut self, mut generics: AngleBracketedGenericArguments) -> syn::Result<&mut AngleBracketedGenericArguments> {
         if self.generics.is_some() {
             return Err(Error::new_spanned(generics, "Multiple declarations of \"generics\""));
         }
+
+        generics.colon2_token = Some(Default::default());
 
         Ok(self.generics.insert(generics))
     }

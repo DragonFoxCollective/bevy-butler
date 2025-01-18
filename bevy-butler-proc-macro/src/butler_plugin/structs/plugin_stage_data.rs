@@ -1,5 +1,6 @@
 use proc_macro2::Span;
-use syn::{parse::{Parse, ParseStream, Parser}, punctuated::Punctuated, spanned::Spanned, Error, Expr, ExprBlock, ExprCall, Ident, ImplItemFn, Meta, Token};
+use quote::quote;
+use syn::{parse::{Parse, ParseStream, Parser}, punctuated::Punctuated, spanned::Spanned, Error, Expr, ExprBlock, ExprCall, Ident, ImplItemFn, Meta, MetaList, MetaNameValue, Token};
 
 use super::PluginStage;
 
@@ -7,6 +8,18 @@ pub(crate) struct PluginStageData {
     pub stage: PluginStage,
     pub attr_span: Span,
     pub stmts: Vec<ExprCall>,
+}
+
+fn parse_stage_stmt(input: ParseStream) -> syn::Result<ExprCall> {
+    match input.parse::<Meta>()? {
+        Meta::Path(p) => Ok(syn::parse2(quote!(#p ()))?),
+        Meta::NameValue(MetaNameValue { path, value, .. }) => Ok(syn::parse2(quote!(#path (#value)))?),
+        Meta::List(MetaList { path, tokens, ..}) => Ok(syn::parse2(quote!(#path (#tokens)))?),
+    }
+}
+
+fn parse_stage_stmts(input: ParseStream) -> syn::Result<Punctuated<ExprCall, Token![,]>> {
+    input.parse_terminated(parse_stage_stmt, Token![,])
 }
 
 impl TryFrom<Meta> for PluginStageData {
@@ -30,7 +43,7 @@ impl TryFrom<Meta> for PluginStageData {
             }
             Meta::List(list) => {
                 let attr_span = list.span();
-                let stmts = Punctuated::<ExprCall, Token![,]>::parse_terminated.parse2(list.tokens)?;
+                let stmts = parse_stage_stmts.parse2(list.tokens)?;
                 Ok(PluginStageData {
                     attr_span,
                     stage,

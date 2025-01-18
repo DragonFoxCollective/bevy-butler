@@ -1,6 +1,6 @@
 use proc_macro::TokenStream as TokenStream1;
 use proc_macro2::TokenStream as TokenStream2;
-use quote::{format_ident, quote};
+use quote::{format_ident, quote, ToTokens};
 use structs::{SystemAttr, SystemInput};
 use syn::parse::{Parse, Parser};
 
@@ -16,8 +16,13 @@ pub(crate) fn macro_impl(attr: TokenStream1, item: TokenStream1) -> syn::Result<
     let plugin = input.attr.require_plugin()?;
     let schedule = input.attr.require_schedule()?;
     let transforms = &input.attr.transforms;
+    let generics = input.attr.generics.as_ref();
 
-    let static_ident = format_ident!("_butler_{sys_ident}");
+    let mut hash_bytes = Vec::new();
+    hash_bytes.extend(plugin.to_token_stream().to_string().bytes());
+    hash_bytes.extend(schedule.to_token_stream().to_string().bytes());
+    hash_bytes.extend(generics.map(|g| g.to_token_stream().to_string()).unwrap_or_default().bytes());
+    let static_ident = format_ident!("_butler_sys_{}", sha256::digest(hash_bytes));
 
     #[cfg(not(feature="inventory"))]
     let register_block = quote! {
@@ -26,14 +31,14 @@ pub(crate) fn macro_impl(attr: TokenStream1, item: TokenStream1) -> syn::Result<
         static #static_ident: ::bevy_butler::__internal::ButlerRegistryEntryFactory = 
             ::bevy_butler::__internal::ButlerRegistryEntryFactory::new(
                 || #plugin::_butler_sealed_marker(),
-                |app| { app.add_systems(#schedule, #sys_ident #transforms ); }
+                |app| { app.add_systems(#schedule, #sys_ident #generics #transforms ); }
             );
     };
     #[cfg(feature="inventory")]
     let register_block = quote! {
         ::bevy_butler::__internal::inventory::submit!(::bevy_butler::__internal::ButlerRegistryEntryFactory::new(
             || #plugin::_butler_sealed_marker(),
-            |app| { app.add_systems(#schedule, #sys_ident #transforms ); }
+            |app| { app.add_systems(#schedule, #sys_ident #generics #transforms ); }
         ));
     };
 
