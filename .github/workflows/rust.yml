@@ -53,4 +53,4 @@ jobs:
       with:
         version: 'latest'
     - name: Run bevy-butler tests
-      run: wasm-pack test --node --features inventory --verbose
+      run: wasm-pack test --node --verbose

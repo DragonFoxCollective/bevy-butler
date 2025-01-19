@@ -17,10 +17,15 @@ bevy_app = { version = "0.15.1", default-features = false }
 bevy_ecs = { version = "0.15.1", default-features = false }
 bevy_log = { version = "0.15.1", default-features = false }
 inventory = { version = "0.3.17", optional = true }
+
+[target.'cfg(not(target_arch="wasm32"))'.dependencies]
 linkme = "0.3.31"
 
+[target.'cfg(target_arch="wasm32")'.dependencies]
+inventory = "0.3.17"
+
 [features]
-inventory = ["dep:inventory", "bevy-butler-proc-macro/inventory"]
+inventory = ["dep:inventory"]
 
 [dev-dependencies]
 wasm-bindgen-test = "0.3.50"

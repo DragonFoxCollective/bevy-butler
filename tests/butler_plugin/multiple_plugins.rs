@@ -3,6 +3,7 @@ use bevy_butler::*;
 use bevy_log::info;
 
 use crate::common::log_plugin;
+use wasm_bindgen_test::wasm_bindgen_test;
 
 #[butler_plugin]
 struct PluginOne;
@@ -20,7 +21,7 @@ fn system_two() {
     info!("System two!");
 }
 
-#[test]
+#[wasm_bindgen_test(unsupported = test)]
 fn test() {
     App::new()
         .add_plugins(log_plugin())

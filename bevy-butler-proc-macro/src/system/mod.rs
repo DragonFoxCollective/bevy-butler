@@ -22,25 +22,15 @@ pub(crate) fn macro_impl(attr: TokenStream1, item: TokenStream1) -> syn::Result<
     hash_bytes.extend(plugin.to_token_stream().to_string().bytes());
     hash_bytes.extend(schedule.to_token_stream().to_string().bytes());
     hash_bytes.extend(generics.map(|g| g.to_token_stream().to_string()).unwrap_or_default().bytes());
+    #[allow(unused_variables)] // It's actually used
     let static_ident = format_ident!("_butler_sys_{}", sha256::digest(hash_bytes));
 
     let transformed_system = quote!(#sys_ident #generics #(.#transforms)*);
 
-    #[cfg(not(any(target_arch = "wasm32", feature="inventory")))]
     let register_block = quote! {
-        #[::bevy_butler::__internal::linkme::distributed_slice(::bevy_butler::__internal::BUTLER_SLICE)]
-        #[linkme(crate = ::bevy_butler::__internal::linkme)]
-        static #static_ident: ::bevy_butler::__internal::ButlerRegistryEntryFactory = 
-            ::bevy_butler::__internal::ButlerRegistryEntryFactory::new(
-                || #plugin::_butler_sealed_marker(),
-                |app| { app.add_systems( #schedule, #transformed_system ); }
-            );
-    };
-    #[cfg(any(target_arch = "wasm32", feature="inventory"))]
-    let register_block = quote! {
-        ::bevy_butler::__internal::inventory::submit!(::bevy_butler::__internal::ButlerRegistryEntryFactory::new(
+        ::bevy_butler::butler_entry!(#static_ident, ::bevy_butler::__internal::ButlerRegistryEntryFactory::new(
             || #plugin::_butler_sealed_marker(),
-            |app| { app.add_systems(#schedule, #transformed_system); }
+            |app| { app.add_systems( #schedule, #transformed_system ); }
         ));
     };
 
