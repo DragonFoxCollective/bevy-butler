@@ -18,10 +18,12 @@ pub(crate) fn macro_impl(attr: TokenStream1, item: TokenStream1) -> syn::Result<
     let transforms = input.attr.transforms.iter();
     let generics = input.attr.generics.as_ref();
 
-    let mut hash_bytes = Vec::new();
-    hash_bytes.extend(plugin.to_token_stream().to_string().bytes());
-    hash_bytes.extend(schedule.to_token_stream().to_string().bytes());
-    hash_bytes.extend(generics.map(|g| g.to_token_stream().to_string()).unwrap_or_default().bytes());
+    let mut hash_bytes = String::new();
+    hash_bytes += &sys_ident.to_string();
+    hash_bytes += &plugin.to_token_stream().to_string();
+    hash_bytes += &schedule.to_token_stream().to_string();
+    hash_bytes += &generics.map(|g| g.to_token_stream().to_string()).unwrap_or_default();
+    hash_bytes += &transforms.clone().fold(String::new(), |bytes, t| bytes + &t.to_token_stream().to_string());
     #[allow(unused_variables)] // It's actually used
     let static_ident = format_ident!("_butler_sys_{}", sha256::digest(hash_bytes));
 

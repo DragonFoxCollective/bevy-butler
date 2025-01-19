@@ -2,6 +2,9 @@ use proc_macro2::Span;
 use quote::{quote, ToTokens};
 use syn::{parse::{discouraged::Speculative, Parse, ParseStream, Parser}, punctuated::Punctuated, AngleBracketedGenericArguments, Error, ExprCall, GenericArgument, Ident, ItemFn, Meta, MetaList, MetaNameValue, Token, TypePath};
 
+use crate::config_systems::CONFIG_SYSTEMS_DEFAULT_ARGS_IDENT;
+
+#[derive(Default, Debug)]
 pub(crate) struct SystemAttr {
     pub plugin: Option<TypePath>,
     pub schedule: Option<TypePath>,
@@ -16,6 +19,28 @@ impl SystemAttr {
 
     pub fn require_schedule(&self) -> syn::Result<&TypePath> {
         self.schedule.as_ref().ok_or(Error::new(Span::call_site(), "#[system] requires a defined or inherited `schedule` argument"))
+    }
+
+    /// Override the arguments on this SystemAttr with `overlay`'s arguments,
+    /// if present.
+    pub fn overlay(&mut self, overlay: Self) {
+        self.generics = overlay.generics.or(self.generics.take());
+        self.schedule = overlay.schedule.or(self.schedule.take());
+        self.plugin = overlay.plugin.or(self.plugin.take());
+
+        // Append the overlay transforms to the end
+        self.transforms.extend(overlay.transforms);
+    }
+
+    pub fn with_defaults(&mut self, defaults: Self) {
+        self.generics = self.generics.take().or(defaults.generics);
+        self.schedule = self.schedule.take().or(defaults.schedule);
+        self.plugin = self.plugin.take().or(defaults.plugin);
+
+        // Append our transforms onto the end of the defaults
+        let mut transforms = defaults.transforms;
+        transforms.extend(std::mem::take(&mut self.transforms));
+        self.transforms = transforms;
     }
 
     fn parse_type_path_meta(meta: Meta) -> syn::Result<TypePath> {
@@ -95,6 +120,27 @@ impl SystemAttr {
 
         Ok(())
     }
+
+    pub fn get_metas(&self) -> Punctuated<Meta, Token![,]> {
+        let mut args = Punctuated::<Meta, Token![,]>::new();
+        if let Some(meta) = self.plugin.as_ref().map(|plugin| syn::parse_quote!(plugin = #plugin)) {
+            args.push(meta);
+        }
+        if let Some(meta) = self.schedule.as_ref().map(|schedule| syn::parse_quote!(schedule = #schedule)) {
+            args.push(meta);
+        }
+        if let Some(meta) = self.generics.as_ref().map(|generics| {
+            let generics = &generics.args;
+            syn::parse_quote!(generics(#generics))
+        }) {
+            args.push(meta);
+        }
+        self.transforms.iter().for_each(|trns| {
+            args.push(syn::parse_quote!(#trns));
+        });
+
+        args
+    }
 }
 
 impl Parse for SystemAttr {
@@ -140,10 +186,25 @@ pub(crate) struct SystemInput {
 }
 
 impl SystemInput {
-    pub fn parse_with_attr(attr: SystemAttr) -> impl Parser<Output = Self> {
-        |input: ParseStream| Ok(Self {
-            attr,
-            body: input.parse()?,
-        })
+    pub fn parse_with_attr(mut attr: SystemAttr) -> impl Parser<Output = Self> {
+        |input: ParseStream| {
+            let body: ItemFn = input.parse()?;
+
+            let mut default_args = SystemAttr::default();
+
+            // Check for default args provided by config_systems
+            for attr in &body.attrs {
+                if attr.path().segments.last().is_some_and(|seg| seg.ident == CONFIG_SYSTEMS_DEFAULT_ARGS_IDENT) {
+                    default_args.overlay(attr.parse_args()?);
+                }
+            }
+
+            attr.with_defaults(default_args);
+
+            Ok(Self {
+                attr,
+                body,
+            })
+        }
     }
 }

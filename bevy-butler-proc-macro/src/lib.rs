@@ -17,3 +17,18 @@ pub fn system(attr: TokenStream, body: TokenStream) -> TokenStream {
         Err(e) => e.to_compile_error().into(),
     }
 }
+
+mod config_systems;
+#[proc_macro]
+pub fn config_systems(body: TokenStream) -> TokenStream {
+    match config_systems::macro_impl(body) {
+        Ok(tokens) => tokens.into(),
+        Err(e) => e.to_compile_error().into(),
+    }
+}
+
+/// Dummy attribute to provide defaults from config_system!
+#[proc_macro_attribute]
+pub fn _butler_config_systems_defaults(_attr: TokenStream, body: TokenStream) -> TokenStream {
+    body
+}
