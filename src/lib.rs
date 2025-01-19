@@ -20,3 +20,18 @@ pub trait ButlerPlugin: Plugin {
         bevy_log::debug!("{} ran {} factories", type_name::<Self>(), factories.len());
     }
 }
+
+#[cfg(target_arch="wasm32")]
+#[wasm_bindgen::prelude::wasm_bindgen]
+extern "C" {
+    fn __wasm_call_ctors();
+}
+
+#[cfg(target_arch="wasm32")]
+#[doc(hidden)]
+#[no_mangle]
+pub fn _initialize() {
+    unsafe {
+        __wasm_call_ctors();
+    }
+}

@@ -39,16 +39,7 @@ pub static BUTLER_SLICE: [ButlerRegistryEntryFactory] = [..];
 #[cfg(any(target_arch = "wasm32", feature = "inventory"))]
 ::inventory::collect!(ButlerRegistryEntryFactory);
 
-#[cfg(target_arch="wasm32")]
-unsafe extern "C" {
-    unsafe fn __wasm_call_ctors();
-}
-
-
 pub static BUTLER_REGISTRY: LazyLock<ButlerRegistry> = LazyLock::new(|| {
-    #[cfg(target_arch="wasm32")]
-    unsafe { __wasm_call_ctors(); }
-
     #[cfg(not(any(target_arch = "wasm32", feature = "inventory")))]
     let iter = BUTLER_SLICE.into_iter();
     #[cfg(any(target_arch = "wasm32", feature = "inventory"))]
