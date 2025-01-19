@@ -1,6 +1,6 @@
 use proc_macro2::Span;
-use quote::quote;
-use syn::{parse::{Parse, ParseStream, Parser}, punctuated::Punctuated, spanned::Spanned, Error, Expr, ExprBlock, ExprCall, Ident, ImplItemFn, Meta, MetaList, MetaNameValue, Token};
+use quote::{format_ident, quote};
+use syn::{parse::{Parse, ParseStream, Parser}, punctuated::Punctuated, spanned::Spanned, Block, Error, Expr, ExprBlock, ExprCall, Ident, ImplItemFn, Meta, MetaList, MetaNameValue, Token};
 
 use super::PluginStage;
 
@@ -62,16 +62,17 @@ impl Parse for PluginStageData {
 }
 
 impl PluginStageData {
-    pub fn stage_inner_block(&self, app: Ident) -> ExprBlock {
+    pub fn stage_inner_block(&self, app: &Ident) -> ExprBlock {
         let stmts = &self.stmts;
         syn::parse_quote!({{
-            #( #app.#stmts; )*
+            #( #app . #stmts; )*
         }})
     }
 
     pub fn stage_fn(&self) -> ImplItemFn {
         let stage = self.stage;
-        let inner_block = self.stage_inner_block(syn::parse_quote!(app));
+        let inner_block = self.stage_inner_block(&format_ident!("app"));
+
         syn::parse_quote! {
             fn #stage(&self, app: &mut ::bevy_butler::__internal::bevy_app::App) {
                 #inner_block

@@ -1,9 +1,10 @@
-use std::fmt::Display;
+use std::{fmt::Display, ops::Deref};
 
-use quote::{ToTokens, TokenStreamExt};
+use proc_macro2::Span;
+use quote::{format_ident, ToTokens, TokenStreamExt};
 use syn::{spanned::Spanned, Error, Ident, Path};
 
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, PartialEq, Eq)]
 #[repr(u8)]
 pub(crate) enum PluginStage {
     Build,
@@ -11,9 +12,9 @@ pub(crate) enum PluginStage {
     Cleanup,
 }
 
-impl From<PluginStage> for &'static str {
-    fn from(value: PluginStage) -> Self {
-        match value {
+impl PluginStage {
+    pub fn to_str(&self) -> &'static str {
+        match self {
             PluginStage::Build => "build",
             PluginStage::Finish => "finish",
             PluginStage::Cleanup => "cleanup",
@@ -21,9 +22,9 @@ impl From<PluginStage> for &'static str {
     }
 }
 
-impl From<PluginStage> for Ident {
+impl From<PluginStage> for &'static str {
     fn from(value: PluginStage) -> Self {
-        Ident::new(From::from(value), value.span())
+        value.to_str()
     }
 }
 
@@ -82,6 +83,7 @@ impl TryFrom<Path> for PluginStage {
 
 impl ToTokens for PluginStage {
     fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
-        tokens.append(Ident::from(*self));
+        let ident = Ident::new(&self.to_str(), Span::call_site());
+        tokens.append(ident);
     }
 }

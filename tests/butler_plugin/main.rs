@@ -3,3 +3,5 @@ pub mod common {
 }
 
 mod butler_plugin;
+mod butler_plugin_impl;
+mod multiple_plugins;
