@@ -22,16 +22,17 @@ pub trait ButlerPlugin: Plugin {
 }
 
 #[cfg(target_arch="wasm32")]
-#[wasm_bindgen::prelude::wasm_bindgen]
 extern "C" {
     fn __wasm_call_ctors();
 }
 
+/// This is supposed to make the constructors work on WebAssembly
+/// but all of the systems just disappear entirely in the Github
+/// tests and it refuses to run on my PC
+/// 
+/// I tried man
 #[cfg(target_arch="wasm32")]
 #[doc(hidden)]
-#[no_mangle]
 pub fn _initialize() {
-    unsafe {
-        __wasm_call_ctors();
-    }
+    unsafe { __wasm_call_ctors(); }
 }

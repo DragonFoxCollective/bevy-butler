@@ -40,6 +40,9 @@ pub static BUTLER_SLICE: [ButlerRegistryEntryFactory] = [..];
 ::inventory::collect!(ButlerRegistryEntryFactory);
 
 pub static BUTLER_REGISTRY: LazyLock<ButlerRegistry> = LazyLock::new(|| {
+    #[cfg(target_arch="wasm32")]
+    crate::_initialize();
+
     #[cfg(not(any(target_arch = "wasm32", feature = "inventory")))]
     let iter = BUTLER_SLICE.into_iter();
     #[cfg(any(target_arch = "wasm32", feature = "inventory"))]

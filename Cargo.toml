@@ -23,7 +23,6 @@ linkme = "0.3.31"
 
 [target.'cfg(target_arch="wasm32")'.dependencies]
 inventory = "0.3.17"
-wasm-bindgen = "0.2.100"
 
 [features]
 inventory = ["dep:inventory"]
