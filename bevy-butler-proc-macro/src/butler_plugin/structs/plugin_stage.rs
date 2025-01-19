@@ -1,8 +1,8 @@
-use std::{fmt::Display, ops::Deref};
+use std::fmt::Display;
 
 use proc_macro2::Span;
-use quote::{format_ident, ToTokens, TokenStreamExt};
-use syn::{spanned::Spanned, Error, Ident, Path};
+use quote::{ToTokens, TokenStreamExt};
+use syn::{Error, Ident, Path};
 
 #[derive(Clone, Copy, PartialEq, Eq)]
 #[repr(u8)]

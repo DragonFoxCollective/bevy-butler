@@ -8,7 +8,5 @@ impl Plugin for MyPlugin {}
 
 #[test]
 fn test() {
-    App::new()
-        .add_plugins(MyPlugin)
-        .run();
+    App::new().add_plugins(MyPlugin).run();
 }

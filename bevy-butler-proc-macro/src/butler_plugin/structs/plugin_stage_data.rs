@@ -1,6 +1,6 @@
 use proc_macro2::Span;
 use quote::{format_ident, quote};
-use syn::{parse::{Parse, ParseStream, Parser}, punctuated::Punctuated, spanned::Spanned, Block, Error, Expr, ExprBlock, ExprCall, Ident, ImplItemFn, Meta, MetaList, MetaNameValue, Token};
+use syn::{parse::{Parse, ParseStream, Parser}, punctuated::Punctuated, spanned::Spanned, Error, Expr, ExprBlock, ExprCall, Ident, ImplItemFn, Meta, MetaList, MetaNameValue, Token};
 
 use super::PluginStage;
 

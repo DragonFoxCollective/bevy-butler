@@ -1,8 +1,8 @@
 use proc_macro::TokenStream as TokenStream1;
 use proc_macro2::{Span, TokenStream as TokenStream2};
-use quote::{format_ident, quote, ToTokens};
+use quote::{format_ident, quote};
 use structs::{ButlerPluginAttr, ButlerPluginInput, PluginStage, PluginStageData};
-use syn::{parse::Parser, spanned::Spanned, Block, Error, Expr, ExprBlock, FnArg, ImplItem, ItemImpl, ItemStruct, Pat, PatType, Stmt, Type, TypePath};
+use syn::{parse::Parser, spanned::Spanned, Error, FnArg, ImplItem, ItemImpl, ItemStruct, Pat, TypePath};
 
 pub mod structs;
 
@@ -71,7 +71,7 @@ pub(crate) fn impl_impl(mut attr: ButlerPluginAttr, mut body: ItemImpl) -> syn::
             if let Ok(stage) = PluginStage::try_from(&item.sig.ident) {
                 // We're in a plugin stage
                 // Try to grab the stage data from the attr
-                if let Some(mut data) = attr.stages[stage as usize].take() {
+                if let Some(data) = attr.stages[stage as usize].take() {
                     // Figure out the identifier of the `&mut App` argument
                     let app_ident = item.sig.inputs.get(1)
                         .ok_or(Error::new(item.sig.span(), "Missing `app` argument?"))?;
