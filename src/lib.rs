@@ -21,6 +21,13 @@ pub trait ButlerPlugin: Plugin {
     }
 }
 
+#[cfg(all(target_arch="wasm32", not(feature="wasm-experimental")))]
+compile_error!(
+"WebAssembly support in bevy-butler is experimental and buggy.
+If you wish to try it anyways, enable the `wasm-experimental` feature.
+See also: https://github.com/TGRCdev/bevy-butler/issues/3
+");
+
 #[cfg(target_arch="wasm32")]
 extern "C" {
     fn __wasm_call_ctors();

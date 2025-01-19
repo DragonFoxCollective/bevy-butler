@@ -26,6 +26,7 @@ inventory = "0.3.17"
 
 [features]
 inventory = ["dep:inventory"]
+wasm-experimental = []
 
 [dev-dependencies]
 wasm-bindgen-test = "0.3.50"
