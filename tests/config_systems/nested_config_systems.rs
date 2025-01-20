@@ -1,6 +1,6 @@
+use bevy_app::prelude::*;
 use bevy_butler::*;
 use bevy_ecs::prelude::*;
-use bevy_app::prelude::*;
 use bevy_log::prelude::*;
 use wasm_bindgen_test::wasm_bindgen_test;
 
@@ -11,7 +11,6 @@ struct MyPlugin;
 
 #[derive(Resource, Default)]
 struct Accumulator(pub u32);
-
 
 ::bevy_butler::config_systems! {
     (plugin = MyPlugin, schedule = PreStartup)
@@ -49,13 +48,14 @@ struct Accumulator(pub u32);
     }
 }
 
-
-
 #[wasm_bindgen_test(unsupported = test)]
 fn test() {
     App::new()
         .add_plugins(log_plugin())
         .add_plugins(MyPlugin)
-        .add_systems(PostStartup, (|acc: Res<Accumulator>| assert_eq!(acc.0, 7)).after(system_startup_three))
+        .add_systems(
+            PostStartup,
+            (|acc: Res<Accumulator>| assert_eq!(acc.0, 7)).after(system_startup_three),
+        )
         .run();
 }

@@ -28,14 +28,15 @@ pub trait ButlerPlugin: Plugin {
     }
 }
 
-#[cfg(all(target_arch="wasm32", not(feature="wasm-experimental")))]
+#[cfg(all(target_arch = "wasm32", not(feature = "wasm-experimental")))]
 compile_error!(
-"WebAssembly support in bevy-butler is experimental and buggy.
+    "WebAssembly support in bevy-butler is experimental and buggy.
 If you wish to try it anyways, enable the `wasm-experimental` feature.
 See also: https://github.com/TGRCdev/bevy-butler/issues/3
-");
+"
+);
 
-#[cfg(target_arch="wasm32")]
+#[cfg(target_arch = "wasm32")]
 extern "C" {
     fn __wasm_call_ctors();
 }
@@ -43,10 +44,12 @@ extern "C" {
 /// This is supposed to make the constructors work on WebAssembly
 /// but all of the systems just disappear entirely in the Github
 /// tests and it refuses to run on my PC
-/// 
+///
 /// I tried man
-#[cfg(target_arch="wasm32")]
+#[cfg(target_arch = "wasm32")]
 #[doc(hidden)]
 pub fn _initialize() {
-    unsafe { __wasm_call_ctors(); }
+    unsafe {
+        __wasm_call_ctors();
+    }
 }

@@ -32,7 +32,7 @@ impl ButlerRegistry {
     }
 }
 
-#[cfg(not(any(target_arch="wasm32", feature = "inventory")))]
+#[cfg(not(any(target_arch = "wasm32", feature = "inventory")))]
 #[linkme::distributed_slice]
 pub static BUTLER_SLICE: [ButlerRegistryEntryFactory] = [..];
 
@@ -40,7 +40,7 @@ pub static BUTLER_SLICE: [ButlerRegistryEntryFactory] = [..];
 ::inventory::collect!(ButlerRegistryEntryFactory);
 
 pub static BUTLER_REGISTRY: LazyLock<ButlerRegistry> = LazyLock::new(|| {
-    #[cfg(target_arch="wasm32")]
+    #[cfg(target_arch = "wasm32")]
     crate::_initialize();
 
     #[cfg(not(any(target_arch = "wasm32", feature = "inventory")))]
@@ -63,18 +63,19 @@ pub static BUTLER_REGISTRY: LazyLock<ButlerRegistry> = LazyLock::new(|| {
     ButlerRegistry(registry)
 });
 
-#[cfg(not(any(target_arch="wasm32",feature="inventory")))]
+#[cfg(not(any(target_arch = "wasm32", feature = "inventory")))]
 #[macro_export]
 macro_rules! butler_entry {
     ($static_ident:ident, $entry:expr) => {
-        #[::bevy_butler::__internal::linkme::distributed_slice(::bevy_butler::__internal::BUTLER_SLICE)]
+        #[::bevy_butler::__internal::linkme::distributed_slice(
+            ::bevy_butler::__internal::BUTLER_SLICE
+        )]
         #[linkme(crate = ::bevy_butler::__internal::linkme)]
-        static $static_ident: ::bevy_butler::__internal::ButlerRegistryEntryFactory = 
-            $entry;
+        static $static_ident: ::bevy_butler::__internal::ButlerRegistryEntryFactory = $entry;
     };
 }
 
-#[cfg(any(target_arch="wasm32",feature="inventory"))]
+#[cfg(any(target_arch = "wasm32", feature = "inventory"))]
 #[macro_export]
 macro_rules! butler_entry {
     ($static_ident:ident, $entry:expr) => {

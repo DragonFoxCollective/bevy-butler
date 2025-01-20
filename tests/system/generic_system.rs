@@ -33,10 +33,13 @@ fn test() {
     App::new()
         .add_plugins(log_plugin())
         .add_plugins(MyPlugin)
-        .add_systems(PostStartup, (
-            |res: Res<GenericResource<&'static str>>| assert!(res.1),
-            |res: Res<GenericResource<u8>>| assert!(res.1),
-            |res: Res<GenericResource<bool>>| assert!(res.1),
-        ))
+        .add_systems(
+            PostStartup,
+            (
+                |res: Res<GenericResource<&'static str>>| assert!(res.1),
+                |res: Res<GenericResource<u8>>| assert!(res.1),
+                |res: Res<GenericResource<bool>>| assert!(res.1),
+            ),
+        )
         .run();
 }
