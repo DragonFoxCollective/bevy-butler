@@ -22,21 +22,21 @@ system_set! {
     }
 
     #[system]
-    fn system_startup_one(mut acc: ResMut<Accumulator>) {
+    fn system_two(mut acc: ResMut<Accumulator>) {
         acc.0 *= 2; // 34
         info!("(2) Accum: {} (expected {})", acc.0, 34);
         assert_eq!(acc.0, 34);
     }
 
     #[system()]
-    fn system_startup_two(mut acc: ResMut<Accumulator>) {
+    fn system_three(mut acc: ResMut<Accumulator>) {
         acc.0 -= 6; // 28
         info!("(3) Accum: {} (expected {})", acc.0, 28);
         assert_eq!(acc.0, 28);
     }
 
     #[system(run_if = || true)]
-    fn system_startup_three(mut acc: ResMut<Accumulator>) {
+    fn system_four(mut acc: ResMut<Accumulator>) {
         acc.0 /= 4; // 7
         info!("(4) Accum: {} (expected {})", acc.0, 7);
         assert_eq!(acc.0, 7);
