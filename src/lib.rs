@@ -16,6 +16,8 @@ pub use bevy_butler_proc_macro::config_systems;
 #[doc(hidden)]
 pub use bevy_butler_proc_macro::_butler_config_systems_defaults;
 
+pub use bevy_butler_proc_macro::system_set;
+
 pub trait ButlerPlugin: Plugin {
     fn register_butler_systems(app: &mut App, marker: TypeId) {
         let factories = BUTLER_REGISTRY.get_system_factories(marker);

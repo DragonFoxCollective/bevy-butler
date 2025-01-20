@@ -1,24 +1,37 @@
 use proc_macro2::Span;
 use quote::{quote, ToTokens};
-use syn::{parse::{discouraged::Speculative, Parse, ParseStream, Parser}, punctuated::Punctuated, AngleBracketedGenericArguments, Error, ExprCall, GenericArgument, Ident, ItemFn, Meta, MetaList, MetaNameValue, Token, TypePath};
+use syn::{parse::{discouraged::Speculative, Parse, ParseStream, Parser}, punctuated::Punctuated, spanned::Spanned, AngleBracketedGenericArguments, Error, ExprCall, GenericArgument, Ident, ItemFn, Meta, MetaList, MetaNameValue, Token, TypePath};
 
 use crate::config_systems::CONFIG_SYSTEMS_DEFAULT_ARGS_IDENT;
 
-#[derive(Default, Debug, Clone)]
+#[derive(Debug, Clone)]
 pub(crate) struct SystemAttr {
     pub plugin: Option<TypePath>,
     pub schedule: Option<TypePath>,
     pub generics: Option<AngleBracketedGenericArguments>,
     pub transforms: Punctuated<ExprCall, Token![.]>,
+    pub attr_span: Span,
+}
+
+impl Default for SystemAttr {
+    fn default() -> Self {
+        Self {
+            plugin: None,
+            schedule: None,
+            generics: None,
+            transforms: Default::default(),
+            attr_span: Span::call_site(),
+        }
+    }
 }
 
 impl SystemAttr {
     pub fn require_plugin(&self) -> syn::Result<&TypePath> {
-        self.plugin.as_ref().ok_or(Error::new(Span::call_site(), "#[system] requires a defined or inherited `plugin` argument"))
+        self.plugin.as_ref().ok_or(Error::new(self.attr_span, "Expected a defined or inherited `plugin` argument"))
     }
 
     pub fn require_schedule(&self) -> syn::Result<&TypePath> {
-        self.schedule.as_ref().ok_or(Error::new(Span::call_site(), "#[system] requires a defined or inherited `schedule` argument"))
+        self.schedule.as_ref().ok_or(Error::new(self.attr_span, "Expected a defined or inherited `schedule` argument"))
     }
 
     /// Override the arguments on this SystemAttr with `overlay`'s arguments,
@@ -150,6 +163,7 @@ impl Parse for SystemAttr {
             schedule: None,
             generics: None,
             transforms: Default::default(),
+            attr_span: input.span(),
         };
         // We are in a list (a = ..., b(c), ...)
 
@@ -161,6 +175,7 @@ impl Parse for SystemAttr {
             match fork.parse::<Meta>() {
                 Ok(meta) => {
                     input.advance_to(&fork);
+                    ret.attr_span = meta.span();
                     ret.parse_meta(meta)?;
                 }
                 Err(e) => {

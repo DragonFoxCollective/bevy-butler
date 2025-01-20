@@ -4,7 +4,7 @@ use quote::{quote, ToTokens};
 use structs::ConfigSystemsInput;
 use syn::{parse::{Parse, Parser}, Attribute, Item, MetaList};
 
-mod structs;
+pub mod structs;
 
 pub(crate) const CONFIG_SYSTEMS_DEFAULT_ARGS_IDENT: &'static str = "_butler_config_systems_defaults";
 

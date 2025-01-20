@@ -85,7 +85,7 @@ pub(crate) fn impl_impl(mut attr: ButlerPluginAttr, mut body: ItemImpl) -> syn::
 
                     let stmts = data.stmts;
                     let butler_stmt = syn::parse2(quote! {{
-                        #(#app_ident . #stmts);*
+                        #(#app_ident . #stmts;)*
                     }})?;
 
                     // Insert the stage data into the function

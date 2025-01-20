@@ -37,10 +37,14 @@ struct Accumulator(pub u32);
             acc.0 -= 6; // 28
         }
 
-        #[system(after = system_startup_two)]
-        fn system_startup_three(mut acc: ResMut<Accumulator>) {
-            info!("Startup three!");
-            acc.0 /= 4; // 7
+        config_systems! {
+            (schedule = PostStartup)
+
+            #[system]
+            fn system_startup_three(mut acc: ResMut<Accumulator>) {
+                info!("Startup three!");
+                acc.0 /= 4; // 7
+            }
         }
     }
 }
@@ -52,6 +56,6 @@ fn test() {
     App::new()
         .add_plugins(log_plugin())
         .add_plugins(MyPlugin)
-        .add_systems(PostStartup, |acc: Res<Accumulator>| assert_eq!(acc.0, 7))
+        .add_systems(PostStartup, (|acc: Res<Accumulator>| assert_eq!(acc.0, 7)).after(system_startup_three))
         .run();
 }
