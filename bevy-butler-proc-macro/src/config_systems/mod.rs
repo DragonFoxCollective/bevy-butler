@@ -38,7 +38,14 @@ pub(crate) fn macro_impl(body: TokenStream1) -> syn::Result<TokenStream2> {
                 item_fn.attrs.push(config_attr.clone());
             }
             // Could be `config_systems!`
-            Item::Macro(_item_macro) => todo!(),
+            Item::Macro(item_macro) => {
+                // Regular proc_macros can't read attributes applied, so we actually have to unwrap the macro
+                if item_macro.mac.path.get_ident().is_some_and(|i| i == "config_systems") {
+                    let mut input: ConfigSystemsInput = item_macro.mac.parse_body()?;
+                    input.system_args.with_defaults(defaults.clone());
+                    item_macro.mac.tokens = input.to_token_stream();
+                }
+            },
             _ => (),
         }
     }

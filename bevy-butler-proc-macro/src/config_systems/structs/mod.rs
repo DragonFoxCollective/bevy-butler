@@ -1,7 +1,9 @@
+use quote::{quote, ToTokens};
 use syn::{parse::{discouraged::AnyDelimiter, Parse, ParseStream}, Item};
 
 use crate::system::structs::SystemAttr;
 
+#[derive(Clone, Debug)]
 pub(crate) struct ConfigSystemsInput {
     pub system_args: SystemAttr,
     pub items: Vec<Item>,
@@ -25,5 +27,17 @@ impl Parse for ConfigSystemsInput {
             system_args,
             items
         })
+    }
+}
+
+impl ToTokens for ConfigSystemsInput {
+    fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
+        let args = self.system_args.get_metas();
+        let items = &self.items;
+        tokens.extend(quote! {
+            (#args)
+
+            #(#items)*
+        });
     }
 }

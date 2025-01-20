@@ -4,7 +4,7 @@ use syn::{parse::{discouraged::Speculative, Parse, ParseStream, Parser}, punctua
 
 use crate::config_systems::CONFIG_SYSTEMS_DEFAULT_ARGS_IDENT;
 
-#[derive(Default, Debug)]
+#[derive(Default, Debug, Clone)]
 pub(crate) struct SystemAttr {
     pub plugin: Option<TypePath>,
     pub schedule: Option<TypePath>,
