@@ -12,7 +12,7 @@ struct MyPlugin;
 #[derive(Resource, Default)]
 struct Accumulator(pub u32);
 
-::bevy_butler::config_systems! {
+config_systems! {
     (plugin = MyPlugin, schedule = PreStartup)
 
     #[system]
@@ -30,19 +30,23 @@ struct Accumulator(pub u32);
             acc.0 *= 2; // 34
         }
 
-        #[system(after = system_startup_one)]
-        fn system_startup_two(mut acc: ResMut<Accumulator>) {
-            info!("Startup two!");
-            acc.0 -= 6; // 28
-        }
-
         config_systems! {
-            (schedule = PostStartup)
+            () // TODO: Possibly allow blocks without system args so we aren't annoying the user with compiler errors as they type
 
-            #[system]
-            fn system_startup_three(mut acc: ResMut<Accumulator>) {
-                info!("Startup three!");
-                acc.0 /= 4; // 7
+            #[system(after = system_startup_one)]
+            fn system_startup_two(mut acc: ResMut<Accumulator>) {
+                info!("Startup two!");
+                acc.0 -= 6; // 28
+            }
+
+            config_systems! {
+                (schedule = PostStartup)
+
+                #[system]
+                fn system_startup_three(mut acc: ResMut<Accumulator>) {
+                    info!("Startup three!");
+                    acc.0 /= 4; // 7
+                }
             }
         }
     }
