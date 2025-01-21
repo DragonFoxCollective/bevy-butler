@@ -31,8 +31,6 @@ config_systems! {
         }
 
         config_systems! {
-            () // TODO: Possibly allow blocks without system args so we aren't annoying the user with compiler errors as they type
-
             #[system(after = system_startup_one)]
             fn system_startup_two(mut acc: ResMut<Accumulator>) {
                 info!("Startup two!");

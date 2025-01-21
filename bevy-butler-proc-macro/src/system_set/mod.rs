@@ -33,13 +33,8 @@ pub(crate) fn parse_system_set(mut input: SystemSetInput) -> syn::Result<(System
                     let mut j = 0;
                     let attrs = &mut item_fn.attrs;
                     while j < attrs.len() {
-                        if attrs[j].path().get_ident().is_some_and(|ident| ident == "system") {
+                        if let Some(sys_args) = SystemAttr::try_parse_system_attr(&attrs[j])? {
                             let sys_attr = attrs.remove(j);
-                            let sys_args = if matches!(sys_attr.meta, syn::Meta::Path(_)) {
-                                SystemAttr::default()
-                            } else {
-                                sys_attr.parse_args()?
-                            };
                             // We'll wrap every system into a single set, so no overriding
                             // the plugin/schedule
                             if sys_args.plugin.is_some() {

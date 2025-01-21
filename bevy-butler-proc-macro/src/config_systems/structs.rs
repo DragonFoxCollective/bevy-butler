@@ -1,5 +1,5 @@
 use quote::{quote, ToTokens};
-use syn::{parse::{discouraged::AnyDelimiter, Parse, ParseStream}, Item};
+use syn::{parse::{discouraged::{AnyDelimiter, Speculative}, Parse, ParseStream}, Item};
 
 use crate::system::structs::SystemAttr;
 
@@ -12,10 +12,13 @@ pub(crate) struct ConfigSystemsInput {
 impl Parse for ConfigSystemsInput {
     fn parse(input: ParseStream) -> syn::Result<Self> {
         // Parse the default system args in the form (plugin = ..., schedule = ..., etc.)
-        let system_args: SystemAttr = {
-            // Tried to use parenthesized! but it kept complaining about references, oh well
-            let (_, _, parse) = input.parse_any_delimiter()?;
+        let fork = input.fork();
+        let system_args = if let Ok((_, _, parse)) = fork.parse_any_delimiter() {
+            input.advance_to(&fork);
             parse.parse()?
+        }
+        else {
+            SystemAttr::default()
         };
 
         let mut items = Vec::new();
