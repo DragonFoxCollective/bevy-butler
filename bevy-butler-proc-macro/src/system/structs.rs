@@ -1,8 +1,6 @@
 use proc_macro2::Span;
 use quote::{quote, ToTokens};
-use syn::{parse::{discouraged::Speculative, Parse, ParseStream, Parser}, punctuated::Punctuated, spanned::Spanned, AngleBracketedGenericArguments, Error, ExprCall, GenericArgument, Ident, ItemFn, Meta, MetaList, MetaNameValue, Token, TypePath};
-
-use crate::config_systems::CONFIG_SYSTEMS_DEFAULT_ARGS_IDENT;
+use syn::{parse::{discouraged::Speculative, Parse, ParseStream, Parser}, punctuated::Punctuated, spanned::Spanned, AngleBracketedGenericArguments, Attribute, Error, ExprCall, GenericArgument, Ident, ItemFn, Meta, MetaList, MetaNameValue, Token, TypePath};
 
 #[derive(Debug, Clone)]
 pub(crate) struct SystemAttr {
@@ -134,6 +132,20 @@ impl SystemAttr {
         Ok(())
     }
 
+    /// Tries to parse the given attribute into a #[system] attribute
+    /// Returns Ok(None) if the attribute's ident is not "system"
+    pub fn try_parse_system_attr(attr: &Attribute) -> syn::Result<Option<Self>> {
+        if attr.path().get_ident().is_none_or(|i| i != "system") {
+            return Ok(None);
+        }
+
+        if matches!(attr.meta, Meta::Path(_)) {
+            return Ok(Some(SystemAttr::default()));
+        }
+
+        Ok(Some(attr.parse_args()?))
+    }
+
     pub fn get_metas(&self) -> Punctuated<Meta, Token![,]> {
         let mut args = Punctuated::<Meta, Token![,]>::new();
         if let Some(meta) = self.plugin.as_ref().map(|plugin| syn::parse_quote!(plugin = #plugin)) {
@@ -153,6 +165,23 @@ impl SystemAttr {
         });
 
         args
+    }
+}
+
+impl From<SystemAttr> for MetaList {
+    fn from(value: SystemAttr) -> Self {
+        let metas = value.get_metas();
+        MetaList {
+            delimiter: syn::MacroDelimiter::Paren(Default::default()),
+            path: syn::parse_quote!(system),
+            tokens: quote!(#metas),
+        }
+    }
+}
+
+impl From<SystemAttr> for Meta {
+    fn from(value: SystemAttr) -> Self {
+        Meta::List(value.into())
     }
 }
 
@@ -204,18 +233,6 @@ impl SystemInput {
     pub fn parse_with_attr(mut attr: SystemAttr) -> impl Parser<Output = Self> {
         |input: ParseStream| {
             let body: ItemFn = input.parse()?;
-
-            let mut default_args = SystemAttr::default();
-
-            // Check for default args provided by config_systems
-            for attr in &body.attrs {
-                if attr.path().segments.last().is_some_and(|seg| seg.ident == CONFIG_SYSTEMS_DEFAULT_ARGS_IDENT) {
-                    default_args.overlay(attr.parse_args()?);
-                }
-            }
-
-            attr.with_defaults(default_args);
-
             Ok(Self {
                 attr,
                 body,

@@ -4,7 +4,7 @@ use quote::{format_ident, quote, ToTokens};
 use structs::SystemSetInput;
 use syn::{parse::{Parse, Parser}, punctuated::Punctuated, spanned::Spanned, Error, Expr, Item, Token};
 
-use crate::system::structs::SystemAttr;
+use crate::{config_systems::{parse_config_systems, structs::ConfigSystemsInput}, system::structs::SystemAttr};
 
 pub mod structs;
 
@@ -68,18 +68,34 @@ pub(crate) fn parse_system_set(mut input: SystemSetInput) -> syn::Result<(System
                 // Check for nested system_set!
                 match mac.mac.path.get_ident().cloned() {
                     Some(ident) if ident == "system_set" => {
-                        let mac_body: SystemSetInput = mac.mac.parse_body()?;
-                        let sys_args = &mac_body.system_args;
+                        let mut mac_body: SystemSetInput = mac.mac.parse_body()?;
+                        let sys_args = &mut mac_body.system_args;
                         if sys_args.plugin.is_some() {
                             return Err(Error::new(mac.span(), "`plugin` can not be overridden within a `system_set!` block"));
                         }
                         if sys_args.schedule.is_some() {
                             return Err(Error::new(mac.span(), "`schedule` can not be overridden within a `system_set!` block"));
                         }
+                        sys_args.with_defaults(set_args.clone());
                         let (mac_body, set_expr) = parse_system_set(mac_body)?;
 
                         additional_items.extend(mac_body.items);
                         systems.push(set_expr);
+                        remove_items.push(pos);
+                    }
+                    Some(ident) if ident == "config_systems" => {
+                        let mut mac_body: ConfigSystemsInput = mac.mac.parse_body()?;
+                        let sys_args = &mut mac_body.system_args;
+                        if sys_args.plugin.is_some() {
+                            return Err(Error::new(mac.span(), "`plugin` can not be overridden within a `system_set!` block"));
+                        }
+                        if sys_args.schedule.is_some() {
+                            return Err(Error::new(mac.span(), "`schedule` can not be overridden within a `system_set!` block"));
+                        }
+
+                        sys_args.with_defaults(set_args.clone());
+
+                        additional_items.extend(parse_config_systems(mac_body)?);
                         remove_items.push(pos);
                     }
                     _ => ()
