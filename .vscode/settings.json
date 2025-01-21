@@ -1,6 +1,2 @@
 {
-    "rust-analyzer.cargo.features": [
-        "inventory"
-    ],
-    "rust-analyzer.cargo.noDefaultFeatures": true,
 }

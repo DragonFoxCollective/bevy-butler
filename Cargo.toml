@@ -1,6 +1,6 @@
 [package]
 name = "bevy-butler"
-version = "0.4.0"
+version = "0.5.0"
 edition = "2021"
 categories = ["game-development", "rust-patterns"]
 description = "A crate for making Bevy systems more self-documenting"
@@ -8,29 +8,26 @@ exclude = [".direnv/", ".vscode/", "Cargo.lock", "*.nix", "flake.lock", ".envrc"
 repository = "https://github.com/TGRCdev/bevy-butler"
 keywords = ["game", "gamedev", "bevy", "systems", "macro"]
 license = "MIT OR Apache-2.0"
-rust-version = "1.81.0" # Determined by cargo-msrv
+rust-version = "1.82.0" # Follows bevy 0.15
 
-[package.metadata.docs.rs]
-features = ["nightly"]
-
-[workspace]
-members = [
-    "bevy-butler-proc-macro",
-]
 
 [dependencies]
-bevy-butler-proc-macro = { path = "./bevy-butler-proc-macro", version = "0.4.0" }
+bevy-butler-proc-macro = { path = "./bevy-butler-proc-macro", version = "0.5.0" }
 bevy_app = { version = "0.15.1", default-features = false }
 bevy_ecs = { version = "0.15.1", default-features = false }
 bevy_log = { version = "0.15.1", default-features = false }
-bevy_utils = { version = "0.15.1", default-features = false }
 inventory = { version = "0.3.17", optional = true }
+
+[target.'cfg(not(target_arch="wasm32"))'.dependencies]
 linkme = "0.3.31"
+
+[target.'cfg(target_arch="wasm32")'.dependencies]
+inventory = "0.3.17"
+
+[features]
+inventory = ["dep:inventory"]
+wasm-experimental = []
 
 [dev-dependencies]
 bevy = { version = "0.15.1", default-features = false }
 wasm-bindgen-test = "0.3.50"
-
-[features]
-nightly = ["bevy-butler-proc-macro/nightly", "linkme/used_linker"]
-inventory = ["dep:inventory"]

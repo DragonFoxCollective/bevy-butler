@@ -24,9 +24,9 @@ jobs:
     - uses: actions/checkout@v4
     - uses: dtolnay/rust-toolchain@nightly
     - name: Build
-      run: cargo +nightly build --features nightly --verbose
+      run: cargo +nightly build --verbose
     - name: Run bevy-butler tests
-      run: cargo +nightly test --features nightly --verbose
+      run: cargo +nightly test --verbose
   build-inventory:
     runs-on: ubuntu-latest
     steps:
@@ -41,9 +41,9 @@ jobs:
     - uses: actions/checkout@v4
     - uses: dtolnay/rust-toolchain@nightly
     - name: Build
-      run: cargo +nightly build --features inventory,nightly --verbose
+      run: cargo +nightly build --features inventory --verbose
     - name: Run bevy-butler tests
-      run: cargo +nightly test --features inventory,nightly --verbose
+      run: cargo +nightly test --features inventory --verbose
   build-wasm:
     runs-on: ubuntu-latest
     if: github.ref != 'refs/heads/main'
@@ -53,4 +53,4 @@ jobs:
       with:
         version: 'latest'
     - name: Run bevy-butler tests
-      run: wasm-pack test --node --features inventory --verbose
+      run: wasm-pack test --node --features wasm-experimental --verbose

@@ -1,184 +1,242 @@
 #![doc = include_str!("../README.md")]
-#![doc(test(attr(cfg_attr(feature = "nightly", feature(used_with_arg)))))]
-#![cfg_attr(feature = "nightly", feature(used_with_arg))]
 
 #[doc(hidden)]
 pub mod __internal;
 
-/// Macro for defining a Plugin that automatically registers [`#[system]`](system).
+/// Registers a plugin to receive [`#[system]`](system) invocations
+/// and automatically add them when the plugin is added to an App.
 ///
-/// You can either mark a struct to generate a Plugin implementation, or
-/// mark a Plugin implementation to include code for handling [`#[system]`](system) invocations.
-///
-/// ```
+/// # Usage
+/// ## `struct`-style
+/// Annotate a struct to automatically implement [`Plugin`](bevy_app::prelude::Plugin).
+/// ```rust
 /// # use bevy_butler::*;
-/// # use bevy::prelude::*;
-/// # #[derive(Resource)]
-/// # struct Hello(pub String);
-/// // Generates a plugin impl for a plugin struct
 /// #[butler_plugin]
-/// pub struct PluginOne;
+/// struct MyPlugin;
+/// ```
 ///
-/// pub struct PluginTwo;
+/// ## `impl`-style
+/// Annotate an `impl Plugin for` block to transparently modify a user-defined [`Plugin`](bevy_app::prelude::Plugin) implementation
+/// to become a butler plugin.
+/// ```rust
+/// # use bevy_app::prelude::*;
+/// # use bevy_butler::*;
+/// struct MyPlugin;
 ///
-/// // Inserts itself into a user-defined plugin impl
 /// #[butler_plugin]
-/// impl Plugin for PluginTwo {
+/// impl Plugin for MyPlugin {
 ///     fn build(&self, app: &mut App) {
-///         app.insert_resource(Hello("World".to_string()));
+///         /* ... */
 ///     }
 /// }
 /// ```
+///
+/// # Arguments
+/// ## `build` | `finish` | `cleanup`
+/// Butler plugins can define statements to run within their respective [`Plugin`](bevy_app::prelude::Plugin)
+/// stages upon being added to an [`App`](bevy_app::prelude::App).
+/// ```rust
+/// # use bevy_butler::*;
+/// # use bevy::prelude::*;
+/// # #[derive(Resource, Default)]
+/// # struct Counter;
+/// # #[derive(Resource)]
+/// # struct Hello1(&'static str);
+/// # #[derive(Resource)]
+/// # struct Hello2(&'static str);
+/// #[butler_plugin(
+///     // Name-value style
+///     build = init_resource::<Counter>,
+///     // Becomes:
+///     // app.init_resource::<Counter>();
+///
+///     // List style
+///     finish(insert_resource(Hello1("World")), insert_resource(Hello2("World"))),
+///     // Becomes:
+///     // app.insert_resource(Hello1("World"));
+///     // app.insert_resource(Hello2("World"));
+/// )]
+/// # struct MyPlugin;
+/// ```
 pub use bevy_butler_proc_macro::butler_plugin;
 
-/// Register a system to a [`#[butler_plugin]`](butler_plugin)
-/// to run with a given [`Schedule`](bevy_ecs::prelude::Schedule).
+/// Registers a free-standing function to a [`#[butler_plugin]`](butler_plugin)-annotated [`Plugin`](bevy_app::prelude::Plugin).
 ///
-/// # Attributes
-/// ## `schedule`
-/// Defines the [`Schedule`](bevy_ecs::prelude::Schedule) that the system should run in.
-///
-/// ## `plugin`
-/// Defines a struct marked with [`#[butler_plugin]`](butler_plugin) that the
-/// system should be registered with.
-///
-/// ## Others
-/// Any other attributes that don't match the above will be interpreted as system transforms.
-/// For example, you can define ordering with `#[system(after = hello_world)]` or `#[system(after(hello_world))]`.
-///
-/// ```
-/// # use bevy::prelude::*;
+/// ## Usage
+/// ```rust
 /// # use bevy_butler::*;
-/// #
+/// # use bevy_app::prelude::*;
+/// # use bevy_log::prelude::*;
 /// # #[butler_plugin]
-/// # pub struct MyPlugin;
+/// # struct MyPlugin;
 /// #
-/// #[system(schedule = Startup, plugin = MyPlugin)]
-/// fn hello_world()
-/// {
+/// #[system(plugin = MyPlugin, schedule = Startup)]
+/// fn hello_world() {
 ///     info!("Hello, world!");
 /// }
+/// ```
 ///
-/// #[system(schedule = Startup, plugin = MyPlugin, after = hello_world)]
-/// fn goodbye_world()
-/// {
-///     info!("Goodbye, world!");
+/// ## Arguments
+/// ### `plugin` (Required)
+/// A [`Plugin`](bevy_app::prelude::Plugin) annotated with [`#[butler_plugin]`](butler_plugin) to register this system to.
+///
+/// ### `schedule` (Required)
+/// A [`Schedule`](bevy_ecs::prelude::Schedule) to run this system under.
+///
+/// ### `generics`
+/// A list of generic arguments to register the system with. Used to register a generic system for multiple
+/// different types.
+/// ```rust
+/// # use std::fmt::Display;
+/// # use bevy_butler::*;
+/// # use bevy_app::prelude::*;
+/// # use bevy_ecs::prelude::*;
+/// # use bevy_log::prelude::*;
+/// # #[butler_plugin]
+/// # struct MyPlugin;
+/// #[derive(Resource)]
+/// struct GenericResource<T>(pub T);
+///
+/// #[system(generics = <&'static str>, plugin = MyPlugin, schedule = Update)]
+/// #[system(generics = <u32>, plugin = MyPlugin, schedule = Update)]
+/// #[system(generics = <bool>, plugin = MyPlugin, schedule = Update)]
+/// fn print_my_resource<T: 'static + Send + Sync + Display>(res: Res<GenericResource<T>>) {
+///     info!("Resource: {}", res.0);
 /// }
 /// ```
+///
+/// ### System transforms
+/// Any attribute that doesn't match the above is assumed to be a system transform function, like [`run_if`](bevy_ecs::prelude::IntoSystemConfigs::run_if)
+/// or [`after`](bevy_ecs::prelude::IntoSystemConfigs::after).
+/// ```rust
+/// # use std::fmt::Display;
+/// # use bevy_butler::*;
+/// # use bevy_app::prelude::*;
+/// # use bevy_ecs::prelude::*;
+/// # use bevy_log::prelude::*;
+/// # #[butler_plugin]
+/// # struct MyPlugin;
+/// #[system(plugin = MyPlugin, schedule = Startup)]
+/// fn system_one() {
+///     info!("One!");
+/// }
+///
+/// #[system(plugin = MyPlugin, schedule = Startup, after = system_one)]
+/// fn system_two() {
+///     info!("Two!");
+/// }
+///
+/// #[system(plugin = MyPlugin, schedule = Startup, after(system_two))]
+/// fn system_three() {
+///     info!("Three!");
+/// }
+/// ```
+///
 pub use bevy_butler_proc_macro::system;
 
-/// Provide default attributes for all [`#[system]`](system) invocations within
-/// the block. Accepts all `#[system]` attributes, and will insert the given arguments onto
-/// every contained `#[system]` attribute.
+/// Define a set of default [`#[system]`](system) arguments for the enclosed items
 ///
-/// `plugin` and `schedule` can be overriden in the `#[system]` invocation, but transformations
-/// will be applied after the transformations defined in `config_systems!`.
-///
-/// ```
-/// # use bevy::prelude::*;
+/// # Usage
+/// ```rust
 /// # use bevy_butler::*;
-/// # use bevy_log::info;
-///
-/// #[butler_plugin]
-/// struct MyPlugin;
-///
+/// # use bevy_app::prelude::*;
+/// # use bevy_log::prelude::*;
+/// # #[butler_plugin]
+/// # struct MyPlugin;
+/// #
 /// config_systems! {
 ///     (plugin = MyPlugin, schedule = Startup)
 ///
 ///     #[system]
-///     fn on_startup() {
-///         info!("Hello, world!");
+///     fn system_foo() {
+///         info!("Foo");
 ///     }
 ///
-///     #[system(schedule = Update)]
-///     fn on_update(time: Res<Time>) {
-///         info!("The current time is {}", time.elapsed_secs());
+///     // Default arguments can be overridden
+///     #[system(schedule = PostStartup)]
+///     fn system_bar() {
+///         info!("Bar");
 ///     }
 /// }
 /// ```
+///
+/// Note that `config_systems!` does not apply any sort of ordering or grouping of the enclosed systems.
+/// If you want to apply set-level transformations like [`chain`](bevy_ecs::prelude::IntoSystemSetConfigs::chain),
+/// see [`system_set!`](system_set).
+///
+/// # Arguments
+/// `config_systems!` accepts any arguments that [`#[system]`](system) does. If any transforms are
+/// provided, the `config_systems!` transforms will be applied **before** the individual `#[system]` attributes.
 pub use bevy_butler_proc_macro::config_systems;
 
-///<div class="warning">
+/// Wrap a set of [`#[system]`](system) functions into an anonymous system set, and apply set-level transformations.
 ///
-/// This syntax is only available with the `nightly` feature. For the stable syntax, see [`config_systems!`](config_systems).
-///
-/// </div>
-///
-/// Provide default attributes for all [`#[system]`](system) invocations within
-/// the block. Accepts all `#[system]` attributes, and will insert the given arguments onto
-/// every contained `#[system]` attribute.
-///
-/// `plugin` and `schedule` can be overriden in the `#[system]` invocation, but transformations
-/// will be applied after the transformations defined in `#[config_systems_block]`.
-///
-/// ```
-/// #![cfg_attr(feature = "nightly", feature(stmt_expr_attributes))]
-/// #![cfg_attr(feature = "nightly", feature(proc_macro_hygiene))]
-/// # use bevy::prelude::*;
+/// # Usage
+/// ```rust
 /// # use bevy_butler::*;
-/// # use bevy_log::info;
-///
-/// #[butler_plugin]
-/// struct MyPlugin;
-///
-/// #[config_systems_block(plugin = MyPlugin, schedule = Update)]
-/// {
-///     #[system(schedule = Startup)]
-///     fn on_startup() {
-///         info!("Hello, world!");
-///     }
-///
-///     #[system]
-///     fn on_update(time: Res<Time>) {
-///         info!("The current time is {}", time.elapsed_secs());
-///     }
-/// }
-/// ```
-#[cfg(feature = "nightly")]
-pub use bevy_butler_proc_macro::config_systems_block;
-
-/// Groups all enclosed [`#[system]`](system) invocations into a system set, which
-/// can have transformations applied to it.
-///
-/// Unlike [`config_systems!`](config_systems), instead of reconfiguring the contained
-/// `#[system]` blocks, `system_set!` will wrap all the systems in one system set and
-/// add it to the plugin under the given schedule. This can be used to run set-level
-/// transformations, such as [`chain`][bevy_ecs::prelude::IntoSystemConfigs::chain]. However,
-/// because of this, you cannot redefine `schedule` or `plugin`, as the entire set is
-/// added under one invocation of `app.add_systems`.
-///
-/// Transforms can still be defined on both a system-level and the set-level.
-///
-/// ```
-/// # use bevy::prelude::*;
-/// # use bevy_butler::*;
-/// #
+/// # use bevy_app::prelude::*;
+/// # use bevy_log::prelude::*;
+/// # use bevy_ecs::prelude::*;
 /// # #[butler_plugin]
 /// # struct MyPlugin;
-/// // Adds (one, two, three).chain() to MyPlugin
-/// // When run, these systems will print
-/// // ```
-/// // One
-/// // Two
-/// // Three
-/// // ```
 /// system_set! {
-///     (plugin = MyPlugin, schedule = Startup, chain)
+///     (plugin = MyPlugin, schedule = Update, chain)
 ///
 ///     #[system]
-///     fn one() {
-///         info!("One");
+///     fn system_one() {
+///         info!("One!");
 ///     }
 ///
 ///     #[system]
-///     fn two() {
-///         info!("Two");
+///     fn system_two() {
+///         info!("Two!");
 ///     }
 ///
-///     #[system]
-///     fn three() {
-///         info!("Three");
+///     #[system(run_if = || true)]
+///     fn system_three() {
+///         info!("Three!");
 ///     }
 /// }
+///
+/// // Equivalent set:
+/// # let _ =
+/// (system_one, system_two, system_three.run_if(|| true)).chain()
+/// # ;
 /// ```
+///
+/// Because this macro wraps all the enclosed systems in a single set,
+/// the `plugin` and `schedule` arguments cannot be overridden.
+///
+/// `system_set!` also supports nested invocations of itself and [`config_systems!`](config_systems).
+///
+/// # Arguments
+/// `system_set!` accepts arguments the same way that [`#[system]`](system) does. However,
+/// any transforms defined will be applied to the overall set, NOT to the individual systems.
+/// To apply the given arguments to every individual system, see [`config_systems!`](config_systems).
 pub use bevy_butler_proc_macro::system_set;
+
+#[cfg(all(target_arch = "wasm32", not(feature = "wasm-experimental")))]
+compile_error!(
+    "WebAssembly support in bevy-butler is experimental and buggy.
+If you wish to try it anyways, enable the `wasm-experimental` feature.
+See also: https://github.com/TGRCdev/bevy-butler/issues/3
+"
+);
+
+#[cfg(target_arch = "wasm32")]
+extern "C" {
+    fn __wasm_call_ctors();
+}
+
+/// This is supposed to make the constructors work on WebAssembly
+/// but all of the systems just disappear entirely in the Github
+/// tests and it refuses to run on my PC
+///
+/// I tried man
+#[cfg(target_arch = "wasm32")]
+#[doc(hidden)]
+pub fn _initialize() {
+    unsafe {
+        __wasm_call_ctors();
+    }
+}
