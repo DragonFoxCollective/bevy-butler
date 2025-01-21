@@ -1,9 +1,9 @@
-use bevy_butler::*;
+use super::common::*;
 use bevy_app::prelude::*;
+use bevy_butler::*;
 use bevy_ecs::prelude::*;
 use bevy_log::prelude::*;
 use wasm_bindgen_test::wasm_bindgen_test;
-use super::common::*;
 
 #[butler_plugin(build = init_resource::<StepCounter>)]
 struct MyPlugin;

@@ -1,9 +1,9 @@
-use bevy_butler::*;
+use super::common::*;
 use bevy_app::prelude::*;
+use bevy_butler::*;
 use bevy_ecs::prelude::*;
 use bevy_log::prelude::*;
 use wasm_bindgen_test::wasm_bindgen_test;
-use super::common::*;
 
 #[derive(Resource, Default)]
 struct Counter(pub u8);
@@ -45,6 +45,8 @@ fn test() {
     App::new()
         .add_plugins(log_plugin())
         .add_plugins(MyPlugin)
-        .add_systems(PostStartup, |counter: Res<Counter>| assert_eq!(counter.0, 3))
+        .add_systems(PostStartup, |counter: Res<Counter>| {
+            assert_eq!(counter.0, 3)
+        })
         .run();
 }

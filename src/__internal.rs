@@ -1,5 +1,9 @@
 use bevy_app::{App, Plugin};
-use std::{any::{type_name, TypeId}, collections::HashMap, sync::LazyLock};
+use std::{
+    any::{type_name, TypeId},
+    collections::HashMap,
+    sync::LazyLock,
+};
 
 #[cfg(any(target_arch = "wasm32", feature = "inventory"))]
 pub use inventory;
