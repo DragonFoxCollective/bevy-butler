@@ -3,7 +3,7 @@ use syn::{parse::{discouraged::{AnyDelimiter, Speculative}, Parse, ParseStream},
 
 use crate::system::structs::SystemAttr;
 
-#[derive(Clone, Debug)]
+#[derive(Clone)]
 pub(crate) struct ConfigSystemsInput {
     pub system_args: SystemAttr,
     pub items: Vec<Item>,

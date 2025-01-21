@@ -2,7 +2,7 @@ use proc_macro2::Span;
 use quote::{quote, ToTokens};
 use syn::{parse::{discouraged::Speculative, Parse, ParseStream, Parser}, punctuated::Punctuated, spanned::Spanned, AngleBracketedGenericArguments, Attribute, Error, ExprCall, GenericArgument, Ident, ItemFn, Meta, MetaList, MetaNameValue, Token, TypePath};
 
-#[derive(Debug, Clone)]
+#[derive(Clone)]
 pub(crate) struct SystemAttr {
     pub plugin: Option<TypePath>,
     pub schedule: Option<TypePath>,
