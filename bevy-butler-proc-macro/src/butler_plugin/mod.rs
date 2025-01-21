@@ -26,7 +26,7 @@ fn register_butler_plugin_stmts(plugin: &TypePath) -> TokenStream2 {
             }
         }
 
-        impl ::bevy_butler::ButlerPlugin for #plugin {}
+        impl ::bevy_butler::__internal::ButlerPlugin for #plugin {}
     }
 }
 
@@ -45,7 +45,7 @@ pub(crate) fn struct_impl(mut attr: ButlerPluginAttr, body: ItemStruct) -> syn::
 
         impl ::bevy_butler::__internal::bevy_app::Plugin for #plugin_struct {
             fn build(&self, app: &mut ::bevy_butler::__internal::bevy_app::App) {
-                <Self as ::bevy_butler::ButlerPlugin>::register_butler_systems(app, Self::_butler_sealed_marker());
+                <Self as ::bevy_butler::__internal::ButlerPlugin>::register_butler_systems(app, Self::_butler_sealed_marker());
                 #build_body
             }
 
@@ -94,7 +94,7 @@ pub(crate) fn impl_impl(mut attr: ButlerPluginAttr, mut body: ItemImpl) -> syn::
                     // If this is the build stage, insert our registration step into the beginning
                     if stage == PluginStage::Build {
                         item.block.stmts.insert(0, syn::parse2(quote!(
-                            <Self as ::bevy_butler::ButlerPlugin>::register_butler_systems(#app_ident, Self::_butler_sealed_marker());
+                            <Self as ::bevy_butler::__internal::ButlerPlugin>::register_butler_systems(#app_ident, Self::_butler_sealed_marker());
                         ))?);
                     }
                 }

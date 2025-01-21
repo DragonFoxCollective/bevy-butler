@@ -1,5 +1,5 @@
-use bevy_app::App;
-use std::{any::TypeId, collections::HashMap, sync::LazyLock};
+use bevy_app::{App, Plugin};
+use std::{any::{type_name, TypeId}, collections::HashMap, sync::LazyLock};
 
 #[cfg(any(target_arch = "wasm32", feature = "inventory"))]
 pub use inventory;
@@ -63,8 +63,19 @@ pub static BUTLER_REGISTRY: LazyLock<ButlerRegistry> = LazyLock::new(|| {
     ButlerRegistry(registry)
 });
 
+pub trait ButlerPlugin: Plugin {
+    fn register_butler_systems(app: &mut App, marker: TypeId) {
+        let factories = BUTLER_REGISTRY.get_system_factories(marker);
+        for system_factory in factories {
+            system_factory(app);
+        }
+        bevy_log::debug!("{} ran {} factories", type_name::<Self>(), factories.len());
+    }
+}
+
 #[cfg(not(any(target_arch = "wasm32", feature = "inventory")))]
 #[macro_export]
+#[doc(hidden)]
 macro_rules! butler_entry {
     ($static_ident:ident, $entry:expr) => {
         #[::bevy_butler::__internal::linkme::distributed_slice(
@@ -77,6 +88,7 @@ macro_rules! butler_entry {
 
 #[cfg(any(target_arch = "wasm32", feature = "inventory"))]
 #[macro_export]
+#[doc(hidden)]
 macro_rules! butler_entry {
     ($static_ident:ident, $entry:expr) => {
         ::bevy_butler::__internal::inventory::submit!($entry);

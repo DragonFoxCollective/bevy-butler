@@ -2,6 +2,7 @@ use bevy_butler::*;
 use bevy_app::prelude::*;
 use bevy_ecs::prelude::*;
 use bevy_log::prelude::*;
+use wasm_bindgen_test::wasm_bindgen_test;
 use super::common::*;
 
 #[derive(Resource, Default)]
@@ -39,7 +40,7 @@ config_systems! {
     }
 }
 
-#[test]
+#[wasm_bindgen_test(unsupported = test)]
 fn test() {
     App::new()
         .add_plugins(log_plugin())

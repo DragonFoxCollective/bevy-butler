@@ -27,12 +27,6 @@ pub fn config_systems(body: TokenStream) -> TokenStream {
     }
 }
 
-/// Dummy attribute to provide defaults from config_system!
-#[proc_macro_attribute]
-pub fn _butler_config_systems_defaults(_attr: TokenStream, body: TokenStream) -> TokenStream {
-    body
-}
-
 pub(crate) mod system_set;
 #[proc_macro]
 pub fn system_set(body: TokenStream) -> TokenStream {

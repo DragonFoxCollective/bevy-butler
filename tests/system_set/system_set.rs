@@ -2,6 +2,7 @@ use bevy_app::prelude::*;
 use bevy_butler::*;
 use bevy_ecs::prelude::*;
 use bevy_log::prelude::*;
+use wasm_bindgen_test::wasm_bindgen_test;
 
 use crate::common::log_plugin;
 
@@ -43,7 +44,7 @@ system_set! {
     }
 }
 
-#[test]
+#[wasm_bindgen_test(unsupported = test)]
 fn test() {
     App::new()
         .add_plugins(log_plugin())
