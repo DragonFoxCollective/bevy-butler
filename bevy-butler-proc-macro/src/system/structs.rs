@@ -32,17 +32,6 @@ impl SystemAttr {
         self.schedule.as_ref().ok_or(Error::new(self.attr_span, "Expected a defined or inherited `schedule` argument"))
     }
 
-    /// Override the arguments on this SystemAttr with `overlay`'s arguments,
-    /// if present.
-    pub fn overlay(&mut self, overlay: Self) {
-        self.generics = overlay.generics.or(self.generics.take());
-        self.schedule = overlay.schedule.or(self.schedule.take());
-        self.plugin = overlay.plugin.or(self.plugin.take());
-
-        // Append the overlay transforms to the end
-        self.transforms.extend(overlay.transforms);
-    }
-
     pub fn with_defaults(&mut self, defaults: Self) {
         self.generics = self.generics.take().or(defaults.generics);
         self.schedule = self.schedule.take().or(defaults.schedule);
@@ -230,7 +219,7 @@ pub(crate) struct SystemInput {
 }
 
 impl SystemInput {
-    pub fn parse_with_attr(mut attr: SystemAttr) -> impl Parser<Output = Self> {
+    pub fn parse_with_attr(attr: SystemAttr) -> impl Parser<Output = Self> {
         |input: ParseStream| {
             let body: ItemFn = input.parse()?;
             Ok(Self {

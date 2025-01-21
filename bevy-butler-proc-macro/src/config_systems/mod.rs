@@ -24,7 +24,6 @@ pub(crate) fn parse_config_systems(input: ConfigSystemsInput) -> syn::Result<Vec
                     if let Some(mut sys_attr) = SystemAttr::try_parse_system_attr(attr)? {
                         sys_attr.with_defaults(defaults.clone());
                         attr.meta = Meta::from(sys_attr);
-                        eprintln!("Rewritten meta: {}", attr.to_token_stream().to_string());
                     }
                 }
                 items.push(item_fn.into());

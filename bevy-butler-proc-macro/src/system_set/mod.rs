@@ -19,27 +19,22 @@ pub(crate) fn parse_system_set(mut input: SystemSetInput) -> syn::Result<(System
 
     let mut systems: Punctuated<Expr, Token![,]> = Default::default();
 
-    // New items from nested macros
-    let mut additional_items = Vec::new();
-
-    // Nested macros to remove after unwrapping
-    let mut remove_items = Vec::new();
-
     // We are going to manually parse every system and handle its
     // attribute ourselves, instead of letting #[system] register
     // it. Then we'll create a single registry entry to register our
     // transformed set.
-    for (pos, item) in items.iter_mut().enumerate() {
+    let mut i = 0;
+    while i < items.len() {
+        let item = &mut items[i];
         match item {
             Item::Fn(item_fn) => {
                 // extract_if is still unstable, so we gotta get a little icky with the code
                 {
-                    let mut i = 0;
+                    let mut j = 0;
                     let attrs = &mut item_fn.attrs;
-                    while i < attrs.len() {
-                        if attrs[i].path().get_ident().is_some_and(|ident| ident == "system") {
-                            
-                            let sys_attr = attrs.remove(i);
+                    while j < attrs.len() {
+                        if attrs[j].path().get_ident().is_some_and(|ident| ident == "system") {
+                            let sys_attr = attrs.remove(j);
                             let sys_args = if matches!(sys_attr.meta, syn::Meta::Path(_)) {
                                 SystemAttr::default()
                             } else {
@@ -59,14 +54,15 @@ pub(crate) fn parse_system_set(mut input: SystemSetInput) -> syn::Result<(System
                             systems.push(syn::parse2(quote!(#fn_ident #generics #(. #transforms)*))?);
                         }
                         else {
-                            i += 1;
+                            j += 1;
                         }
                     }
+                    i += 1;
                 }
             }
             Item::Macro(mac) => {
-                // Check for nested system_set!
                 match mac.mac.path.get_ident().cloned() {
+                    // Nested `system_set!`
                     Some(ident) if ident == "system_set" => {
                         let mut mac_body: SystemSetInput = mac.mac.parse_body()?;
                         let sys_args = &mut mac_body.system_args;
@@ -79,10 +75,14 @@ pub(crate) fn parse_system_set(mut input: SystemSetInput) -> syn::Result<(System
                         sys_args.with_defaults(set_args.clone());
                         let (mac_body, set_expr) = parse_system_set(mac_body)?;
 
-                        additional_items.extend(mac_body.items);
+                        let items_len = mac_body.items.len();
+
+                        items.splice(i..=i, mac_body.items).for_each(|_| ());
+                        i += items_len;
                         systems.push(set_expr);
-                        remove_items.push(pos);
                     }
+
+                    // Nested `config_systems!`
                     Some(ident) if ident == "config_systems" => {
                         let mut mac_body: ConfigSystemsInput = mac.mac.parse_body()?;
                         let sys_args = &mut mac_body.system_args;
@@ -93,26 +93,17 @@ pub(crate) fn parse_system_set(mut input: SystemSetInput) -> syn::Result<(System
                             return Err(Error::new(mac.span(), "`schedule` can not be overridden within a `system_set!` block"));
                         }
 
-                        sys_args.with_defaults(set_args.clone());
-
-                        additional_items.extend(parse_config_systems(mac_body)?);
-                        remove_items.push(pos);
+                        items.splice(i..=i, parse_config_systems(mac_body)?).for_each(|_| ());
                     }
-                    _ => ()
+                    _ => i += 1,
                 }
             }
-            _ => (),
+            _ => i += 1,
         }
     }
 
     // Construct the system set as an Expr
     let system_set: Expr = syn::parse2(quote!( (#systems) #(. #set_transforms)* ))?;
-
-    // Add extra items
-    input.items.extend(additional_items);
-
-    // Remove unneeded items
-    remove_items.into_iter().rev().for_each(|i| { input.items.remove(i); });
 
     Ok((input, system_set))
 }
