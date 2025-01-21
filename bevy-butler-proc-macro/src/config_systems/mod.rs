@@ -1,10 +1,10 @@
 use proc_macro::TokenStream as TokenStream1;
 use proc_macro2::TokenStream as TokenStream2;
-use quote::{quote, ToTokens};
+use quote::quote;
 use structs::ConfigSystemsInput;
 use syn::{parse::{Parse, Parser}, Item, Meta};
 
-use crate::system::structs::SystemAttr;
+use crate::{system::structs::SystemAttr, system_set::structs::SystemSetInput};
 
 pub mod structs;
 
@@ -28,16 +28,22 @@ pub(crate) fn parse_config_systems(input: ConfigSystemsInput) -> syn::Result<Vec
                 }
                 items.push(item_fn.into());
             }
-            // Could be `config_systems!`
+            // Could be `config_systems!` or `system_set!`
             Item::Macro(item_macro) => {
-                // Regular proc_macros can't read attributes applied, so we actually have to unwrap the macro
-                if item_macro.mac.path.get_ident().is_some_and(|i| i == "config_systems") {
-                    let mut input: ConfigSystemsInput = item_macro.mac.parse_body()?;
-                    input.system_args.with_defaults(defaults.clone());
-                    items.extend(parse_config_systems(input)?);
-                }
-                else {
-                    items.push(item_macro.into());
+                match item_macro.mac.path.get_ident() {
+                    Some(ident) if ident == "config_systems" => {
+                        let mut input: ConfigSystemsInput = item_macro.mac.parse_body()?;
+                        input.system_args.with_defaults(defaults.clone());
+                        items.extend(parse_config_systems(input)?);
+                    }
+                    Some(ident) if ident == "system_set" => {
+                        let mut input: SystemSetInput = item_macro.mac.parse_body()?;
+                        input.system_args.with_defaults(defaults.clone());
+                        items.push(syn::parse_quote! {
+                            system_set! { #input }
+                        });
+                    }
+                    _ => items.push(item_macro.into()),
                 }
             },
             _ => (),
