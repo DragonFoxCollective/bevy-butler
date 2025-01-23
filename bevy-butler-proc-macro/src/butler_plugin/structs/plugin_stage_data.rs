@@ -1,6 +1,6 @@
 use proc_macro2::Span;
-use quote::{format_ident, quote};
-use syn::{parse::{Parse, ParseStream, Parser}, punctuated::Punctuated, spanned::Spanned, Error, Expr, ExprBlock, ExprCall, Ident, ImplItemFn, Meta, MetaList, MetaNameValue, Token};
+use quote::format_ident;
+use syn::{parse::{Parse, ParseStream, Parser}, punctuated::Punctuated, spanned::Spanned, Error, Expr, ExprBlock, ExprCall, Ident, ImplItemFn, Meta, Token};
 
 use super::PluginStage;
 
@@ -11,11 +11,7 @@ pub(crate) struct PluginStageData {
 }
 
 fn parse_stage_stmt(input: ParseStream) -> syn::Result<ExprCall> {
-    match input.parse::<Meta>()? {
-        Meta::Path(p) => Ok(syn::parse2(quote!(#p ()))?),
-        Meta::NameValue(MetaNameValue { path, value, .. }) => Ok(syn::parse2(quote!(#path (#value)))?),
-        Meta::List(MetaList { path, tokens, ..}) => Ok(syn::parse2(quote!(#path (#tokens)))?),
-    }
+    input.parse::<ExprCall>()
 }
 
 fn parse_stage_stmts(input: ParseStream) -> syn::Result<Punctuated<ExprCall, Token![,]>> {

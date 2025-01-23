@@ -4,4 +4,5 @@ pub mod common {
 
 mod butler_plugin;
 mod butler_plugin_impl;
+mod multiple_build_methods;
 mod multiple_plugins;
