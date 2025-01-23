@@ -11,7 +11,12 @@ struct CounterOne(pub u8);
 #[derive(Resource, Default)]
 struct CounterTwo(pub u8);
 
-#[butler_plugin(build(init_resource::<CounterOne>(), init_resource::<CounterTwo>()))]
+#[butler_plugin(
+    build(
+        init_resource::<CounterOne>(),
+        init_resource::<CounterTwo>
+    )
+)]
 struct MyPlugin;
 
 #[wasm_bindgen_test(unsupported = test)]

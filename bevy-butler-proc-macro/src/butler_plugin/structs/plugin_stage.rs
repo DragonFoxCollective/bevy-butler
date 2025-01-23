@@ -2,7 +2,7 @@ use std::fmt::Display;
 
 use proc_macro2::Span;
 use quote::{ToTokens, TokenStreamExt};
-use syn::{Error, Ident, Path};
+use syn::{parse::Parse, Error, Ident, Path};
 
 #[derive(Clone, Copy, PartialEq, Eq)]
 #[repr(u8)]
@@ -85,5 +85,11 @@ impl ToTokens for PluginStage {
     fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
         let ident = Ident::new(&self.to_str(), Span::call_site());
         tokens.append(ident);
+    }
+}
+
+impl Parse for PluginStage {
+    fn parse(input: syn::parse::ParseStream) -> syn::Result<Self> {
+        Self::try_from(input.parse::<Ident>()?)
     }
 }

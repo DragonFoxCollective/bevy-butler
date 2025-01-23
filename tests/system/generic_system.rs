@@ -13,9 +13,9 @@ struct GenericResource<T>(pub T, pub bool);
 
 #[butler_plugin {
     build(
-        insert_resource(GenericResource("Hello", false)),
+        insert_resource = GenericResource("Hello", false),
         insert_resource(GenericResource(52u8, false)),
-        insert_resource(GenericResource(true, false)),
+        insert_resource = GenericResource(true, false),
     )
 }]
 struct MyPlugin;
