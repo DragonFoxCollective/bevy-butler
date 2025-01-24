@@ -62,7 +62,7 @@ pub use bevy_butler_proc_macro::butler_plugin;
 
 /// Registers a free-standing function to a [`#[butler_plugin]`](butler_plugin)-annotated [`Plugin`](bevy_app::prelude::Plugin).
 ///
-/// ## Usage
+/// # Usage
 /// ```rust
 /// # use bevy_butler::*;
 /// # use bevy_app::prelude::*;
@@ -76,14 +76,14 @@ pub use bevy_butler_proc_macro::butler_plugin;
 /// }
 /// ```
 ///
-/// ## Arguments
-/// ### `plugin` (Required)
+/// # Arguments
+/// ## `plugin` (Required)
 /// A [`Plugin`](bevy_app::prelude::Plugin) annotated with [`#[butler_plugin]`](butler_plugin) to register this system to.
 ///
-/// ### `schedule` (Required)
+/// ## `schedule` (Required)
 /// A [`Schedule`](bevy_ecs::prelude::Schedule) to run this system under.
 ///
-/// ### `generics`
+/// ## `generics`
 /// A list of generic arguments to register the system with. Used to register a generic system for multiple
 /// different types.
 /// ```rust
@@ -105,7 +105,7 @@ pub use bevy_butler_proc_macro::butler_plugin;
 /// }
 /// ```
 ///
-/// ### System transforms
+/// ## System transforms
 /// Any attribute that doesn't match the above is assumed to be a system transform function, like [`run_if`](bevy_ecs::prelude::IntoSystemConfigs::run_if)
 /// or [`after`](bevy_ecs::prelude::IntoSystemConfigs::after).
 /// ```rust
@@ -215,6 +215,36 @@ pub use bevy_butler_proc_macro::config_systems;
 /// To apply the given arguments to every individual system, see [`config_systems!`](config_systems).
 pub use bevy_butler_proc_macro::system_set;
 
+/// Registers an [observer](bevy_ecs::prelude::Observer) function to a [`#[butler_plugin]`](butler_plugin)-annotated [`Plugin`](bevy_app::prelude::Plugin).
+/// 
+/// # Usage
+/// ```rust
+/// # use bevy_butler::*;
+/// # use bevy_app::prelude::*;
+/// # use bevy_ecs::prelude::*;
+/// # use bevy_log::prelude::*;
+/// # #[butler_plugin]
+/// # struct MyPlugin;
+/// #[derive(Event)]
+/// struct Message {
+///     content: String,
+/// }
+/// 
+/// #[observer(plugin = MyPlugin)]
+/// fn receive_message(message: Trigger<Message>) {
+///     info!("Message received: {}", message.content);
+/// }
+/// ```
+/// 
+/// For more information about Observers, see the [Bevy example](https://bevyengine.org/examples/ecs-entity-component-system/observers/).
+/// 
+/// # Arguments
+/// ## `plugin` (Required)
+/// A [`Plugin`](bevy_app::prelude::Plugin) annotated with [`#[butler_plugin]`](butler_plugin) to register this observer to.
+///
+/// ## `generics`
+/// A list of generic arguments to register the observer with. Used to register a generic observer for multiple
+/// different types.
 pub use bevy_butler_proc_macro::observer;
 
 #[cfg(all(target_arch = "wasm32", not(feature = "wasm-experimental")))]
