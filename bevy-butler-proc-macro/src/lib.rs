@@ -1,5 +1,7 @@
 use proc_macro::TokenStream;
 
+pub(crate) mod utils;
+
 pub(crate) mod butler_plugin;
 #[proc_macro_attribute]
 pub fn butler_plugin(attr: TokenStream, body: TokenStream) -> TokenStream {
@@ -31,6 +33,15 @@ pub(crate) mod system_set;
 #[proc_macro]
 pub fn system_set(body: TokenStream) -> TokenStream {
     match system_set::macro_impl(body) {
+        Ok(tokens) => tokens.into(),
+        Err(e) => e.into_compile_error().into(),
+    }
+}
+
+pub(crate) mod observer;
+#[proc_macro_attribute]
+pub fn observer(attr: TokenStream, body: TokenStream) -> TokenStream {
+    match observer::macro_impl(attr, body) {
         Ok(tokens) => tokens.into(),
         Err(e) => e.into_compile_error().into(),
     }

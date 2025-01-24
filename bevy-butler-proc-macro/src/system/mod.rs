@@ -25,12 +25,12 @@ pub(crate) fn macro_impl(attr: TokenStream1, item: TokenStream1) -> syn::Result<
 
     let sys_expr = parse_system(&input);
 
-    let mut hash_bytes = String::new();
+    let mut hash_bytes = "system".to_string();
     hash_bytes += &plugin.to_token_stream().to_string();
     hash_bytes += &schedule.to_token_stream().to_string();
     hash_bytes += &sys_expr.to_token_stream().to_string();
     #[allow(unused_variables)] // It's actually used
-    let static_ident = format_ident!("_butler_sys_{}", sha256::digest(hash_bytes));
+    let static_ident = format_ident!("_butler_system_{}", sha256::digest(hash_bytes));
 
     let register_block = quote! {
         ::bevy_butler::butler_entry!(#static_ident, ::bevy_butler::__internal::ButlerRegistryEntryFactory::new(

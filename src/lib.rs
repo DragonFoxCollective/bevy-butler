@@ -215,6 +215,8 @@ pub use bevy_butler_proc_macro::config_systems;
 /// To apply the given arguments to every individual system, see [`config_systems!`](config_systems).
 pub use bevy_butler_proc_macro::system_set;
 
+pub use bevy_butler_proc_macro::observer;
+
 #[cfg(all(target_arch = "wasm32", not(feature = "wasm-experimental")))]
 compile_error!(
     "WebAssembly support in bevy-butler is experimental and buggy.
