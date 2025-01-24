@@ -1,6 +1,6 @@
 use proc_macro2::Span;
 use quote::{quote, ToTokens};
-use syn::{parse::{Parse, ParseStream, Parser}, punctuated::Punctuated, AngleBracketedGenericArguments, Attribute, Error, ExprCall, GenericArgument, Ident, ItemFn, Meta, MetaList, MetaNameValue, Token, TypePath};
+use syn::{parse::{Parse, ParseStream, Parser}, punctuated::Punctuated, AngleBracketedGenericArguments, Attribute, Error, ExprCall, GenericArgument, ItemFn, Meta, MetaList, MetaNameValue, Token, TypePath};
 
 use crate::utils;
 

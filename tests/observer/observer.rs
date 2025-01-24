@@ -34,10 +34,7 @@ fn greet_person(person: Trigger<PersonEntered>, mut exit: EventWriter<AppExit>) 
     schedule = Update,
     run_if = |attendees: Res<Attendees>| !attendees.0.is_empty()
 )]
-fn attendees_arriving(
-    mut commands: Commands,
-    mut attendees: ResMut<Attendees>,
-) {
+fn attendees_arriving(mut commands: Commands, mut attendees: ResMut<Attendees>) {
     if let Some(attendee) = attendees.0.pop() {
         commands.trigger(PersonEntered(attendee, attendees.0.len()));
     }
@@ -49,9 +46,12 @@ fn test() {
         .add_plugins(log_plugin())
         .add_plugins((
             TimePlugin,
-            ScheduleRunnerPlugin::run_loop(Duration::from_secs_f32(0.1))
+            ScheduleRunnerPlugin::run_loop(Duration::from_secs_f32(0.1)),
         ))
         .add_plugins(MyPlugin)
-        .add_systems(Update, (|| panic!("Timed out")).run_if(|time: Res<Time>| time.elapsed_secs() > 5.0f32))
+        .add_systems(
+            Update,
+            (|| panic!("Timed out")).run_if(|time: Res<Time>| time.elapsed_secs() > 5.0f32),
+        )
         .run();
 }
