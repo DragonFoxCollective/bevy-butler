@@ -1,6 +1,8 @@
 use proc_macro2::Span;
 use quote::{quote, ToTokens};
-use syn::{parse::{discouraged::Speculative, Parse, ParseStream, Parser}, punctuated::Punctuated, spanned::Spanned, AngleBracketedGenericArguments, Attribute, Error, ExprCall, GenericArgument, Ident, ItemFn, Meta, MetaList, MetaNameValue, Token, TypePath};
+use syn::{parse::{Parse, ParseStream, Parser}, punctuated::Punctuated, AngleBracketedGenericArguments, Attribute, Error, ExprCall, GenericArgument, Ident, ItemFn, Meta, MetaList, MetaNameValue, Token, TypePath};
+
+use crate::utils;
 
 #[derive(Clone)]
 pub(crate) struct SystemAttr {
@@ -183,30 +185,28 @@ impl Parse for SystemAttr {
             transforms: Default::default(),
             attr_span: input.span(),
         };
-        // We are in a list (a = ..., b(c), ...)
 
-        // Do some speculative parsing for `generics = <...>` because
-        // syn doesn't like angle brackets in Meta
-        while !input.is_empty() {
-            // Fork and try to parse a Meta first
-            let fork = input.fork();
-            match fork.parse::<Meta>() {
-                Ok(meta) => {
-                    input.advance_to(&fork);
-                    ret.attr_span = meta.span();
-                    ret.parse_meta(meta)?;
-                }
-                Err(e) => {
-                    // Try to parse `generics = <TypePath>`, otherwise just return the error
-                    if input.parse::<Ident>().map_err(|_| e.clone())? != "generics" {
-                        return Err(e);
-                    }
-                    input.parse::<Token![=]>().map_err(|_| e.clone())?;
-                    ret.insert_generics(AngleBracketedGenericArguments::parse(input)?)?;
-                }
+        enum GenericOrMeta {
+            Generic(AngleBracketedGenericArguments),
+            Meta(Meta),
+        }
+
+        let parser = |input: ParseStream| -> syn::Result<GenericOrMeta> {
+            // See if we're parsing a `generics`
+            if let Some(generics) = utils::try_parse_generics_arg(input)? {
+                Ok(GenericOrMeta::Generic(generics))
             }
-            if input.peek(Token![,])
-                { input.parse::<Token![,]>()?; }
+            else {
+                Ok(GenericOrMeta::Meta(input.parse()?))
+            }
+        };
+
+        // We are in a list (a = ..., b(c), ...)
+        for arg in input.parse_terminated(parser, Token![,])? {
+            match arg {
+                GenericOrMeta::Generic(g) => { ret.insert_generics(g)?; },
+                GenericOrMeta::Meta(m) => { ret.parse_meta(m)?; },
+            }
         }
 
         Ok(ret)
