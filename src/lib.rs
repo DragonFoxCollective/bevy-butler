@@ -140,6 +140,7 @@ pub use bevy_butler_proc_macro::system;
 /// ```rust
 /// # use bevy_butler::*;
 /// # use bevy_app::prelude::*;
+/// # use bevy_ecs::prelude::*;
 /// # use bevy_log::prelude::*;
 /// # #[butler_plugin]
 /// # struct MyPlugin;
@@ -153,9 +154,8 @@ pub use bevy_butler_proc_macro::system;
 ///     schedule = Startup,
 ///     transforms = world.pipe(hello),
 /// )]
-/// fn hello(In(world): In<String>, mut marker: ResMut<MyResource>) {
+/// fn hello(In(world): In<String>) {
 ///     info!("Hello, {world}!");
-///     marker.0 = format!("Hello, {world}!");
 /// }
 /// ```
 ///
