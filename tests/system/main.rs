@@ -4,3 +4,4 @@ pub mod common {
 
 mod generic_system;
 mod system;
+mod use_declaration;

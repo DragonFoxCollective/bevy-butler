@@ -1,5 +1,6 @@
 use proc_macro2::Span;
 use quote::{quote, ToTokens};
+use syn::{Item, ItemUse};
 use syn::{parse::{Parse, ParseStream, Parser}, punctuated::Punctuated, AngleBracketedGenericArguments, Attribute, Error, ExprCall, GenericArgument, ItemFn, Meta, MetaList, MetaNameValue, Token, TypePath};
 
 use crate::utils;
@@ -213,19 +214,25 @@ impl Parse for SystemAttr {
     }
 }
 
-pub(crate) struct SystemInput {
-    pub attr: SystemAttr,
-    pub body: ItemFn,
+pub(crate) enum SystemInput {
+    Fn {
+        attr: SystemAttr,
+        body: ItemFn,
+    },
+    Use {
+        attr: SystemAttr,
+        body: ItemUse,
+    }
 }
 
 impl SystemInput {
     pub fn parse_with_attr(attr: SystemAttr) -> impl Parser<Output = Self> {
         |input: ParseStream| {
-            let body: ItemFn = input.parse()?;
-            Ok(Self {
-                attr,
-                body,
-            })
+            match input.parse::<Item>()? {
+                Item::Fn(body) => Ok(Self::Fn { attr, body }),
+                Item::Use(body) => Ok(Self::Use { attr, body }),
+                item => Err(Error::new_spanned(item, "Expected a free-standing fn or a use declaration block"))
+            }
         }
     }
 }
