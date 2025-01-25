@@ -20,6 +20,15 @@ pub fn system(attr: TokenStream, body: TokenStream) -> TokenStream {
     }
 }
 
+pub(crate) mod custom_system;
+#[proc_macro_attribute]
+pub fn custom_system(attr: TokenStream, body: TokenStream) -> TokenStream {
+    match custom_system::macro_impl(attr, body) {
+        Ok(tokens) => tokens.into(),
+        Err(e) => e.to_compile_error().into(),
+    }
+}
+
 pub(crate) mod config_systems;
 #[proc_macro]
 pub fn config_systems(body: TokenStream) -> TokenStream {

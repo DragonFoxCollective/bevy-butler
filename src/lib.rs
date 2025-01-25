@@ -134,6 +134,43 @@ pub use bevy_butler_proc_macro::butler_plugin;
 ///
 pub use bevy_butler_proc_macro::system;
 
+/// Registers a function to a [`#[butler_plugin]`](butler_plugin)-annotated [`Plugin`](bevy_app::prelude::Plugin) using the specified transforms.
+///
+/// # Usage
+/// ```rust
+/// # use bevy_butler::*;
+/// # use bevy_app::prelude::*;
+/// # use bevy_log::prelude::*;
+/// # #[butler_plugin]
+/// # struct MyPlugin;
+/// #
+/// fn world() -> String {
+///     "world".to_string()
+/// }
+///
+/// #[custom_system(
+///     plugin = MyPlugin,
+///     schedule = Startup,
+///     transforms = world.pipe(hello),
+/// )]
+/// fn hello(In(world): In<String>, mut marker: ResMut<MyResource>) {
+///     info!("Hello, {world}!");
+///     marker.0 = format!("Hello, {world}!");
+/// }
+/// ```
+///
+/// # Arguments
+/// ## `plugin` (Required)
+/// A [`Plugin`](bevy_app::prelude::Plugin) annotated with [`#[butler_plugin]`](butler_plugin) to register this system to.
+///
+/// ## `schedule` (Required)
+/// A [`Schedule`](bevy_ecs::prelude::Schedule) to run this system under.
+///
+/// ## `transforms` (Required)
+/// An expression that would go in a `app.add_systems(Schedule, ...)` call.
+///
+pub use bevy_butler_proc_macro::custom_system;
+
 /// Define a set of default [`#[system]`](system) arguments for the enclosed items
 ///
 /// # Usage
