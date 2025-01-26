@@ -14,6 +14,7 @@ pub(crate) fn macro_impl(attr: TokenStream1, body: TokenStream1) -> syn::Result<
     let res_ident = match &item {
         Item::Struct(i_struct) => &i_struct.ident,
         Item::Use(i_use) => get_use_path(&i_use.tree)?,
+        Item::Type(i_type) => &i_type.ident,
         item => return Err(Error::new_spanned(item, "Expected a struct or use statement")),
     };
 
@@ -21,12 +22,18 @@ pub(crate) fn macro_impl(attr: TokenStream1, body: TokenStream1) -> syn::Result<
     hash_bytes += &attr.plugin.to_token_stream().to_string();
     let static_ident = format_ident!("_butler_resource_{}", sha256::digest(hash_bytes));
 
-    let entry_expr = match &attr.init {
-        Some(expr) => syn::parse_quote! {
+    let entry_expr = match (&attr.init, attr.non_send.unwrap_or_default()) {
+        (Some(expr), false) => syn::parse_quote! {
             |app| { app.insert_resource(#expr); }
         },
-        None => syn::parse_quote! {
+        (Some(expr), true) => syn::parse_quote! {
+            |app| { app.insert_non_send_resource(#expr); }
+        },
+        (None, false) => syn::parse_quote! {
             |app| { app.init_resource::<#res_ident>(); }
+        },
+        (None, true) => syn::parse_quote! {
+            |app| { app.init_non_send_resource::<#res_ident>(); }
         }
     };
 

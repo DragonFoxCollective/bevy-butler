@@ -3,3 +3,4 @@ mod common {
 }
 
 mod resource;
+mod non_send;
