@@ -1,6 +1,6 @@
 use proc_macro2::Span;
 use quote::{quote, ToTokens};
-use syn::{Item, ItemUse};
+use syn::{Expr, Item, ItemUse};
 use syn::{parse::{Parse, ParseStream, Parser}, punctuated::Punctuated, AngleBracketedGenericArguments, Attribute, Error, ExprCall, GenericArgument, ItemFn, Meta, MetaList, MetaNameValue, Token, TypePath};
 
 use crate::utils;
@@ -8,7 +8,7 @@ use crate::utils;
 #[derive(Clone)]
 pub(crate) struct SystemAttr {
     pub plugin: Option<TypePath>,
-    pub schedule: Option<TypePath>,
+    pub schedule: Option<Expr>,
     pub generics: Option<AngleBracketedGenericArguments>,
     pub transforms: Punctuated<ExprCall, Token![.]>,
     pub attr_span: Span,
@@ -31,7 +31,7 @@ impl SystemAttr {
         self.plugin.as_ref().ok_or(Error::new(self.attr_span, "Expected a defined or inherited `plugin` argument"))
     }
 
-    pub fn require_schedule(&self) -> syn::Result<&TypePath> {
+    pub fn require_schedule(&self) -> syn::Result<&Expr> {
         self.schedule.as_ref().ok_or(Error::new(self.attr_span, "Expected a defined or inherited `schedule` argument"))
     }
 
@@ -44,14 +44,6 @@ impl SystemAttr {
         let mut transforms = defaults.transforms;
         transforms.extend(std::mem::take(&mut self.transforms));
         self.transforms = transforms;
-    }
-
-    fn parse_type_path_meta(meta: Meta) -> syn::Result<TypePath> {
-        match meta {
-            Meta::List(list) => Ok(syn::parse2(list.tokens)?),
-            Meta::NameValue(name_value) => Ok(syn::parse2(name_value.value.to_token_stream())?),
-            Meta::Path(p) => Err(Error::new_spanned(p, "Expected name-value pair or list containing a TypePath")),
-        }
     }
 
     pub fn insert_generics(&mut self, mut generics: AngleBracketedGenericArguments) -> syn::Result<&mut AngleBracketedGenericArguments> {
@@ -69,15 +61,15 @@ impl SystemAttr {
             return Err(Error::new_spanned(meta, "Multiple declarations of \"plugin\""));
         }
 
-        Ok(self.plugin.insert(Self::parse_type_path_meta(meta)?))
+        Ok(self.plugin.insert(utils::parse_meta_args(meta)?))
     }
 
-    pub fn parse_schedule_meta(&mut self, meta: Meta) -> syn::Result<&mut TypePath> {
+    pub fn parse_schedule_meta(&mut self, meta: Meta) -> syn::Result<&mut Expr> {
         if self.schedule.is_some() {
             return Err(Error::new_spanned(meta, "Multiple declarations of \"schedule\""));
         }
 
-        Ok(self.schedule.insert(Self::parse_type_path_meta(meta)?))
+        Ok(self.schedule.insert(utils::parse_meta_args(meta)?))
     }
 
     pub fn parse_transform_meta(&mut self, meta: Meta) -> syn::Result<&mut Punctuated<ExprCall, Token![.]>> {

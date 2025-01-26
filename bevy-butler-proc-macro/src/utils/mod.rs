@@ -1,5 +1,5 @@
-use quote::quote;
-use syn::{parse::{discouraged::Speculative, ParseStream}, punctuated::Punctuated, AngleBracketedGenericArguments, Error, Ident, Meta, Token, TypePath};
+use quote::{quote, ToTokens};
+use syn::{parse::{discouraged::Speculative, Parse, ParseStream}, punctuated::Punctuated, AngleBracketedGenericArguments, Error, Ident, Meta, Token, TypePath};
 
 /// Used to parse `generics = <...>`, `generics(...)` and `generics = ...`
 /// Returns None if the meta identifier is not `generics`
@@ -34,5 +34,13 @@ pub(crate) fn try_parse_generics_arg(input: ParseStream) -> syn::Result<Option<A
 
             Ok(Some(args?))
         }
+    }
+}
+
+pub(crate) fn parse_meta_args<T: Parse>(meta: Meta) -> syn::Result<T> {
+    match meta {
+        Meta::List(list) => list.parse_args(),
+        Meta::NameValue(name_value) => syn::parse2(name_value.value.to_token_stream()),
+        Meta::Path(p) => Err(Error::new_spanned(p, "Expected parenthesis or `name = value`")),
     }
 }
