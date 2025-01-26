@@ -1,6 +1,6 @@
 use proc_macro2::TokenStream;
 use quote::{quote, ToTokens};
-use syn::{parse::{discouraged::Speculative, Parse, ParseStream}, punctuated::Punctuated, AngleBracketedGenericArguments, Error, ExprClosure, Ident, Meta, Token, TypePath};
+use syn::{parse::{discouraged::Speculative, Parse, ParseStream}, punctuated::Punctuated, AngleBracketedGenericArguments, Error, ExprClosure, Ident, Meta, Token, TypePath, UseTree};
 
 /// Used to parse `generics = <...>`, `generics(...)` and `generics = ...`
 /// Returns None if the meta identifier is not `generics`
@@ -52,5 +52,14 @@ pub(crate) fn butler_entry_block(static_ident: &Ident, plugin: &TypePath, expr: 
             || #plugin::_butler_sealed_marker(),
             #expr
         ));
+    }
+}
+
+pub(crate) fn get_use_path(tree: &UseTree) -> syn::Result<&Ident> {
+    match tree {
+        UseTree::Path(path) => get_use_path(&path.tree),
+        UseTree::Name(name) => Ok(&name.ident),
+        UseTree::Rename(rename) => Ok(&rename.rename),
+        UseTree::Group(_) | UseTree::Glob(_) => Err(syn::Error::new_spanned(tree, "Expected a path")),
     }
 }

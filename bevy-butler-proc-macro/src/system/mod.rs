@@ -2,10 +2,10 @@ use proc_macro::TokenStream as TokenStream1;
 use proc_macro2::TokenStream as TokenStream2;
 use quote::{format_ident, quote, ToTokens};
 use structs::{SystemAttr, SystemInput};
-use syn::{Ident, UseTree};
+use syn::Ident;
 use syn::{parse::{Parse, Parser}, Expr};
 
-use crate::utils::butler_entry_block;
+use crate::utils::{butler_entry_block, get_use_path};
 
 pub mod structs;
 
@@ -14,15 +14,6 @@ pub(crate) fn parse_system(attr: &SystemAttr, ident: &Ident) -> Expr {
     let generics = attr.generics.as_ref();
 
     syn::parse_quote!(#ident #generics #(. #transforms)*)
-}
-
-pub(crate) fn get_use_path(tree: &UseTree) -> syn::Result<&Ident> {
-    match tree {
-        UseTree::Path(path) => get_use_path(&path.tree),
-        UseTree::Name(name) => Ok(&name.ident),
-        UseTree::Rename(rename) => Ok(&rename.rename),
-        UseTree::Group(_) | UseTree::Glob(_) => Err(syn::Error::new_spanned(tree, "Expected a path")),
-    }
 }
 
 pub(crate) fn macro_impl(attr: TokenStream1, item: TokenStream1) -> syn::Result<TokenStream2> {
