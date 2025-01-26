@@ -5,6 +5,8 @@ use structs::{SystemAttr, SystemInput};
 use syn::{Ident, UseTree};
 use syn::{parse::{Parse, Parser}, Expr};
 
+use crate::utils::butler_entry_block;
+
 pub mod structs;
 
 pub(crate) fn parse_system(attr: &SystemAttr, ident: &Ident) -> Expr {
@@ -43,12 +45,9 @@ pub(crate) fn macro_impl(attr: TokenStream1, item: TokenStream1) -> syn::Result<
     #[allow(unused_variables)] // It's actually used
     let static_ident = format_ident!("_butler_system_{}", sha256::digest(hash_bytes));
 
-    let register_block = quote! {
-        ::bevy_butler::butler_entry!(#static_ident, ::bevy_butler::__internal::ButlerRegistryEntryFactory::new(
-            || #plugin::_butler_sealed_marker(),
-            |app| { app.add_systems( #schedule, #sys_expr ); }
-        ));
-    };
+    let register_block = butler_entry_block(&static_ident, plugin, &syn::parse_quote! {
+        |app| { app.add_systems( #schedule, #sys_expr ); }
+    });
 
     match input {
         SystemInput::Fn { body, .. } => Ok(quote! {

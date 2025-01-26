@@ -1,5 +1,6 @@
+use proc_macro2::TokenStream;
 use quote::{quote, ToTokens};
-use syn::{parse::{discouraged::Speculative, Parse, ParseStream}, punctuated::Punctuated, AngleBracketedGenericArguments, Error, Ident, Meta, Token, TypePath};
+use syn::{parse::{discouraged::Speculative, Parse, ParseStream}, punctuated::Punctuated, AngleBracketedGenericArguments, Error, ExprClosure, Ident, Meta, Token, TypePath};
 
 /// Used to parse `generics = <...>`, `generics(...)` and `generics = ...`
 /// Returns None if the meta identifier is not `generics`
@@ -42,5 +43,14 @@ pub(crate) fn parse_meta_args<T: Parse>(meta: Meta) -> syn::Result<T> {
         Meta::List(list) => list.parse_args(),
         Meta::NameValue(name_value) => syn::parse2(name_value.value.to_token_stream()),
         Meta::Path(p) => Err(Error::new_spanned(p, "Expected parenthesis or `name = value`")),
+    }
+}
+
+pub(crate) fn butler_entry_block(static_ident: &Ident, plugin: &TypePath, expr: &ExprClosure) -> TokenStream {
+    quote! {
+        ::bevy_butler::butler_entry!(#static_ident, ::bevy_butler::__internal::ButlerRegistryEntryFactory::new(
+            || #plugin::_butler_sealed_marker(),
+            #expr
+        ));
     }
 }

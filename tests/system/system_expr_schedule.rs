@@ -5,9 +5,7 @@ use std::time::Duration;
 use bevy::{prelude::*, time::TimePlugin};
 use bevy_butler::*;
 use bevy_state::{app::StatesPlugin, prelude::*};
-use bevy_app::{prelude::*, MainSchedulePlugin, ScheduleRunnerPlugin};
-use bevy_log::prelude::*;
-use wasm_bindgen_test::wasm_bindgen_test;
+use bevy_app::ScheduleRunnerPlugin;
 
 use crate::common::log_plugin;
 

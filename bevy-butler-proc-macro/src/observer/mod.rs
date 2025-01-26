@@ -4,6 +4,8 @@ use quote::{format_ident, quote, ToTokens};
 use structs::{ObserverAttr, ObserverInput};
 use syn::{parse::{Parse, Parser}, Expr, ItemFn};
 
+use crate::utils::butler_entry_block;
+
 pub(crate) mod structs;
 
 pub(crate) fn parse_observer(input: &ObserverInput) -> syn::Result<Expr> {
@@ -27,12 +29,9 @@ pub(crate) fn macro_impl(attr: TokenStream1, body: TokenStream1) -> syn::Result<
 
     let static_ident = format_ident!("_butler_observer_{}", sha256::digest(hash_bytes));
 
-    let register_block = quote! {
-        ::bevy_butler::butler_entry!(#static_ident, ::bevy_butler::__internal::ButlerRegistryEntryFactory::new(
-            || #plugin::_butler_sealed_marker(),
-            |app| { app.add_observer( #obsrv_expr ); }
-        ));
-    };
+    let register_block = butler_entry_block(&static_ident, plugin, &syn::parse_quote! {
+        |app| { app.add_observer( #obsrv_expr ); }
+    });
 
     let body = input.func;
 

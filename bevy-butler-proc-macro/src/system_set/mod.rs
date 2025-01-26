@@ -4,7 +4,7 @@ use quote::{format_ident, quote, ToTokens};
 use structs::SystemSetInput;
 use syn::{parse::{Parse, Parser}, punctuated::Punctuated, spanned::Spanned, Error, Expr, Item, Token};
 
-use crate::{config_systems::{parse_config_systems, structs::ConfigSystemsInput}, system::structs::SystemAttr};
+use crate::{config_systems::{parse_config_systems, structs::ConfigSystemsInput}, system::structs::SystemAttr, utils::butler_entry_block};
 
 pub mod structs;
 
@@ -126,12 +126,9 @@ pub(crate) fn macro_impl(body: TokenStream1) -> syn::Result<TokenStream2> {
 
     let static_ident = format_ident!("_butler_sys_set_{}", set_hash);
 
-    let register_block = quote! {
-        ::bevy_butler::butler_entry!(#static_ident, ::bevy_butler::__internal::ButlerRegistryEntryFactory::new(
-            || #plugin::_butler_sealed_marker(),
-            |app| { app.add_systems( #schedule, #set_expr ); }
-        ));
-    };
+    let register_block = butler_entry_block(&static_ident, &plugin, &syn::parse_quote!{
+        |app| { app.add_systems(#schedule, #set_expr); }
+    });
 
     let items = input.items;
 
