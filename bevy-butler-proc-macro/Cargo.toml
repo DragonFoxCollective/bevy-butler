@@ -5,6 +5,7 @@ edition = "2021"
 description = "Procedural macro definitions for bevy-butler"
 license = "MIT OR Apache-2.0"
 repository = "https://github.com/TGRCdev/bevy-butler"
+exclude = [".direnv/", ".vscode/", "Cargo.lock", "*.nix", "flake.lock", ".envrc", ".github/"]
 
 [lib]
 proc-macro = true
