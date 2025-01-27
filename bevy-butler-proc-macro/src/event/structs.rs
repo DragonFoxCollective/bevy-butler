@@ -1,10 +1,11 @@
 use proc_macro2::Span;
-use syn::{parse::{Parse, ParseStream}, Error, Meta, Token, TypePath};
+use syn::{parse::{Parse, ParseStream}, AngleBracketedGenericArguments, Error, Token, TypePath};
 
-use crate::utils::parse_meta_args;
+use crate::utils::{parse_meta_args, GenericOrMeta};
 
 pub(crate) struct EventAttr {
     pub plugin: Option<TypePath>,
+    pub generics: Option<AngleBracketedGenericArguments>,
 }
 
 impl EventAttr {
@@ -14,6 +15,17 @@ impl EventAttr {
         }
 
         self.plugin = Some(plugin);
+        Ok(())
+    }
+
+    pub fn insert_generics(&mut self, mut generics: AngleBracketedGenericArguments) -> syn::Result<()> {
+        if self.generics.is_some() {
+            return Err(Error::new_spanned(generics, "Multiple declarations of \"generics\""));
+        }
+
+        generics.colon2_token = Some(Default::default());
+
+        self.generics = Some(generics);
         Ok(())
     }
     
@@ -26,12 +38,16 @@ impl Parse for EventAttr {
     fn parse(input: ParseStream) -> syn::Result<Self> {
         let mut ret = EventAttr {
             plugin: None,
+            generics: None,
         };
 
-        for meta in input.parse_terminated(Meta::parse, Token![,])? {
-            match meta.path().require_ident()? {
-                ident if ident == "plugin" => ret.insert_plugin(parse_meta_args::<TypePath>(meta)?)?,
-                ident => return Err(Error::new_spanned(ident, format!("Unknown argument \"{}\"", ident))),
+        for generic_or_meta in input.parse_terminated(GenericOrMeta::parse, Token![,])? {
+            match generic_or_meta {
+                GenericOrMeta::Generic(generics) => ret.insert_generics(generics)?,
+                GenericOrMeta::Meta(meta) => match meta.path().require_ident()? {
+                    ident if ident == "plugin" => ret.insert_plugin(parse_meta_args::<TypePath>(meta)?)?,
+                    ident => return Err(Error::new_spanned(ident, format!("Unknown argument \"{}\"", ident))),
+                },
             }
         }
 

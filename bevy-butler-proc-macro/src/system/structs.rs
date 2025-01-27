@@ -4,6 +4,7 @@ use syn::{Expr, Item, ItemUse};
 use syn::{parse::{Parse, ParseStream, Parser}, punctuated::Punctuated, AngleBracketedGenericArguments, Attribute, Error, ExprCall, GenericArgument, ItemFn, Meta, MetaList, MetaNameValue, Token, TypePath};
 
 use crate::utils;
+use crate::utils::GenericOrMeta;
 
 #[derive(Clone)]
 pub(crate) struct SystemAttr {
@@ -179,23 +180,8 @@ impl Parse for SystemAttr {
             attr_span: input.span(),
         };
 
-        enum GenericOrMeta {
-            Generic(AngleBracketedGenericArguments),
-            Meta(Meta),
-        }
-
-        let parser = |input: ParseStream| -> syn::Result<GenericOrMeta> {
-            // See if we're parsing a `generics`
-            if let Some(generics) = utils::try_parse_generics_arg(input)? {
-                Ok(GenericOrMeta::Generic(generics))
-            }
-            else {
-                Ok(GenericOrMeta::Meta(input.parse()?))
-            }
-        };
-
         // We are in a list (a = ..., b(c), ...)
-        for arg in input.parse_terminated(parser, Token![,])? {
+        for arg in input.parse_terminated(GenericOrMeta::parse, Token![,])? {
             match arg {
                 GenericOrMeta::Generic(g) => { ret.insert_generics(g)?; },
                 GenericOrMeta::Meta(m) => { ret.parse_meta(m)?; },
