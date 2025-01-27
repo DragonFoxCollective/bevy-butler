@@ -1,0 +1,38 @@
+name: Publish (Pre-release)
+
+on: 
+  workflow_dispatch:
+  workflow_call:
+    secrets:
+      CARGO_REGISTRY_TOKEN:
+        required: true
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  publish-prerelease:
+    name: Publish Pre-release
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref }}
+      - name: Install cargo-binstall
+        uses: cargo-bins/cargo-binstall@v1.10.22
+      - name: Install cargo-release
+        run: cargo-binstall cargo-release
+      - name: Login to Cargo
+        run: cargo login ${{ secrets.CARGO_REGISTRY_TOKEN }}
+      - name: Publish RC
+        run: cargo-release release alpha --no-tag --execute
+      - name: Logout of Cargo
+        if: always()
+        run: cargo logout
+      - uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "[skip actions] Publish Pre-release"

@@ -1,16 +1,13 @@
 name: Rust
 
-on:
-  push:
-    branches: [ "*" ]
-  pull_request:
-    branches: [ "main" ]
+on: ["push", "pull_request"]
 
 env:
   CARGO_TERM_COLOR: always
 
 jobs:
   build:
+    name: Build
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
@@ -19,6 +16,7 @@ jobs:
     - name: Run bevy-butler tests
       run: cargo test --verbose
   build-nightly:
+    name: Build Nightly
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
@@ -28,6 +26,7 @@ jobs:
     - name: Run bevy-butler tests
       run: cargo +nightly test --verbose
   build-inventory:
+    name: Build (inventory)
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
@@ -36,6 +35,7 @@ jobs:
     - name: Run bevy-butler tests
       run: cargo test --features inventory --verbose
   build-inventory-nightly:
+    name: Build Nightly (inventory)
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
@@ -44,3 +44,32 @@ jobs:
       run: cargo +nightly build --features inventory --verbose
     - name: Run bevy-butler tests
       run: cargo +nightly test --features inventory --verbose
+  check-src:
+    name: Check Source Changed
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push'
+    outputs:
+      src-changed: ${{ steps.changes.outputs.src }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Paths Changes Filter
+        id: changes
+        uses: dorny/paths-filter@v3.0.2
+        with:
+          filters: |
+            src:
+              - 'bevy-butler/src/**'
+              - 'bevy-butler/Cargo.toml'
+              - 'bevy-butler/build.rs'
+              - 'bevy-butler-proc-macro/src/**'
+              - 'bevy-butler-proc-macro/Cargo.toml'
+              - 'Cargo.toml'
+  publish-prerelease:
+    name: Publish Pre-release
+    needs: [build, build-nightly, build-inventory, build-inventory-nightly, check-src]
+    if: needs.check-src.outputs.src-changed == 'true'
+    uses: ./.github/workflows/prerelease.yml
+    permissions:
+      contents: write
+    secrets:
+      CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
