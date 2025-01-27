@@ -54,7 +54,7 @@ fn end_system(mut counter: ResMut<Counter>, mut exit: EventWriter<AppExit>) {
 }
 
 #[system(plugin = MyPlugin, schedule = Update, run_if = |time: Res<Time>| time.elapsed_secs() > 3.0f32)]
-fn timeout_system(time: Res<Time>) {
+fn timeout_system() {
     panic!("Test timed out");
 }
 

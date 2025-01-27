@@ -18,13 +18,12 @@ A set of procedural macros for making Bevy plugins and systems more self-documen
 use bevy::prelude::*;
 use bevy_butler::*;
 
-#[derive(Resource)]
-pub struct Hello(pub String);
-
-#[butler_plugin(
-    build = insert_resource(Hello("World".to_string()))
-)]
+#[butler_plugin]
 pub struct MyPlugin;
+
+#[derive(Resource)]
+#[resource(plugin = MyPlugin, init = Hello("World".to_string()))]
+pub struct Hello(pub String);
 
 #[system(schedule = Update, plugin = MyPlugin)]
 fn hello_plugin(name: Res<Hello>)

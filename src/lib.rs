@@ -247,6 +247,50 @@ pub use bevy_butler_proc_macro::system_set;
 /// different types.
 pub use bevy_butler_proc_macro::observer;
 
+/// Registers the annotated [`Resource`](bevy_ecs::prelude::Resource) to a [`#[butler_plugin]`](butler_plugin) and
+/// initializes it upon the plugin being added.
+/// 
+/// # Usage
+/// ```rust
+/// # use bevy_butler::*;
+/// # use bevy_app::prelude::*;
+/// # use bevy_ecs::prelude::*;
+/// # use bevy_log::prelude::*;
+/// # #[butler_plugin]
+/// # struct MyPlugin;
+/// // using `Default`
+/// #[derive(Resource, Default)]
+/// #[resource(plugin = MyPlugin)]
+/// struct Counter(pub u8);
+/// 
+/// // Manual initialization
+/// #[derive(Resource)]
+/// #[resource( plugin = MyPlugin, init = Message("Hello, world!".to_string()) )]
+/// struct Message(pub String);
+/// ```
+/// 
+/// # Arguments
+/// ## `plugin` (Required)
+/// A [`Plugin`](bevy_app::prelude::Plugin) annotated with [`#[butler_plugin]`](butler_plugin) to register this resource to.
+/// 
+/// ## `init`
+/// By default, `#[resource]` will use the [`Default`] value of the resource.
+/// This can be overridden by specifying an `init` value.
+/// 
+/// ## `non_send`
+/// If your resource should not be sent between threads, including `non_send` will register it using
+/// [`init_non_send_resource`](bevy_app::prelude::App::init_non_send_resource)/
+/// [`insert_non_send_resource`](bevy_app::prelude::App::insert_non_send_resource).
+/// Can be written as `non_send`, `non_send = <bool>` or `non_send(<bool>)`.
+/// ```rust
+/// # use bevy_butler::*;
+/// # use bevy_ecs::prelude::*;
+/// # #[butler_plugin]
+/// # struct MyPlugin;
+/// #[derive(Resource, Default)]
+/// #[resource(plugin = MyPlugin, non_send)]
+/// struct MyNonSendResource;
+/// ```
 pub use bevy_butler_proc_macro::resource;
 
 pub use bevy_butler_proc_macro::event;

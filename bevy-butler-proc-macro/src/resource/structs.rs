@@ -1,5 +1,5 @@
 use proc_macro2::Span;
-use syn::{parse::{Parse, ParseStream}, Error, Expr, Ident, Meta, Token, TypePath};
+use syn::{parse::{Parse, ParseStream}, Error, Expr, LitBool, Meta, Token, TypePath};
 
 use crate::utils::parse_meta_args;
 
@@ -56,11 +56,7 @@ impl Parse for ResourceAttr {
                 ident if ident == "init" => ret.insert_init(parse_meta_args::<Expr>(meta)?)?,
                 ident if ident == "non_send" => match meta {
                     Meta::Path(_) => ret.insert_non_send(true)?,
-                    _ => match parse_meta_args::<Ident>(meta)? {
-                        ident if ident == "true" => ret.insert_non_send(true)?,
-                        ident if ident == "false" => ret.insert_non_send(false)?,
-                        ident => return Err(Error::new_spanned(ident, "Expected \"true\" or \"false\"")),
-                    }
+                    _ => ret.insert_non_send(parse_meta_args::<LitBool>(meta)?.value)?,
                 },
                 ident => return Err(Error::new_spanned(ident, format!("Unknown argument \"{}\"", ident))),
             }
