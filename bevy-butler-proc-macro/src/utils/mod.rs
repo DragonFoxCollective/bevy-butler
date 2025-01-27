@@ -1,6 +1,6 @@
 use proc_macro2::TokenStream;
 use quote::{quote, ToTokens};
-use syn::{parse::{discouraged::Speculative, Parse, ParseStream}, punctuated::Punctuated, AngleBracketedGenericArguments, Error, ExprClosure, Ident, Meta, Token, TypePath, UseTree};
+use syn::{parse::{discouraged::Speculative, Parse, ParseStream, Parser}, punctuated::Punctuated, AngleBracketedGenericArguments, Error, ExprClosure, Ident, Meta, Token, TypePath, UseTree};
 
 /// Used to parse `generics = <...>`, `generics(...)` and `generics = ...`
 /// Returns None if the meta identifier is not `generics`
@@ -42,6 +42,14 @@ pub(crate) fn parse_meta_args<T: Parse>(meta: Meta) -> syn::Result<T> {
     match meta {
         Meta::List(list) => list.parse_args(),
         Meta::NameValue(name_value) => syn::parse2(name_value.value.to_token_stream()),
+        Meta::Path(p) => Err(Error::new_spanned(p, "Expected parenthesis or `name = value`")),
+    }
+}
+
+pub(crate) fn parse_meta_args_with<P: Parser>(parser: P, meta: Meta) -> syn::Result<P::Output> {
+    match meta {
+        Meta::List(list) => list.parse_args_with(parser),
+        Meta::NameValue(name_value) => parser.parse2(name_value.value.to_token_stream()),
         Meta::Path(p) => Err(Error::new_spanned(p, "Expected parenthesis or `name = value`")),
     }
 }

@@ -52,3 +52,9 @@ pub(crate) mod event;
 pub fn event(attr: TokenStream, body: TokenStream) -> TokenStream {
     result_to_tokens(event::macro_impl(attr, body))
 }
+
+pub(crate) mod register_type;
+#[proc_macro_attribute]
+pub fn register_type(attr: TokenStream, body: TokenStream) -> TokenStream {
+    result_to_tokens(register_type::macro_impl(attr, body))
+}
