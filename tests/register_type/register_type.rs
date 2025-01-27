@@ -6,13 +6,19 @@ use crate::common::log_plugin;
 #[butler_plugin]
 struct MyPlugin;
 
-#[derive(Reflect)]
+#[derive(Reflect, Resource)]
 #[register_type(plugin = MyPlugin)]
-struct DynamicType {
+struct DynamicMessage {
     pub message: String,
 }
 
-// TODO: Write an actual test for this
+#[system(plugin = MyPlugin, schedule = Startup)]
+fn read_type_registration(registry: Res<AppTypeRegistry>) {
+    let registry = registry.read();
+    let type_data = registry.get_with_short_type_path("DynamicMessage").expect("DynamicMessage was not registered to the type registry");
+
+    info!("Type registration for DynamicMessage: {type_data:?}");
+}
 
 #[test]
 fn test() {
