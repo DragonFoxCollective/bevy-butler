@@ -46,3 +46,9 @@ pub(crate) mod resource;
 pub fn resource(attr: TokenStream, body: TokenStream) -> TokenStream {
     result_to_tokens(resource::macro_impl(attr, body))
 }
+
+pub(crate) mod event;
+#[proc_macro_attribute]
+pub fn event(attr: TokenStream, body: TokenStream) -> TokenStream {
+    result_to_tokens(event::macro_impl(attr, body))
+}

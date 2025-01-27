@@ -249,6 +249,8 @@ pub use bevy_butler_proc_macro::observer;
 
 pub use bevy_butler_proc_macro::resource;
 
+pub use bevy_butler_proc_macro::event;
+
 #[cfg(all(target_arch = "wasm32", not(feature = "wasm-experimental")))]
 compile_error!(
     "WebAssembly support in bevy-butler is experimental and buggy.
