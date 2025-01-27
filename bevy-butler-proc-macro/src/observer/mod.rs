@@ -1,27 +1,29 @@
 use proc_macro::TokenStream as TokenStream1;
 use proc_macro2::TokenStream as TokenStream2;
 use quote::{format_ident, quote, ToTokens};
-use structs::{ObserverAttr, ObserverInput};
-use syn::{parse::{Parse, Parser}, Expr, ItemFn};
+use structs::ObserverAttr;
+use syn::{parse::{Parse, Parser}, Error, Expr, Ident, Item};
 
-use crate::utils::butler_entry_block;
+use crate::utils::{butler_entry_block, get_use_path};
 
 pub(crate) mod structs;
 
-pub(crate) fn parse_observer(input: &ObserverInput) -> syn::Result<Expr> {
-    let ident = &input.func.sig.ident;
-    let generics = &input.attr.generics;
+pub(crate) fn parse_observer(attr: &ObserverAttr, ident: &Ident) -> syn::Result<Expr> {
+    let generics = &attr.generics;
     syn::parse2(quote!(#ident #generics))
 }
 
 pub(crate) fn macro_impl(attr: TokenStream1, body: TokenStream1) -> syn::Result<TokenStream2> {
-    let input = ObserverInput {
-        attr: ObserverAttr::parse.parse(attr)?,
-        func: ItemFn::parse.parse(body)?,
+    let attr = ObserverAttr::parse.parse(attr)?;
+    let item = syn::parse::<Item>(body)?;
+    let ident = match &item {
+        Item::Fn(item_fn) => &item_fn.sig.ident,
+        Item::Use(item_use) => get_use_path(&item_use.tree)?,
+        item => return Err(Error::new_spanned(item, "Expected an `fn` or `use` item")),
     };
 
-    let plugin = input.attr.require_plugin()?;
-    let obsrv_expr = parse_observer(&input)?;
+    let plugin = attr.require_plugin()?;
+    let obsrv_expr = parse_observer(&attr, ident)?;
 
     let mut hash_bytes = "observer".to_string();
     hash_bytes += &plugin.to_token_stream().to_string();
@@ -33,10 +35,8 @@ pub(crate) fn macro_impl(attr: TokenStream1, body: TokenStream1) -> syn::Result<
         |app| { app.add_observer( #obsrv_expr ); }
     });
 
-    let body = input.func;
-
     Ok(quote! {
-        #body
+        #item
 
         #register_block
     })

@@ -1,6 +1,6 @@
 use proc_macro2::Span;
 use quote::ToTokens;
-use syn::{parse::{Parse, ParseStream}, AngleBracketedGenericArguments, Error, Ident, ItemFn, Meta, Token, TypePath};
+use syn::{parse::{Parse, ParseStream}, AngleBracketedGenericArguments, Error, Ident, Meta, Token, TypePath};
 
 use crate::utils;
 
@@ -68,9 +68,4 @@ impl Parse for ObserverAttr {
 
         Ok(ret)
     }
-}
-
-pub(crate) struct ObserverInput {
-    pub attr: ObserverAttr,
-    pub func: ItemFn,
 }
