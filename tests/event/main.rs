@@ -3,3 +3,4 @@ mod common {
 }
 
 mod event;
+mod generic_event;

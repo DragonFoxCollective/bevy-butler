@@ -71,3 +71,19 @@ pub(crate) fn get_use_path(tree: &UseTree) -> syn::Result<&Ident> {
         UseTree::Group(_) | UseTree::Glob(_) => Err(syn::Error::new_spanned(tree, "Expected a path")),
     }
 }
+
+pub(crate) enum GenericOrMeta {
+    Generic(AngleBracketedGenericArguments),
+    Meta(Meta),
+}
+
+impl Parse for GenericOrMeta {
+    fn parse(input: ParseStream) -> syn::Result<Self> {
+        if let Some(generics) = try_parse_generics_arg(input)? {
+            Ok(GenericOrMeta::Generic(generics))
+        }
+        else {
+            Ok(GenericOrMeta::Meta(input.parse()?))
+        }
+    }
+}

@@ -18,12 +18,16 @@ pub(crate) fn macro_impl(attr: TokenStream1, body: TokenStream1) -> syn::Result<
         item => return Err(Error::new_spanned(item, "Expected a struct or use statement")),
     };
 
+    let plugin = &attr.plugin;
+    let generics = &attr.generics;
+
     let mut hash_bytes = event_ident.to_string();
-    hash_bytes += &attr.plugin.to_token_stream().to_string();
+    hash_bytes += &plugin.to_token_stream().to_string();
+    hash_bytes += &generics.to_token_stream().to_string();
     let static_ident = format_ident!("_butler_event_{}", sha256::digest(hash_bytes));
 
     let register_block = butler_entry_block(&static_ident, attr.require_plugin()?, &syn::parse_quote! {
-        |app| { app.add_event::<#event_ident>(); }
+        |app| { app.add_event::<#event_ident #generics>(); }
     });
 
     Ok(quote! {
