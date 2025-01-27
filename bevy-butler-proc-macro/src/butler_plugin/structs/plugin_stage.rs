@@ -13,7 +13,7 @@ pub(crate) enum PluginStage {
 }
 
 impl PluginStage {
-    pub fn to_str(&self) -> &'static str {
+    pub fn as_str(&self) -> &'static str {
         match self {
             PluginStage::Build => "build",
             PluginStage::Finish => "finish",
@@ -24,7 +24,7 @@ impl PluginStage {
 
 impl From<PluginStage> for &'static str {
     fn from(value: PluginStage) -> Self {
-        value.to_str()
+        value.as_str()
     }
 }
 
@@ -52,7 +52,10 @@ impl TryFrom<&Ident> for PluginStage {
             value if value == "build" => Ok(PluginStage::Build),
             value if value == "finish" => Ok(PluginStage::Finish),
             value if value == "cleanup" => Ok(PluginStage::Cleanup),
-            _ => Err(Error::new_spanned(value, format!("Unknown plugin stage \"{value}\""))),
+            _ => Err(Error::new_spanned(
+                value,
+                format!("Unknown plugin stage \"{value}\""),
+            )),
         }
     }
 }
@@ -69,7 +72,9 @@ impl TryFrom<&Path> for PluginStage {
     type Error = Error;
 
     fn try_from(value: &Path) -> Result<Self, Self::Error> {
-        value.require_ident().and_then(|ident| Self::try_from(ident))
+        value
+            .require_ident()
+            .and_then(Self::try_from)
     }
 }
 
@@ -83,7 +88,7 @@ impl TryFrom<Path> for PluginStage {
 
 impl ToTokens for PluginStage {
     fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
-        let ident = Ident::new(&self.to_str(), Span::call_site());
+        let ident = Ident::new(self.as_str(), Span::call_site());
         tokens.append(ident);
     }
 }

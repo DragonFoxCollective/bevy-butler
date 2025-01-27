@@ -1,5 +1,11 @@
 use quote::{quote, ToTokens};
-use syn::{parse::{discouraged::{AnyDelimiter, Speculative}, Parse, ParseStream}, Item};
+use syn::{
+    parse::{
+        discouraged::{AnyDelimiter, Speculative},
+        Parse, ParseStream,
+    },
+    Item,
+};
 
 use crate::system::structs::SystemAttr;
 
@@ -16,8 +22,7 @@ impl Parse for ConfigSystemsInput {
         let system_args = if let Ok((_, _, parse)) = fork.parse_any_delimiter() {
             input.advance_to(&fork);
             parse.parse()?
-        }
-        else {
+        } else {
             SystemAttr::default()
         };
 
@@ -26,10 +31,7 @@ impl Parse for ConfigSystemsInput {
             items.push(input.parse()?)
         }
 
-        Ok(Self {
-            system_args,
-            items
-        })
+        Ok(Self { system_args, items })
     }
 }
 

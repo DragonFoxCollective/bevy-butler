@@ -2,9 +2,18 @@ use proc_macro::TokenStream as TokenStream1;
 use proc_macro2::TokenStream as TokenStream2;
 use quote::{format_ident, quote, ToTokens};
 use structs::SystemSetInput;
-use syn::{parse::{Parse, Parser}, punctuated::Punctuated, spanned::Spanned, Error, Expr, Item, Token};
+use syn::{
+    parse::{Parse, Parser},
+    punctuated::Punctuated,
+    spanned::Spanned,
+    Error, Expr, Item, Token,
+};
 
-use crate::{config_systems::{parse_config_systems, structs::ConfigSystemsInput}, system::structs::SystemAttr, utils::butler_entry_block};
+use crate::{
+    config_systems::{parse_config_systems, structs::ConfigSystemsInput},
+    system::structs::SystemAttr,
+    utils::butler_entry_block,
+};
 
 pub mod structs;
 
@@ -14,7 +23,10 @@ pub(crate) fn parse_system_set(mut input: SystemSetInput) -> syn::Result<(System
 
     let set_transforms = set_args.transforms.iter();
     if set_args.generics.is_some() {
-        return Err(Error::new(set_args.attr_span, "`generics` is not applicable for `system_set!` arguments"));
+        return Err(Error::new(
+            set_args.attr_span,
+            "`generics` is not applicable for `system_set!` arguments",
+        ));
     }
 
     let mut systems: Punctuated<Expr, Token![,]> = Default::default();
@@ -38,17 +50,23 @@ pub(crate) fn parse_system_set(mut input: SystemSetInput) -> syn::Result<(System
                             // We'll wrap every system into a single set, so no overriding
                             // the plugin/schedule
                             if sys_args.plugin.is_some() {
-                                return Err(Error::new(sys_attr.span(), "`plugin` can not be overridden within a `system_set!` block"));
+                                return Err(Error::new(
+                                    sys_attr.span(),
+                                    "`plugin` can not be overridden within a `system_set!` block",
+                                ));
                             }
                             if sys_args.schedule.is_some() {
-                                return Err(Error::new(sys_attr.span(), "`schedule` can not be overridden within a `system_set!` block"));
+                                return Err(Error::new(
+                                    sys_attr.span(),
+                                    "`schedule` can not be overridden within a `system_set!` block",
+                                ));
                             }
                             let fn_ident = &item_fn.sig.ident;
                             let generics = sys_args.generics;
                             let transforms = sys_args.transforms.into_iter();
-                            systems.push(syn::parse2(quote!(#fn_ident #generics #(. #transforms)*))?);
-                        }
-                        else {
+                            systems
+                                .push(syn::parse2(quote!(#fn_ident #generics #(. #transforms)*))?);
+                        } else {
                             j += 1;
                         }
                     }
@@ -62,10 +80,16 @@ pub(crate) fn parse_system_set(mut input: SystemSetInput) -> syn::Result<(System
                         let mut mac_body: SystemSetInput = mac.mac.parse_body()?;
                         let sys_args = &mut mac_body.system_args;
                         if sys_args.plugin.is_some() {
-                            return Err(Error::new(mac.span(), "`plugin` can not be overridden within a `system_set!` block"));
+                            return Err(Error::new(
+                                mac.span(),
+                                "`plugin` can not be overridden within a `system_set!` block",
+                            ));
                         }
                         if sys_args.schedule.is_some() {
-                            return Err(Error::new(mac.span(), "`schedule` can not be overridden within a `system_set!` block"));
+                            return Err(Error::new(
+                                mac.span(),
+                                "`schedule` can not be overridden within a `system_set!` block",
+                            ));
                         }
                         sys_args.with_defaults(set_args.clone());
                         let (mac_body, set_expr) = parse_system_set(mac_body)?;
@@ -82,13 +106,21 @@ pub(crate) fn parse_system_set(mut input: SystemSetInput) -> syn::Result<(System
                         let mut mac_body: ConfigSystemsInput = mac.mac.parse_body()?;
                         let sys_args = &mut mac_body.system_args;
                         if sys_args.plugin.is_some() {
-                            return Err(Error::new(mac.span(), "`plugin` can not be overridden within a `system_set!` block"));
+                            return Err(Error::new(
+                                mac.span(),
+                                "`plugin` can not be overridden within a `system_set!` block",
+                            ));
                         }
                         if sys_args.schedule.is_some() {
-                            return Err(Error::new(mac.span(), "`schedule` can not be overridden within a `system_set!` block"));
+                            return Err(Error::new(
+                                mac.span(),
+                                "`schedule` can not be overridden within a `system_set!` block",
+                            ));
                         }
 
-                        items.splice(i..=i, parse_config_systems(mac_body)?).for_each(|_| ());
+                        items
+                            .splice(i..=i, parse_config_systems(mac_body)?)
+                            .for_each(|_| ());
                     }
                     _ => i += 1,
                 }
@@ -109,7 +141,7 @@ pub(crate) fn macro_impl(body: TokenStream1) -> syn::Result<TokenStream2> {
     // Early terminate
     input.system_args.require_plugin()?;
     input.system_args.require_schedule()?;
-    
+
     let (input, set_expr) = parse_system_set(input)?;
     let args = input.system_args;
 
@@ -118,17 +150,22 @@ pub(crate) fn macro_impl(body: TokenStream1) -> syn::Result<TokenStream2> {
 
     // Hash the system set to get a static ident
     #[allow(unused)]
-    let set_hash = sha256::digest(format!("{}{}{}",
-        plugin.to_token_stream().to_string(),
-        schedule.to_token_stream().to_string(),
-        set_expr.clone().to_token_stream().to_string(),
+    let set_hash = sha256::digest(format!(
+        "{}{}{}",
+        plugin.to_token_stream(),
+        schedule.to_token_stream(),
+        set_expr.clone().to_token_stream(),
     ));
 
     let static_ident = format_ident!("_butler_sys_set_{}", set_hash);
 
-    let register_block = butler_entry_block(&static_ident, &plugin, &syn::parse_quote!{
-        |app| { app.add_systems(#schedule, #set_expr); }
-    });
+    let register_block = butler_entry_block(
+        &static_ident,
+        plugin,
+        &syn::parse_quote! {
+            |app| { app.add_systems(#schedule, #set_expr); }
+        },
+    );
 
     let items = input.items;
 

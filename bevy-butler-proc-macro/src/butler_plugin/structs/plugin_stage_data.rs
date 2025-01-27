@@ -1,6 +1,10 @@
 use proc_macro2::Span;
 use quote::{format_ident, quote};
-use syn::{parse::{Parse, ParseStream}, spanned::Spanned, Error, Expr, ExprAssign, ExprBlock, ExprCall, Ident, ImplItemFn};
+use syn::{
+    parse::{Parse, ParseStream},
+    spanned::Spanned,
+    Error, Expr, ExprAssign, ExprBlock, ExprCall, Ident, ImplItemFn,
+};
 
 use super::PluginStage;
 
@@ -26,16 +30,19 @@ impl Parse for PluginStageData {
 
         match input.parse::<Expr>()? {
             // `stage(stmt1, stmt2, ...)`
-            Expr::Call(call) => {
-                Ok(Self {
-                    attr_span: call.span(),
-                    stage,
-                    stmts: Result::from_iter(call.args.into_iter().map(|expr| expr_to_stage_arg(expr)))?,
-                })
-            },
+            Expr::Call(call) => Ok(Self {
+                attr_span: call.span(),
+                stage,
+                stmts: Result::from_iter(
+                    call.args.into_iter().map(expr_to_stage_arg),
+                )?,
+            }),
             // `stage = statement`
             Expr::Assign(ExprAssign { left, right, .. }) => syn::parse2(quote!(#left (#right))),
-            other => Err(Error::new_spanned(other, "Expected name-value or list of arguments")),
+            other => Err(Error::new_spanned(
+                other,
+                "Expected name-value or list of arguments",
+            )),
         }
     }
 }

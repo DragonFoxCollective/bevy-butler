@@ -12,13 +12,14 @@ struct MyPlugin;
 #[resource(plugin = MyPlugin, non_send, init = Message("Hello, world!".to_string()))]
 struct Message(String);
 
-
 #[wasm_bindgen_test(unsupported = test)]
 fn test() {
     App::new()
         .add_plugins(log_plugin())
         .add_plugins(MyPlugin)
-        .add_systems(Startup, |msg: NonSend<Message>| info!("Non-send message: {}", msg.0))
+        .add_systems(Startup, |msg: NonSend<Message>| {
+            info!("Non-send message: {}", msg.0)
+        })
         .run();
 }
 
@@ -28,6 +29,8 @@ fn panic_test() {
     App::new()
         .add_plugins(log_plugin())
         .add_plugins(MyPlugin)
-        .add_systems(Startup, |msg: Res<Message>| info!("Resource message: {}", msg.0))
+        .add_systems(Startup, |msg: Res<Message>| {
+            info!("Resource message: {}", msg.0)
+        })
         .run();
 }

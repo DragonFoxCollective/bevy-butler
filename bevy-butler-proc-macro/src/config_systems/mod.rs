@@ -2,7 +2,10 @@ use proc_macro::TokenStream as TokenStream1;
 use proc_macro2::TokenStream as TokenStream2;
 use quote::quote;
 use structs::ConfigSystemsInput;
-use syn::{parse::{Parse, Parser}, Item, Meta};
+use syn::{
+    parse::{Parse, Parser},
+    Item, Meta,
+};
 
 use crate::{system::structs::SystemAttr, system_set::structs::SystemSetInput};
 
@@ -16,7 +19,7 @@ pub(crate) fn parse_config_systems(input: ConfigSystemsInput) -> syn::Result<Vec
     // For every system, parse the attr and rewrite it with new defaults
     //
     // Any non-systems will simply ignore the attribute.
-    Ok(items.into_iter().try_fold(vec![], |mut items, item| {
+    items.into_iter().try_fold(vec![], |mut items, item| {
         match item {
             // Could be a system with `#[system]`
             Item::Fn(mut item_fn) => {
@@ -29,32 +32,30 @@ pub(crate) fn parse_config_systems(input: ConfigSystemsInput) -> syn::Result<Vec
                 items.push(item_fn.into());
             }
             // Could be `config_systems!` or `system_set!`
-            Item::Macro(item_macro) => {
-                match item_macro.mac.path.get_ident() {
-                    Some(ident) if ident == "config_systems" => {
-                        let mut input: ConfigSystemsInput = item_macro.mac.parse_body()?;
-                        input.system_args.with_defaults(defaults.clone());
-                        items.extend(parse_config_systems(input)?);
-                    }
-                    Some(ident) if ident == "system_set" => {
-                        let mut input: SystemSetInput = item_macro.mac.parse_body()?;
-                        input.system_args.with_defaults(defaults.clone());
-                        items.push(syn::parse_quote! {
-                            system_set! { #input }
-                        });
-                    }
-                    _ => items.push(item_macro.into()),
+            Item::Macro(item_macro) => match item_macro.mac.path.get_ident() {
+                Some(ident) if ident == "config_systems" => {
+                    let mut input: ConfigSystemsInput = item_macro.mac.parse_body()?;
+                    input.system_args.with_defaults(defaults.clone());
+                    items.extend(parse_config_systems(input)?);
                 }
+                Some(ident) if ident == "system_set" => {
+                    let mut input: SystemSetInput = item_macro.mac.parse_body()?;
+                    input.system_args.with_defaults(defaults.clone());
+                    items.push(syn::parse_quote! {
+                        system_set! { #input }
+                    });
+                }
+                _ => items.push(item_macro.into()),
             },
             _ => (),
         }
         syn::Result::Ok(items)
-    })?)
+    })
 }
 
 pub(crate) fn macro_impl(body: TokenStream1) -> syn::Result<TokenStream2> {
     let input = ConfigSystemsInput::parse.parse(body)?;
-    
+
     let items = parse_config_systems(input)?;
 
     Ok(quote! {

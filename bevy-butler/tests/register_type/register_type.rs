@@ -1,5 +1,5 @@
-use bevy_butler::*;
 use bevy::prelude::*;
+use bevy_butler::*;
 
 use crate::common::log_plugin;
 
@@ -15,7 +15,9 @@ struct DynamicMessage {
 #[system(plugin = MyPlugin, schedule = Startup)]
 fn read_type_registration(registry: Res<AppTypeRegistry>) {
     let registry = registry.read();
-    let type_data = registry.get_with_short_type_path("DynamicMessage").expect("DynamicMessage was not registered to the type registry");
+    let type_data = registry
+        .get_with_short_type_path("DynamicMessage")
+        .expect("DynamicMessage was not registered to the type registry");
 
     info!("Type registration for DynamicMessage: {type_data:?}");
 }

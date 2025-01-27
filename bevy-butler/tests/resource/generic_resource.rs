@@ -18,10 +18,7 @@ struct Message<T>(T);
 struct MyPlugin;
 
 #[system(plugin = MyPlugin, schedule = Startup)]
-fn get_and_print_message(
-    message: Res<Message<String>>,
-    mut marker: ResMut<Marker<bool>>,
-) {
+fn get_and_print_message(message: Res<Message<String>>, mut marker: ResMut<Marker<bool>>) {
     info!("Resource message: {}", message.0);
     marker.0 = true;
 }

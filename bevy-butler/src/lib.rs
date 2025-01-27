@@ -76,7 +76,7 @@ pub use bevy_butler_proc_macro::butler_plugin;
 ///     info!("Hello, world!");
 /// }
 /// ```
-/// 
+///
 /// ## On an imported system
 /// ```rust
 /// # use bevy_butler::*;
@@ -230,7 +230,7 @@ pub use bevy_butler_proc_macro::config_systems;
 pub use bevy_butler_proc_macro::system_set;
 
 /// Registers an [observer](bevy_ecs::prelude::Observer) function to a [`#[butler_plugin]`](butler_plugin)-annotated [`Plugin`](bevy_app::prelude::Plugin).
-/// 
+///
 /// # Usage
 /// ## On a free-standing function
 /// ```rust
@@ -268,9 +268,9 @@ pub use bevy_butler_proc_macro::system_set;
 /// #[observer(plugin = MyPlugin)]
 /// use my_mod::receive_message;
 /// ```
-/// 
+///
 /// For more information about Observers, see the [Bevy example](https://bevyengine.org/examples/ecs-entity-component-system/observers/).
-/// 
+///
 /// # Arguments
 /// ## `plugin` (Required)
 /// A [`Plugin`](bevy_app::prelude::Plugin) annotated with [`#[butler_plugin]`](butler_plugin) to register this observer to.
@@ -282,7 +282,7 @@ pub use bevy_butler_proc_macro::observer;
 
 /// Registers the annotated [`Resource`](bevy_ecs::prelude::Resource) to a [`#[butler_plugin]`](butler_plugin) and
 /// initializes it upon the plugin being added.
-/// 
+///
 /// # Usage
 /// ## On a struct
 /// ```rust
@@ -296,7 +296,7 @@ pub use bevy_butler_proc_macro::observer;
 /// #[resource(plugin = MyPlugin)]
 /// struct Counter(pub u8);
 /// ```
-/// 
+///
 /// ## On an imported type
 /// ```rust
 /// # use bevy_butler::*;
@@ -311,7 +311,7 @@ pub use bevy_butler_proc_macro::observer;
 /// #[resource(plugin = MyPlugin)]
 /// use my_mod::ModResource;
 /// ```
-/// 
+///
 /// ## On a type alias
 /// ```rust
 /// # use bevy_butler::*;
@@ -325,15 +325,15 @@ pub use bevy_butler_proc_macro::observer;
 /// #[resource(plugin = MyPlugin)]
 /// type MyResource = ExternalResource<usize>;
 /// ```
-/// 
+///
 /// # Arguments
 /// ## `plugin` (Required)
 /// A [`Plugin`](bevy_app::prelude::Plugin) annotated with [`#[butler_plugin]`](butler_plugin) to register this resource to.
-/// 
+///
 /// ## `init`
 /// By default, `#[resource]` will use the [`Default`] value of the resource.
 /// This can be overridden by specifying an `init` value.
-/// 
+///
 /// ```rust
 /// # use bevy_ecs::prelude::*;
 /// # use bevy_butler::*;
@@ -346,11 +346,11 @@ pub use bevy_butler_proc_macro::observer;
 /// )]
 /// struct Message(String);
 /// ```
-/// 
+///
 /// ## `generics`
 /// A list of generic arguments to register the resource with. Used to register a generic resource for multiple
 /// different types.
-/// 
+///
 /// ## `non_send`
 /// If your resource should not be sent between threads, including `non_send` will register it using
 /// [`init_non_send_resource`](bevy_app::prelude::App::init_non_send_resource)/
@@ -369,7 +369,7 @@ pub use bevy_butler_proc_macro::resource;
 
 /// Registers the annotated [`Event`](bevy_ecs::prelude::Event) upon the
 /// given [`#[butler_plugin]`](butler_plugin) being built.
-/// 
+///
 /// # Usage
 /// ## On a struct
 /// ```rust
@@ -383,7 +383,7 @@ pub use bevy_butler_proc_macro::resource;
 /// #[event(plugin = MyPlugin)]
 /// struct MessageReceived(String);
 /// ```
-/// 
+///
 /// ## On an imported type
 /// ```rust
 /// # use bevy_butler::*;
@@ -397,7 +397,7 @@ pub use bevy_butler_proc_macro::resource;
 /// #[event(plugin = MyPlugin)]
 /// use my_mod::ModMessageReceived;
 /// ```
-/// 
+///
 /// ## On a type alias
 /// ```rust
 /// # use bevy_butler::*;
@@ -409,18 +409,18 @@ pub use bevy_butler_proc_macro::resource;
 /// #[event(plugin = MyPlugin)]
 /// type MyMessage = ExternalEventMessage<String>;
 /// ```
-/// 
+///
 /// # Arguments
 /// ## `plugin` (Required)
 /// A [`Plugin`](bevy_app::prelude::Plugin) annotated with [`#[butler_plugin]`](butler_plugin) to register this resource to.
-/// 
+///
 /// ## `generics`
 /// A list of generic arguments to register the event with. Used to register a generic event for multiple
 /// different types.
 pub use bevy_butler_proc_macro::event;
 
 /// Registers the annotated `Reflect` type into the app's type registry for reflection.
-/// 
+///
 /// # Usage
 /// ## On a struct
 /// ```rust
@@ -457,11 +457,11 @@ pub use bevy_butler_proc_macro::event;
 /// #[register_type(plugin = MyPlugin)]
 /// type MyName = GenericContainer<String>;
 /// ```
-/// 
+///
 /// # Arguments
 /// ## `plugin` (Required)
 /// A [`Plugin`](bevy_app::prelude::Plugin) annotated with [`#[butler_plugin]`](butler_plugin) to register this type to.
-/// 
+///
 /// ## `generics`
 /// A list of generic arguments to register the reflect type with. Used to register a generic reflect type for multiple
 /// different types.

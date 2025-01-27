@@ -3,9 +3,9 @@
 use std::time::Duration;
 
 use bevy::{prelude::*, time::TimePlugin};
+use bevy_app::ScheduleRunnerPlugin;
 use bevy_butler::*;
 use bevy_state::{app::StatesPlugin, prelude::*};
-use bevy_app::ScheduleRunnerPlugin;
 
 use crate::common::log_plugin;
 
@@ -24,21 +24,15 @@ struct Counter(u8);
 struct MyPlugin;
 
 #[system(plugin = MyPlugin, schedule = Startup)]
-fn start_system(
-    mut counter: ResMut<Counter>,
-    mut next_state: ResMut<NextState<MyState>>,
-) {
-    info!("State: Start");  
+fn start_system(mut counter: ResMut<Counter>, mut next_state: ResMut<NextState<MyState>>) {
+    info!("State: Start");
     assert_eq!(counter.0, 0);
     counter.0 = 1;
     next_state.set(MyState::Middle);
 }
 
 #[system(plugin = MyPlugin, schedule = OnEnter(MyState::Middle))]
-fn middle_system(
-    mut counter: ResMut<Counter>,
-    mut next_state: ResMut<NextState<MyState>>,
-) {
+fn middle_system(mut counter: ResMut<Counter>, mut next_state: ResMut<NextState<MyState>>) {
     info!("State: Middle");
     assert_eq!(counter.0, 1);
     counter.0 = 2;
@@ -61,7 +55,12 @@ fn timeout_system() {
 #[test]
 fn test() {
     App::new()
-        .add_plugins((log_plugin(), StatesPlugin, TimePlugin, ScheduleRunnerPlugin::run_loop(Duration::from_secs_f32(0.1))))
+        .add_plugins((
+            log_plugin(),
+            StatesPlugin,
+            TimePlugin,
+            ScheduleRunnerPlugin::run_loop(Duration::from_secs_f32(0.1)),
+        ))
         .add_plugins(MyPlugin)
         .init_state::<MyState>()
         .run();

@@ -2,7 +2,10 @@ use proc_macro::TokenStream as TokenStream1;
 use proc_macro2::TokenStream as TokenStream2;
 use quote::{format_ident, quote};
 use structs::RegisterTypeAttr;
-use syn::{parse::{Parse, Parser}, Error, Item};
+use syn::{
+    parse::{Parse, Parser},
+    Error, Item,
+};
 
 use crate::utils::{butler_entry_block, get_use_path};
 
@@ -15,7 +18,12 @@ pub(crate) fn macro_impl(attr: TokenStream1, body: TokenStream1) -> syn::Result<
         Item::Struct(i_struct) => &i_struct.ident,
         Item::Use(i_use) => get_use_path(&i_use.tree)?,
         Item::Type(i_type) => &i_type.ident,
-        item => return Err(Error::new_spanned(item, "Expected a `struct`, `use` or `type` item")),
+        item => {
+            return Err(Error::new_spanned(
+                item,
+                "Expected a `struct`, `use` or `type` item",
+            ))
+        }
     };
 
     let plugin = attr.require_plugin()?;

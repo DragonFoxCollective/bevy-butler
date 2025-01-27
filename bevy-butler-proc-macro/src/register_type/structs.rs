@@ -1,5 +1,9 @@
 use proc_macro2::Span;
-use syn::{parse::{Parse, ParseStream}, punctuated::Punctuated, Error, Meta, Token, TypePath};
+use syn::{
+    parse::{Parse, ParseStream},
+    punctuated::Punctuated,
+    Error, Meta, Token, TypePath,
+};
 
 use crate::utils::{parse_meta_args, parse_meta_args_with};
 
@@ -11,7 +15,10 @@ pub(crate) struct RegisterTypeAttr {
 impl RegisterTypeAttr {
     pub fn insert_plugin(&mut self, plugin: TypePath) -> syn::Result<()> {
         if self.plugin.is_some() {
-            return Err(Error::new_spanned(plugin, "Multiple declarations of \"plugin\""));
+            return Err(Error::new_spanned(
+                plugin,
+                "Multiple declarations of \"plugin\"",
+            ));
         }
 
         self.plugin = Some(plugin);
@@ -19,7 +26,10 @@ impl RegisterTypeAttr {
     }
 
     pub fn require_plugin(&self) -> syn::Result<&TypePath> {
-        self.plugin.as_ref().ok_or(Error::new(Span::call_site(), "Expected a defined or inherited `plugin` argument"))
+        self.plugin.as_ref().ok_or(Error::new(
+            Span::call_site(),
+            "Expected a defined or inherited `plugin` argument",
+        ))
     }
 }
 
@@ -33,8 +43,16 @@ impl Parse for RegisterTypeAttr {
         for meta in input.parse_terminated(Meta::parse, Token![,])? {
             match meta.path().require_ident()? {
                 ident if ident == "plugin" => ret.insert_plugin(parse_meta_args(meta)?)?,
-                ident if ident == "type_data" => ret.type_data.extend(parse_meta_args_with(Punctuated::<TypePath, Token![,]>::parse_terminated, meta)?),
-                ident => return Err(Error::new_spanned(ident, format!("Unknown argument \"{}\"", ident))),
+                ident if ident == "type_data" => ret.type_data.extend(parse_meta_args_with(
+                    Punctuated::<TypePath, Token![,]>::parse_terminated,
+                    meta,
+                )?),
+                ident => {
+                    return Err(Error::new_spanned(
+                        ident,
+                        format!("Unknown argument \"{}\"", ident),
+                    ))
+                }
             }
         }
 

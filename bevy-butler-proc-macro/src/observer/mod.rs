@@ -2,7 +2,10 @@ use proc_macro::TokenStream as TokenStream1;
 use proc_macro2::TokenStream as TokenStream2;
 use quote::{format_ident, quote, ToTokens};
 use structs::ObserverAttr;
-use syn::{parse::{Parse, Parser}, Error, Expr, Ident, Item};
+use syn::{
+    parse::{Parse, Parser},
+    Error, Expr, Ident, Item,
+};
 
 use crate::utils::{butler_entry_block, get_use_path};
 
@@ -31,9 +34,13 @@ pub(crate) fn macro_impl(attr: TokenStream1, body: TokenStream1) -> syn::Result<
 
     let static_ident = format_ident!("_butler_observer_{}", sha256::digest(hash_bytes));
 
-    let register_block = butler_entry_block(&static_ident, plugin, &syn::parse_quote! {
-        |app| { app.add_observer( #obsrv_expr ); }
-    });
+    let register_block = butler_entry_block(
+        &static_ident,
+        plugin,
+        &syn::parse_quote! {
+            |app| { app.add_observer( #obsrv_expr ); }
+        },
+    );
 
     Ok(quote! {
         #item

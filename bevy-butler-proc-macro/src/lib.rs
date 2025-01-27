@@ -1,4 +1,4 @@
-use proc_macro::TokenStream as TokenStream;
+use proc_macro::TokenStream;
 use proc_macro2::TokenStream as TokenStream2;
 
 pub(crate) mod utils;

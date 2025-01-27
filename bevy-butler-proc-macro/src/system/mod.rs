@@ -3,7 +3,10 @@ use proc_macro2::TokenStream as TokenStream2;
 use quote::{format_ident, quote, ToTokens};
 use structs::{SystemAttr, SystemInput};
 use syn::Ident;
-use syn::{parse::{Parse, Parser}, Expr};
+use syn::{
+    parse::{Parse, Parser},
+    Expr,
+};
 
 use crate::utils::{butler_entry_block, get_use_path};
 
@@ -27,7 +30,7 @@ pub(crate) fn macro_impl(attr: TokenStream1, item: TokenStream1) -> syn::Result<
     let plugin = attr.require_plugin()?;
     let schedule = attr.require_schedule()?;
 
-    let sys_expr = parse_system(&attr, ident);
+    let sys_expr = parse_system(attr, ident);
 
     let mut hash_bytes = "system".to_string();
     hash_bytes += &plugin.to_token_stream().to_string();
@@ -36,21 +39,24 @@ pub(crate) fn macro_impl(attr: TokenStream1, item: TokenStream1) -> syn::Result<
     #[allow(unused_variables)] // It's actually used
     let static_ident = format_ident!("_butler_system_{}", sha256::digest(hash_bytes));
 
-    let register_block = butler_entry_block(&static_ident, plugin, &syn::parse_quote! {
-        |app| { app.add_systems( #schedule, #sys_expr ); }
-    });
+    let register_block = butler_entry_block(
+        &static_ident,
+        plugin,
+        &syn::parse_quote! {
+            |app| { app.add_systems( #schedule, #sys_expr ); }
+        },
+    );
 
     match input {
         SystemInput::Fn { body, .. } => Ok(quote! {
             #body
-    
+
             #register_block
         }),
         SystemInput::Use { body, .. } => Ok(quote! {
             #body
-    
+
             #register_block
         }),
     }
-    
 }

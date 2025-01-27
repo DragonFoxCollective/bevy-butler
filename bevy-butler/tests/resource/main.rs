@@ -3,5 +3,5 @@ mod common {
 }
 
 mod generic_resource;
-mod resource;
 mod non_send;
+mod resource;

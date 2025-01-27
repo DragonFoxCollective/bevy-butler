@@ -1,5 +1,5 @@
-use bevy_butler::*;
 use bevy::prelude::*;
+use bevy_butler::*;
 use wasm_bindgen_test::wasm_bindgen_test;
 
 use crate::common::log_plugin;

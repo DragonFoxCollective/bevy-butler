@@ -2,7 +2,9 @@ use proc_macro::TokenStream as TokenStream1;
 use proc_macro2::{Span, TokenStream as TokenStream2};
 use quote::{format_ident, quote};
 use structs::{ButlerPluginAttr, ButlerPluginInput, PluginStage, PluginStageData};
-use syn::{parse::Parser, spanned::Spanned, Error, FnArg, ImplItem, ItemImpl, ItemStruct, Pat, TypePath};
+use syn::{
+    parse::Parser, spanned::Spanned, Error, FnArg, ImplItem, ItemImpl, ItemStruct, Pat, TypePath,
+};
 
 pub mod structs;
 
@@ -30,12 +32,18 @@ fn register_butler_plugin_stmts(plugin: &TypePath) -> TokenStream2 {
     }
 }
 
-pub(crate) fn struct_impl(mut attr: ButlerPluginAttr, body: ItemStruct) -> syn::Result<TokenStream2> {
+pub(crate) fn struct_impl(
+    mut attr: ButlerPluginAttr,
+    body: ItemStruct,
+) -> syn::Result<TokenStream2> {
     let plugin_struct = &body.ident;
     let app_ident = format_ident!("app");
-    let build_body = attr.stages[PluginStage::Build as usize].take()
+    let build_body = attr.stages[PluginStage::Build as usize]
+        .take()
         .map(|data| data.stage_inner_block(&app_ident));
-    let fn_iter = attr.stages.into_iter()
+    let fn_iter = attr
+        .stages
+        .into_iter()
         .filter_map(|data| data.map(|d| d.stage_fn()));
 
     let register_block = register_butler_plugin_stmts(&syn::parse2(quote!(#plugin_struct))?);
@@ -56,13 +64,16 @@ pub(crate) fn struct_impl(mut attr: ButlerPluginAttr, body: ItemStruct) -> syn::
     })
 }
 
-pub(crate) fn impl_impl(mut attr: ButlerPluginAttr, mut body: ItemImpl) -> syn::Result<TokenStream2> {
+pub(crate) fn impl_impl(
+    mut attr: ButlerPluginAttr,
+    mut body: ItemImpl,
+) -> syn::Result<TokenStream2> {
     // Insert a dummy build stage if it doesn't already exist
     // Simplifies the logic for inserting our butler registration function
     attr.stages[PluginStage::Build as usize].get_or_insert(PluginStageData {
         stage: PluginStage::Build,
         attr_span: Span::call_site(),
-        stmts: vec![]
+        stmts: vec![],
     });
 
     // Insert butler statements into existing blocks
@@ -73,14 +84,21 @@ pub(crate) fn impl_impl(mut attr: ButlerPluginAttr, mut body: ItemImpl) -> syn::
                 // Try to grab the stage data from the attr
                 if let Some(data) = attr.stages[stage as usize].take() {
                     // Figure out the identifier of the `&mut App` argument
-                    let app_ident = item.sig.inputs.get(1)
+                    let app_ident = item
+                        .sig
+                        .inputs
+                        .get(1)
                         .ok_or(Error::new(item.sig.span(), "Missing `app` argument?"))?;
                     let app_ident = match app_ident {
                         FnArg::Typed(ident) => match &*ident.pat {
                             Pat::Ident(ident) => &ident.ident,
-                            other => return Err(Error::new_spanned(other, "Expected `app: &mut App`")),
+                            other => {
+                                return Err(Error::new_spanned(other, "Expected `app: &mut App`"))
+                            }
+                        },
+                        FnArg::Receiver(r) => {
+                            return Err(Error::new_spanned(r, "Receiver arg in arg 1????"))
                         }
-                        FnArg::Receiver(r) => return Err(Error::new_spanned(r, "Receiver arg in arg 1????")),
                     };
 
                     let stmts = data.stmts;
@@ -105,10 +123,9 @@ pub(crate) fn impl_impl(mut attr: ButlerPluginAttr, mut body: ItemImpl) -> syn::
     // Create new function blocks for stages that weren't user-defined,
     // but have butler statements
     body.items.extend(
-        attr.stages.into_iter()
-            .filter_map(|d| {
-                d.map(|data| ImplItem::Fn(data.stage_fn()))
-            })
+        attr.stages
+            .into_iter()
+            .filter_map(|d| d.map(|data| ImplItem::Fn(data.stage_fn()))),
     );
 
     let plugin = &body.self_ty;

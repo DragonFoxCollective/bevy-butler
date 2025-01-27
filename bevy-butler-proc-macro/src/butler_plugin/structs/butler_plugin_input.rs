@@ -1,4 +1,8 @@
-use syn::{parse::{Parse, ParseStream, Parser}, spanned::Spanned, Error, Item, ItemImpl, ItemStruct, Token};
+use syn::{
+    parse::{Parse, ParseStream, Parser},
+    spanned::Spanned,
+    Error, Item, ItemImpl, ItemStruct, Token,
+};
 
 use super::PluginStageData;
 
@@ -12,12 +16,16 @@ impl ButlerPluginAttr {
             stages: Default::default(),
         };
 
-        for (stage, data) in input.parse_terminated(PluginStageData::parse, Token![,])?
+        for (stage, data) in input
+            .parse_terminated(PluginStageData::parse, Token![,])?
             .into_iter()
             .map(|d| (d.stage, d))
         {
             if ret.stages[usize::from(stage)].is_some() {
-                return Err(Error::new(data.attr_span, format!("Multiple declarations of \"{}\"", data.stage)))
+                return Err(Error::new(
+                    data.attr_span,
+                    format!("Multiple declarations of \"{}\"", data.stage),
+                ));
             }
             ret.stages[usize::from(stage)] = Some(data);
         }
@@ -52,8 +60,11 @@ impl ButlerPluginInput {
                         return Err(Error::new(body_span, "Expected an `impl Plugin` block"));
                     }
                     Ok(Self::Impl { attr, body })
-                },
-                item => Err(Error::new_spanned(item, "Expected a free-standing fn or an `impl Plugin` block"))
+                }
+                item => Err(Error::new_spanned(
+                    item,
+                    "Expected a free-standing fn or an `impl Plugin` block",
+                )),
             }
         }
     }
