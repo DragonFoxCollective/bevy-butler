@@ -62,6 +62,10 @@ pub static BUTLER_REGISTRY: LazyLock<ButlerRegistry> = LazyLock::new(|| {
         count += 1;
     });
 
+    // Trim down
+    registry.values_mut().for_each(|vec| vec.shrink_to_fit());
+    registry.shrink_to_fit();
+
     bevy_log::debug!("Building ButlerRegistry from {count} entries");
 
     ButlerRegistry(registry)
