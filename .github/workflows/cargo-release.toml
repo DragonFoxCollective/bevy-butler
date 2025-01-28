@@ -1,2 +1,2 @@
-pre-release-commit-message = "[skip actions] Publish Pre-release"
+pre-release-commit-message = "[no publish] Publish Pre-release"
 tag = false
