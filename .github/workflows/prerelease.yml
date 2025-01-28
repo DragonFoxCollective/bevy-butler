@@ -35,6 +35,3 @@ jobs:
       - name: Logout of Cargo
         if: always()
         run: cargo logout
-      - uses: stefanzweifel/git-auto-commit-action@v5
-        with:
-          commit_message: "[skip actions] Publish Pre-release"
