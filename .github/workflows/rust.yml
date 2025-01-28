@@ -47,7 +47,7 @@ jobs:
   check-src:
     name: Check Source Changed
     runs-on: ubuntu-latest
-    if: github.event_name == 'push'
+    if: ${{ github.ref == 'main' && github.event_name == 'push' }}
     outputs:
       src-changed: ${{ steps.changes.outputs.src }}
     steps:
