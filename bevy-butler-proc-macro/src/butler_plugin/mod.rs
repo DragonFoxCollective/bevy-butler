@@ -1,20 +1,21 @@
 use proc_macro::TokenStream as TokenStream1;
 use proc_macro2::{Span, TokenStream as TokenStream2};
 use quote::{format_ident, quote};
-use structs::{ButlerPluginAttr, ButlerPluginInput, PluginStage, PluginStageData};
+use structs::{ButlerPluginAttr, PluginStage, PluginStageData};
 use syn::{
-    parse::Parser, spanned::Spanned, Error, FnArg, ImplItem, ItemImpl, ItemStruct, Pat, TypePath,
+    parse::Parser, spanned::Spanned, Error, FnArg, Ident, ImplItem, Item, ItemEnum, ItemImpl, ItemStruct, Pat, TypePath
 };
 
 pub mod structs;
 
 pub(crate) fn macro_impl(attr: TokenStream1, item: TokenStream1) -> syn::Result<TokenStream2> {
     let attr = ButlerPluginAttr::parse_inner.parse(attr)?;
-    let input = ButlerPluginInput::parse_with_attr(attr).parse(item)?;
-
-    match input {
-        ButlerPluginInput::Struct { attr, body } => struct_impl(attr, body),
-        ButlerPluginInput::Impl { attr, body } => impl_impl(attr, body),
+    let item = syn::parse::<Item>(item)?;
+    match item {
+        Item::Impl(i_impl) => impl_impl(attr, i_impl),
+        Item::Struct(i_struct) => struct_impl(attr, i_struct),
+        Item::Enum(i_enum) => enum_impl(attr, i_enum),
+        other => Err(Error::new_spanned(other, "Expected `struct`, `enum` or `impl Plugin`")),
     }
 }
 
@@ -33,10 +34,35 @@ fn register_butler_plugin_stmts(plugin: &TypePath) -> TokenStream2 {
 }
 
 pub(crate) fn struct_impl(
-    mut attr: ButlerPluginAttr,
-    body: ItemStruct,
+    attr: ButlerPluginAttr,
+    item: ItemStruct,
 ) -> syn::Result<TokenStream2> {
-    let plugin_struct = &body.ident;
+    let impl_block = impl_plugin_block(attr, &item.ident)?;
+
+    Ok(quote! {
+        #item
+
+        #impl_block
+    })
+}
+
+pub(crate) fn enum_impl(
+    attr: ButlerPluginAttr,
+    item: ItemEnum,
+) -> syn::Result<TokenStream2> {
+    let impl_block = impl_plugin_block(attr, &item.ident)?;
+
+    Ok(quote! {
+        #item
+
+        #impl_block
+    })
+}
+
+pub(crate) fn impl_plugin_block(
+    mut attr: ButlerPluginAttr,
+    ident: &Ident,
+) -> syn::Result<TokenStream2> {
     let app_ident = format_ident!("app");
     let build_body = attr.stages[PluginStage::Build as usize]
         .take()
@@ -46,12 +72,10 @@ pub(crate) fn struct_impl(
         .into_iter()
         .filter_map(|data| data.map(|d| d.stage_fn()));
 
-    let register_block = register_butler_plugin_stmts(&syn::parse2(quote!(#plugin_struct))?);
+    let register_block = register_butler_plugin_stmts(&syn::parse2(quote!(#ident))?);
 
     Ok(quote! {
-        #body
-
-        impl ::bevy_butler::__internal::bevy_app::Plugin for #plugin_struct {
+        impl ::bevy_butler::__internal::bevy_app::Plugin for #ident {
             fn build(&self, app: &mut ::bevy_butler::__internal::bevy_app::App) {
                 <Self as ::bevy_butler::__internal::ButlerPlugin>::register_butler_systems(app, Self::_butler_sealed_marker());
                 #build_body

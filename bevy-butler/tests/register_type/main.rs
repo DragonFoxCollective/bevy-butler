@@ -3,3 +3,4 @@ mod common {
 }
 
 mod register_type;
+mod register_type_enum;

@@ -1,3 +1,6 @@
+# 0.5.4
+- Enums can now be annotated with `#[butler_plugin]`, `#[event]`, `#[register_type]` and `#[resource]`. [[#18](https://github.com/TGRCdev/bevy-butler/issues/18)]
+
 # 0.5.3
 Released 2025-01-27
 

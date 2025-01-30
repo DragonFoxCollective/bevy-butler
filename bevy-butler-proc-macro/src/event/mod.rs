@@ -18,6 +18,7 @@ pub(crate) fn macro_impl(attr: TokenStream1, body: TokenStream1) -> syn::Result<
         Item::Struct(i_struct) => &i_struct.ident,
         Item::Use(i_use) => get_use_path(&i_use.tree)?,
         Item::Type(i_type) => &i_type.ident,
+        Item::Enum(i_enum) => &i_enum.ident,
         item => {
             return Err(Error::new_spanned(
                 item,
