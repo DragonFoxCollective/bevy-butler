@@ -1,23 +1,18 @@
-name: Publish (Pre-release)
+name: Publish (Patch)
 
-on: 
-  workflow_dispatch:
-  workflow_call:
-    secrets:
-      CARGO_REGISTRY_TOKEN:
-        required: true
+on: [workflow_dispatch]
 
 env:
   CARGO_TERM_COLOR: always
 
 jobs:
-  publish-prerelease:
-    name: Publish Pre-release
+  publish-release:
+    name: Publish Release
     runs-on: ubuntu-latest
 
     permissions:
       contents: write
-
+    
     steps:
       - uses: actions/checkout@v4
         with:
@@ -30,8 +25,8 @@ jobs:
         run: cargo login ${{ secrets.CARGO_REGISTRY_TOKEN }}
       - name: Git Config
         run: git config user.name "GitHub Action" && git config user.email "github-action@users.noreply.github.com"
-      - name: Publish RC
-        run: cargo-release release alpha --execute --no-confirm --config .github/workflows/cargo-prerelease.toml
+      - name: Publish Release
+        run: cargo-release release patch --execute --no-confirm --config .github/workflows/cargo-release-patch.toml
       - name: Logout of Cargo
         if: always()
         run: cargo logout
