@@ -1,4 +1,8 @@
+# 0.5.5
+- `#[system]` now has the `pipe_in` argument, which allows specifying a chain of systems to pipe input from. [[#14](https://github.com/TGRCdev/bevy-butler/issues/14)]
+
 # 0.5.4
+Released 2025-01-31
 - Enums can now be annotated with `#[butler_plugin]`, `#[event]`, `#[register_type]` and `#[resource]`. [[#18](https://github.com/TGRCdev/bevy-butler/issues/18)]
 
 # 0.5.3
