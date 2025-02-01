@@ -3,6 +3,7 @@ use bevy_butler::*;
 
 use crate::common::log_plugin;
 
+#[allow(dead_code)]
 #[butler_plugin]
 enum MyPlugin {
     VariantOne,

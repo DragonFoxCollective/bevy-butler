@@ -16,7 +16,20 @@ pub(crate) fn parse_system(attr: &SystemAttr, ident: &Ident) -> Expr {
     let transforms = Some(&attr.transforms).filter(|i| !i.is_empty()).into_iter();
     let generics = attr.generics.as_ref();
 
-    syn::parse_quote!(#ident #generics #(. #transforms)*)
+    let sys_expr = syn::parse_quote! {
+        #ident #generics #(. #transforms)*
+    };
+
+    match &attr.pipe_in {
+        Some(pipes) if !pipes.is_empty() => {
+            let mut iter = pipes.iter();
+            let first = iter.next().unwrap();
+            syn::parse_quote! {
+                #first #(.pipe(#iter))* .pipe(#sys_expr)
+            }
+        },
+        _ => sys_expr
+    }
 }
 
 pub(crate) fn macro_impl(attr: TokenStream1, item: TokenStream1) -> syn::Result<TokenStream2> {

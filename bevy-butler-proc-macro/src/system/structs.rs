@@ -11,11 +11,14 @@ use syn::{Expr, Item, ItemUse};
 use crate::utils;
 use crate::utils::GenericOrMeta;
 
+use self::utils::{parse_meta_args, parse_meta_args_with};
+
 #[derive(Clone)]
 pub(crate) struct SystemAttr {
     pub plugin: Option<TypePath>,
     pub schedule: Option<Expr>,
     pub generics: Option<AngleBracketedGenericArguments>,
+    pub pipe_in: Option<Vec<Expr>>,
     pub transforms: Punctuated<ExprCall, Token![.]>,
     pub attr_span: Span,
 }
@@ -26,6 +29,7 @@ impl Default for SystemAttr {
             plugin: None,
             schedule: None,
             generics: None,
+            pipe_in: None,
             transforms: Default::default(),
             attr_span: Span::call_site(),
         }
@@ -159,6 +163,9 @@ impl SystemAttr {
             Some(ident) if ident == "generics" => {
                 self.parse_generics_meta(meta)?;
             }
+            Some(ident) if ident == "pipe_in" => {
+                self.pipe_in = Some(parse_meta_args_with(Punctuated::<_, Token![,]>::parse_terminated, meta)?.into_iter().collect());
+            }
             Some(_) | None => {
                 self.parse_transform_meta(meta)?;
             }
@@ -234,6 +241,7 @@ impl Parse for SystemAttr {
             plugin: None,
             schedule: None,
             generics: None,
+            pipe_in: None,
             transforms: Default::default(),
             attr_span: input.span(),
         };

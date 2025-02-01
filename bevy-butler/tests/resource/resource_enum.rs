@@ -7,6 +7,7 @@ use crate::common::log_plugin;
 #[butler_plugin]
 struct MyPlugin;
 
+#[allow(dead_code)]
 #[derive(Resource, Default, Debug)]
 #[resource(plugin = MyPlugin)]
 enum Message {
