@@ -11,7 +11,7 @@ use syn::{Expr, Item, ItemUse};
 use crate::utils;
 use crate::utils::GenericOrMeta;
 
-use self::utils::{parse_meta_args, parse_meta_args_with};
+use self::utils::parse_meta_args_with;
 
 #[derive(Clone)]
 pub(crate) struct SystemAttr {
