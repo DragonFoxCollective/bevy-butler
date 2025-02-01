@@ -118,6 +118,32 @@ pub use bevy_butler_proc_macro::butler_plugin;
 ///     info!("Resource: {}", res.0);
 /// }
 /// ```
+/// 
+/// ## `pipe_in`
+/// One or more system pipes to use as inputs to the system.
+/// 
+/// Pipes are used in the order given, so `pipe_in(sys1, sys2)` would result in `sys1.pipe(sys2).pipe(<system>)`.
+/// 
+/// For more info, see the [Bevy Cheat Book](https://bevy-cheatbook.github.io/programming/system-piping.html) page on system piping.
+/// 
+/// ```rust
+/// # use bevy_butler::*;
+/// # use bevy::prelude::*;
+/// # #[butler_plugin]
+/// # struct MyPlugin;
+/// fn get_name() -> String {
+///     "World".to_string()
+/// }
+/// 
+/// fn greet_name(name: In<String>) -> String {
+///     format!("Hello, {}!", *name)
+/// }
+/// 
+/// #[system(plugin = MyPlugin, schedule = Startup, pipe_in(get_name, greet_name))]
+/// fn print_greeting(greeting: In<String>) {
+///     info!("{}", *greeting);
+/// }
+/// ```
 ///
 /// ## System transforms
 /// Any attribute that doesn't match the above is assumed to be a system transform function, like [`run_if`](bevy_ecs::prelude::IntoSystemConfigs::run_if)
