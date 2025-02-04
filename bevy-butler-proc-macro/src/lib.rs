@@ -58,3 +58,15 @@ pub(crate) mod register_type;
 pub fn register_type(attr: TokenStream, body: TokenStream) -> TokenStream {
     result_to_tokens(register_type::macro_impl(attr, body))
 }
+
+pub(crate) mod butler_plugin_group;
+#[proc_macro_attribute]
+pub fn butler_plugin_group(attr: TokenStream, body: TokenStream) -> TokenStream {
+    result_to_tokens(butler_plugin_group::macro_impl(attr, body))
+}
+
+pub(crate) mod add_to_group;
+#[proc_macro_attribute]
+pub fn add_to_group(attr: TokenStream, body: TokenStream) -> TokenStream {
+    result_to_tokens(add_to_group::macro_impl(attr, body))
+}

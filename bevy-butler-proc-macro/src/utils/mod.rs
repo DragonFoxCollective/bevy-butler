@@ -76,13 +76,13 @@ pub(crate) fn parse_meta_args_with<P: Parser>(parser: P, meta: Meta) -> syn::Res
     }
 }
 
-pub(crate) fn butler_entry_block(
+pub(crate) fn butler_plugin_entry_block(
     static_ident: &Ident,
     plugin: &TypePath,
     expr: &ExprClosure,
 ) -> TokenStream {
     quote! {
-        ::bevy_butler::butler_entry!(#static_ident, ::bevy_butler::__internal::ButlerRegistryEntryFactory::new(
+        ::bevy_butler::_butler_plugin_entry!(#static_ident, ::bevy_butler::__internal::ButlerPluginRegistryEntryFactory::new(
             || #plugin::_butler_sealed_marker(),
             #expr
         ));

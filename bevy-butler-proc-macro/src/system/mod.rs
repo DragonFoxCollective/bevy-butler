@@ -8,7 +8,7 @@ use syn::{
     Expr,
 };
 
-use crate::utils::{butler_entry_block, get_use_path};
+use crate::utils::{butler_plugin_entry_block, get_use_path};
 
 pub mod structs;
 
@@ -52,7 +52,7 @@ pub(crate) fn macro_impl(attr: TokenStream1, item: TokenStream1) -> syn::Result<
     #[allow(unused_variables)] // It's actually used
     let static_ident = format_ident!("_butler_system_{}", sha256::digest(hash_bytes));
 
-    let register_block = butler_entry_block(
+    let register_block = butler_plugin_entry_block(
         &static_ident,
         plugin,
         &syn::parse_quote! {

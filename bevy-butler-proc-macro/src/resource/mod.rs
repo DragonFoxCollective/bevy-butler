@@ -7,7 +7,7 @@ use syn::{
     Error, Item,
 };
 
-use crate::utils::{butler_entry_block, get_use_path};
+use crate::utils::{butler_plugin_entry_block, get_use_path};
 
 pub(crate) mod structs;
 
@@ -50,7 +50,7 @@ pub(crate) fn macro_impl(attr: TokenStream1, body: TokenStream1) -> syn::Result<
         },
     };
 
-    let register_block = butler_entry_block(&static_ident, attr.require_plugin()?, &entry_expr);
+    let register_block = butler_plugin_entry_block(&static_ident, attr.require_plugin()?, &entry_expr);
 
     Ok(quote! {
         #item

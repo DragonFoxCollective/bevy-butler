@@ -12,7 +12,7 @@ use syn::{
 use crate::{
     config_systems::{parse_config_systems, structs::ConfigSystemsInput},
     system::structs::SystemAttr,
-    utils::butler_entry_block,
+    utils::butler_plugin_entry_block,
 };
 
 pub mod structs;
@@ -159,7 +159,7 @@ pub(crate) fn macro_impl(body: TokenStream1) -> syn::Result<TokenStream2> {
 
     let static_ident = format_ident!("_butler_sys_set_{}", set_hash);
 
-    let register_block = butler_entry_block(
+    let register_block = butler_plugin_entry_block(
         &static_ident,
         plugin,
         &syn::parse_quote! {

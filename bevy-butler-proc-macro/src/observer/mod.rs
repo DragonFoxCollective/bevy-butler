@@ -7,7 +7,7 @@ use syn::{
     Error, Expr, Ident, Item,
 };
 
-use crate::utils::{butler_entry_block, get_use_path};
+use crate::utils::{butler_plugin_entry_block, get_use_path};
 
 pub(crate) mod structs;
 
@@ -34,7 +34,7 @@ pub(crate) fn macro_impl(attr: TokenStream1, body: TokenStream1) -> syn::Result<
 
     let static_ident = format_ident!("_butler_observer_{}", sha256::digest(hash_bytes));
 
-    let register_block = butler_entry_block(
+    let register_block = butler_plugin_entry_block(
         &static_ident,
         plugin,
         &syn::parse_quote! {
