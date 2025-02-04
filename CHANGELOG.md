@@ -1,5 +1,6 @@
 # 0.5.5
 - `#[system]` now has the `pipe_in` argument, which allows specifying a chain of systems to pipe input from. [[#14](https://github.com/TGRCdev/bevy-butler/issues/14)]
+- Added `#[butler_plugin_group]` and `#[add_to_group]`, which allows defining PluginGroups using annotations, similar to `#[butler_plugin]` and `#[system]`.
 
 # 0.5.4
 Released 2025-01-31
