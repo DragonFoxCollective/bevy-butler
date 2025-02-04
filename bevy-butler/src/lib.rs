@@ -493,8 +493,57 @@ pub use bevy_butler_proc_macro::event;
 /// different types.
 pub use bevy_butler_proc_macro::register_type;
 
+/// Implements `PluginGroup` and configures it to allow usage of [`#[add_to_group]`](add_to_group).
+/// 
+/// # Usage
+/// ## On a struct
+/// Annotating a struct will automatically implement [`PluginGroup`](bevy_app::prelude::PluginGroup).
+/// ```rust
+/// # use bevy_butler::*;
+/// #[butler_plugin_group]
+/// struct MyPluginGroup;
+/// ```
+/// 
+/// # Arguments
+/// ## `name`
+/// The internal name of the [`PluginGroup`](bevy_app::prelude::PluginGroup). Used to implement the [`name`](bevy_app::prelude::PluginGroup::name) function.
 pub use bevy_butler_proc_macro::butler_plugin_group;
 
+/// Register a plugin to a `PluginGroup` annotated with [`#[butler_plugin_group]`](butler_plugin_group).
+/// 
+/// # Usage
+/// ## On a struct/enum
+/// ```rust
+/// # use bevy_butler::*;
+/// # #[butler_plugin_group]
+/// # struct MyPluginGroup;
+/// # #[butler_plugin]
+/// #[add_to_group(group = MyPluginGroup)]
+/// struct MyPlugin;
+/// ```
+/// 
+/// ## On an imported type
+/// ```rust
+/// # use bevy_butler::*;
+/// # #[butler_plugin_group]
+/// # struct MyPluginGroup;
+/// # mod my_mod {
+/// # use bevy_butler::*;
+/// # #[butler_plugin]
+/// # pub struct MyPlugin;
+/// # }
+/// #[add_to_group(group = MyPluginGroup)]
+/// use my_mod::MyPlugin;
+/// ```
+/// 
+/// # Arguments
+/// ## `before` / `after` / `as_group`
+/// These arguments define how the annotated item is added to the PluginGroup.
+/// They are mutually exclusive.
+/// 
+/// - `before = <plugin>` uses [`PluginGroupBuilder.add_before<plugin>`](bevy_app::PluginGroupBuilder::add_before)
+/// - `after = <plugin>` uses [`PluginGroupBuilder.add_after<plugin>`](bevy_app::PluginGroupBuilder::add_after)
+/// - `as_group` uses [`PluginGroupBuilder.add_group`](bevy_app::PluginGroupBuilder::add_group), assuming the item is a `PluginGroup`.
 pub use bevy_butler_proc_macro::add_to_group;
 
 #[cfg(all(target_arch = "wasm32", not(feature = "wasm-experimental")))]

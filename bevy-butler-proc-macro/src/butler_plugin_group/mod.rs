@@ -13,7 +13,7 @@ pub(crate) fn macro_impl(attr: TokenStream1, body: TokenStream1) -> syn::Result<
     let name_func: Option<ImplItemFn> = attr.name.map(|name| {
         syn::parse_quote! {
             fn name() -> String {
-                #name
+                #name.to_string()
             }
         }
     });

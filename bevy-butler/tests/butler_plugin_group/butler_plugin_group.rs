@@ -3,7 +3,7 @@ use bevy_butler::*;
 
 use crate::common::log_plugin;
 
-#[butler_plugin_group]
+#[butler_plugin_group(name = "MyPluginGroup")]
 struct MyPluginGroup;
 
 #[test]
