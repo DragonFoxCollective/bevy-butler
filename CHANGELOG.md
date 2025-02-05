@@ -1,4 +1,5 @@
 # 0.5.5
+Released 2025-02-03
 - `#[system]` now has the `pipe_in` argument, which allows specifying a chain of systems to pipe input from. [[#14](https://github.com/TGRCdev/bevy-butler/issues/14)]
 - Added `#[butler_plugin_group]` and `#[add_to_group]`, which allows defining PluginGroups using annotations, similar to `#[butler_plugin]` and `#[system]`.
 
@@ -21,7 +22,7 @@ Released 2025-01-26
 - `#[resource]` can be used to automatically initialize resources upon your plugin being added [[#7](https://github.com/TGRCdev/bevy-butler/issues/7)]
     ```rust
     #[derive(Resource)]
-    #[resource(plugin = MyPlugin, init = Message("Hello, world!".to_string())]
+    #[resource(plugin = MyPlugin, init = Message("Hello, world!".to_string()))]
     struct Message(String);
     ```
 - `#[event]` automatically registers events with `app.add_event::<MyEvent>()` [[#9](https://github.com/TGRCdev/bevy-butler/issues/9)]
