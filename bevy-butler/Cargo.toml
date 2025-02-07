@@ -12,9 +12,9 @@ exclude = [".direnv/", ".vscode/", "Cargo.lock", "*.nix", "flake.lock", ".envrc"
 
 [dependencies]
 bevy-butler-proc-macro = { path = "../bevy-butler-proc-macro", version = "0.5.5" }
-bevy_app = { version = "0.15.1", default-features = false }
-bevy_ecs = { version = "0.15.1", default-features = false }
-bevy_log = { version = "0.15.1", default-features = false }
+bevy_app = { version = "0.15.0", default-features = false }
+bevy_ecs = { version = "0.15.0", default-features = false }
+bevy_log = { version = "0.15.0", default-features = false }
 inventory = { version = "0.3.17", optional = true }
 
 [target.'cfg(not(target_arch="wasm32"))'.dependencies]
@@ -28,6 +28,6 @@ inventory = ["dep:inventory"]
 wasm-experimental = []
 
 [dev-dependencies]
-bevy = { version = "0.15.1", default-features = false }
-bevy_state = { version = "0.15.1", default-features = false, features = ["bevy_app"] }
+bevy = { version = "0.15.0", default-features = false }
+bevy_state = { version = "0.15.0", default-features = false, features = ["bevy_app"] }
 wasm-bindgen-test = "0.3.50"

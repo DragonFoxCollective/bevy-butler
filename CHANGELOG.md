@@ -1,3 +1,6 @@
+# 0.5.6
+- Lowered minimum Bevy version to `0.15.0`
+
 # 0.5.5
 Released 2025-02-03
 - `#[system]` now has the `pipe_in` argument, which allows specifying a chain of systems to pipe input from. [[#14](https://github.com/TGRCdev/bevy-butler/issues/14)]
