@@ -1,4 +1,9 @@
+# 0.5.7
+Released 2025-03-19
+- Added `add_to_plugin` for adding a `Plugin` or `PluginGroup` to a butler plugin
+
 # 0.5.6
+Released 2025-02-08
 - Lowered minimum Bevy version to `0.15.0`
 
 # 0.5.5
