@@ -70,3 +70,9 @@ pub(crate) mod add_to_group;
 pub fn add_to_group(attr: TokenStream, body: TokenStream) -> TokenStream {
     result_to_tokens(add_to_group::macro_impl(attr, body))
 }
+
+pub(crate) mod add_to_plugin;
+#[proc_macro_attribute]
+pub fn add_to_plugin(attr: TokenStream, body: TokenStream) -> TokenStream {
+    result_to_tokens(add_to_plugin::macro_impl(attr, body))
+}
