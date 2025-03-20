@@ -1,18 +1,21 @@
-use bevy_app::{App, Startup};
 use bevy_butler::*;
-use bevy_ecs::system::{Res, Resource};
+use bevy::prelude::*;
 use wasm_bindgen_test::wasm_bindgen_test;
-
-#[derive(Resource, Default)]
-#[resource(plugin = PluginBar)]
-struct Marker;
 
 #[butler_plugin]
 struct PluginFoo;
 
+#[add_to_plugin(plugin = PluginFoo)]
+#[butler_plugin_group]
+struct MyPluginGroup;
+
 #[butler_plugin]
-#[add_plugin(plugin = PluginFoo)]
+#[add_to_group(group = MyPluginGroup)]
 struct PluginBar;
+
+#[derive(Resource, Default)]
+#[resource(plugin = PluginBar)]
+struct Marker;
 
 #[wasm_bindgen_test(unsupported = test)]
 pub fn add_plugin_test() {

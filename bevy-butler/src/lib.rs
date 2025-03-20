@@ -546,7 +546,44 @@ pub use bevy_butler_proc_macro::butler_plugin_group;
 /// - `as_group` uses [`PluginGroupBuilder.add_group`](bevy_app::PluginGroupBuilder::add_group), assuming the item is a `PluginGroup`.
 pub use bevy_butler_proc_macro::add_to_group;
 
-pub use bevy_butler_proc_macro::add_plugin;
+/// Register a `Plugin` or `PluginGroup` to a `Plugin` annotated with [`#[butler_plugin]`](butler_plugin).
+/// 
+/// *Note: The plugin or group you annotate this with does **NOT** need to be annotated with [`#[butler_plugin]`](butler_plugin).
+/// Any `Plugin` or `PluginGroup` will work.*
+/// 
+/// # Usage
+/// ## On a struct/enum
+/// ```rust
+/// # use bevy_butler::*;
+/// # #[butler_plugin]
+/// # struct PluginBar;
+/// #[butler_plugin]
+/// #[add_to_plugin(plugin = PluginBar)]
+/// struct PluginFoo;
+/// ```
+/// 
+/// ## On an imported type
+/// ```rust
+/// # use bevy_butler::*;
+/// # #[butler_plugin]
+/// # struct PluginBar;
+/// # mod my_mod {
+/// # use bevy_butler::*;
+/// # #[butler_plugin]
+/// # pub struct PluginFoo;
+/// # }
+/// #[add_to_plugin(plugin = PluginBar)]
+/// use my_mod::PluginFoo;
+/// ```
+/// 
+/// # Arguments
+/// ## `plugin` (Required)
+/// A [`Plugin`](bevy_app::prelude::Plugin) annotated with [`#[butler_plugin]`](butler_plugin) to register this plugin or plugin group to.
+///
+/// ## `generics`
+/// A list of generic arguments to register the plugin with. Used to register a generic plugin for multiple
+/// different types.
+pub use bevy_butler_proc_macro::add_to_plugin;
 
 #[cfg(all(target_arch = "wasm32", not(feature = "wasm-experimental")))]
 compile_error!(
