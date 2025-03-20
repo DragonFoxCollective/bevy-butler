@@ -81,6 +81,7 @@ macro_rules! _butler_plugin_entry {
             ::bevy_butler::__internal::BUTLER_SLICE
         )]
         #[linkme(crate = ::bevy_butler::__internal::linkme)]
+        #[allow(non_upper_case_globals)]
         static $static_ident: ::bevy_butler::__internal::ButlerPluginRegistryEntryFactory = $entry;
     };
 }
