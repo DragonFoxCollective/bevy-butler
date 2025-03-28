@@ -11,6 +11,7 @@ struct MyPlugin;
 
 mod my_mod {
     use bevy::prelude::*;
+    use bevy_log::prelude::*;
 
     #[derive(Resource)]
     pub struct Attendees(pub Vec<String>);
@@ -21,7 +22,7 @@ mod my_mod {
     pub fn greet_person(person: Trigger<PersonEntered>, mut exit: EventWriter<AppExit>) {
         info!("Hello, {}!", person.0);
         if person.1 == 0 {
-            exit.send(AppExit::Success);
+            exit.write(AppExit::Success);
         }
     }
 
@@ -32,21 +33,21 @@ mod my_mod {
     }
 }
 
-#[resource(plugin = MyPlugin, init = Attendees(vec![
+#[add_resource(plugin = MyPlugin, init = Attendees(vec![
     "Harrier Du Bois".to_string(),
     "Kim Kitsuragi".to_string(),
     "Mack Torson".to_string(),
 ]))]
 use my_mod::Attendees;
 
-#[system(
+#[add_system(
     plugin = MyPlugin,
     schedule = Update,
     run_if = |attendees: Res<Attendees>| !attendees.0.is_empty()
 )]
 use my_mod::attendees_arriving;
 
-#[observer(plugin = MyPlugin)]
+#[add_observer(plugin = MyPlugin)]
 use my_mod::greet_person;
 
 #[test]
@@ -60,7 +61,7 @@ fn test() {
         .add_plugins(MyPlugin)
         .add_systems(
             Update,
-            (|| panic!("Timed out")).run_if(|time: Res<Time>| time.elapsed_secs() > 5.0f32),
+            (|| -> () { panic!("Timed out") }).run_if(|time: Res<Time>| time.elapsed_secs() > 5.0f32),
         )
         .run();
 }

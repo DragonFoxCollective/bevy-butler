@@ -71,7 +71,7 @@ pub use bevy_butler_proc_macro::butler_plugin;
 /// # #[butler_plugin]
 /// # struct MyPlugin;
 /// #
-/// #[system(plugin = MyPlugin, schedule = Startup)]
+/// #[add_system(plugin = MyPlugin, schedule = Startup)]
 /// fn hello_world() {
 ///     info!("Hello, world!");
 /// }
@@ -87,7 +87,7 @@ pub use bevy_butler_proc_macro::butler_plugin;
 /// # }
 /// # #[butler_plugin]
 /// # struct MyPlugin;
-/// #[system(plugin = MyPlugin, schedule = Startup)]
+/// #[add_system(plugin = MyPlugin, schedule = Startup)]
 /// use my_mod::hello_world;
 /// ```
 /// # Arguments
@@ -111,9 +111,9 @@ pub use bevy_butler_proc_macro::butler_plugin;
 /// #[derive(Resource)]
 /// struct GenericResource<T>(pub T);
 ///
-/// #[system(generics = <&'static str>, plugin = MyPlugin, schedule = Update)]
-/// #[system(generics = <u32>, plugin = MyPlugin, schedule = Update)]
-/// #[system(generics = <bool>, plugin = MyPlugin, schedule = Update)]
+/// #[add_system(generics = <&'static str>, plugin = MyPlugin, schedule = Update)]
+/// #[add_system(generics = <u32>, plugin = MyPlugin, schedule = Update)]
+/// #[add_system(generics = <bool>, plugin = MyPlugin, schedule = Update)]
 /// fn print_my_resource<T: 'static + Send + Sync + Display>(res: Res<GenericResource<T>>) {
 ///     info!("Resource: {}", res.0);
 /// }
@@ -129,6 +129,7 @@ pub use bevy_butler_proc_macro::butler_plugin;
 /// ```rust
 /// # use bevy_butler::*;
 /// # use bevy::prelude::*;
+/// # use bevy_log::prelude::*;
 /// # #[butler_plugin]
 /// # struct MyPlugin;
 /// fn get_name() -> String {
@@ -139,7 +140,7 @@ pub use bevy_butler_proc_macro::butler_plugin;
 ///     format!("Hello, {}!", *name)
 /// }
 /// 
-/// #[system(plugin = MyPlugin, schedule = Startup, pipe_in(get_name, greet_name))]
+/// #[add_system(plugin = MyPlugin, schedule = Startup, pipe_in(get_name, greet_name))]
 /// fn print_greeting(greeting: In<String>) {
 ///     info!("{}", *greeting);
 /// }
@@ -156,25 +157,25 @@ pub use bevy_butler_proc_macro::butler_plugin;
 /// # use bevy_log::prelude::*;
 /// # #[butler_plugin]
 /// # struct MyPlugin;
-/// #[system(plugin = MyPlugin, schedule = Startup)]
+/// #[add_system(plugin = MyPlugin, schedule = Startup)]
 /// fn system_one() {
 ///     info!("One!");
 /// }
 ///
-/// #[system(plugin = MyPlugin, schedule = Startup, after = system_one)]
+/// #[add_system(plugin = MyPlugin, schedule = Startup, after = system_one)]
 /// fn system_two() {
 ///     info!("Two!");
 /// }
 ///
-/// #[system(plugin = MyPlugin, schedule = Startup, after(system_two))]
+/// #[add_system(plugin = MyPlugin, schedule = Startup, after(system_two))]
 /// fn system_three() {
 ///     info!("Three!");
 /// }
 /// ```
 ///
-pub use bevy_butler_proc_macro::system;
+pub use bevy_butler_proc_macro::add_system;
 
-/// Define a set of default [`#[system]`](system) arguments for the enclosed items
+/// Define a set of default [`#[add_system]`](system) arguments for the enclosed items
 ///
 /// # Usage
 /// ```rust
@@ -187,13 +188,13 @@ pub use bevy_butler_proc_macro::system;
 /// config_systems! {
 ///     (plugin = MyPlugin, schedule = Startup)
 ///
-///     #[system]
+///     #[add_system]
 ///     fn system_foo() {
 ///         info!("Foo");
 ///     }
 ///
 ///     // Default arguments can be overridden
-///     #[system(schedule = PostStartup)]
+///     #[add_system(schedule = PostStartup)]
 ///     fn system_bar() {
 ///         info!("Bar");
 ///     }
@@ -202,14 +203,14 @@ pub use bevy_butler_proc_macro::system;
 ///
 /// Note that `config_systems!` does not apply any sort of ordering or grouping of the enclosed systems.
 /// If you want to apply set-level transformations like [`chain`](bevy_ecs::prelude::IntoSystemSetConfigs::chain),
-/// see [`system_set!`](system_set).
+/// see [`add_system_set!`](add_system_set).
 ///
 /// # Arguments
-/// `config_systems!` accepts any arguments that [`#[system]`](system) does. If any transforms are
-/// provided, the `config_systems!` transforms will be applied **before** the individual `#[system]` attributes.
+/// `config_systems!` accepts any arguments that [`#[add_system]`](system) does. If any transforms are
+/// provided, the `config_systems!` transforms will be applied **before** the individual `#[add_system]` attributes.
 pub use bevy_butler_proc_macro::config_systems;
 
-/// Wrap a set of [`#[system]`](system) functions into an anonymous system set, and apply set-level transformations.
+/// Wrap a set of [`#[add_system]`](system) functions into an anonymous system set, and apply set-level transformations.
 ///
 /// # Usage
 /// ```rust
@@ -219,20 +220,20 @@ pub use bevy_butler_proc_macro::config_systems;
 /// # use bevy_ecs::prelude::*;
 /// # #[butler_plugin]
 /// # struct MyPlugin;
-/// system_set! {
+/// add_system_set! {
 ///     (plugin = MyPlugin, schedule = Update, chain)
 ///
-///     #[system]
+///     #[add_system]
 ///     fn system_one() {
 ///         info!("One!");
 ///     }
 ///
-///     #[system]
+///     #[add_system]
 ///     fn system_two() {
 ///         info!("Two!");
 ///     }
 ///
-///     #[system(run_if = || true)]
+///     #[add_system(run_if = || true)]
 ///     fn system_three() {
 ///         info!("Three!");
 ///     }
@@ -247,13 +248,13 @@ pub use bevy_butler_proc_macro::config_systems;
 /// Because this macro wraps all the enclosed systems in a single set,
 /// the `plugin` and `schedule` arguments cannot be overridden.
 ///
-/// `system_set!` also supports nested invocations of itself and [`config_systems!`](config_systems).
+/// `add_system_set!` also supports nested invocations of itself and [`config_systems!`](config_systems).
 ///
 /// # Arguments
-/// `system_set!` accepts arguments the same way that [`#[system]`](system) does. However,
+/// `add_system_set!` accepts arguments the same way that [`#[add_system]`](system) does. However,
 /// any transforms defined will be applied to the overall set, NOT to the individual systems.
 /// To apply the given arguments to every individual system, see [`config_systems!`](config_systems).
-pub use bevy_butler_proc_macro::system_set;
+pub use bevy_butler_proc_macro::add_system_set;
 
 /// Registers an [observer](bevy_ecs::prelude::Observer) function to a [`#[butler_plugin]`](butler_plugin)-annotated [`Plugin`](bevy_app::prelude::Plugin).
 ///
@@ -262,13 +263,14 @@ pub use bevy_butler_proc_macro::system_set;
 /// ```rust
 /// # use bevy_butler::*;
 /// # use bevy::prelude::*;
+/// # use bevy_log::prelude::*;
 /// # #[butler_plugin]
 /// # struct MyPlugin;
 /// # #[derive(Event)]
 /// # struct Message {
 /// #     content: String,
 /// # }
-/// #[observer(plugin = MyPlugin)]
+/// #[add_observer(plugin = MyPlugin)]
 /// fn receive_message(message: Trigger<Message>) {
 ///     info!("Message received: {}", message.content);
 /// }
@@ -281,6 +283,7 @@ pub use bevy_butler_proc_macro::system_set;
 /// # struct MyPlugin;
 /// # mod my_mod {
 /// #   use bevy::prelude::*;
+/// #   use bevy_log::prelude::*;
 /// #
 /// #   #[derive(Event)]
 /// #   pub(super) struct Message {
@@ -291,7 +294,7 @@ pub use bevy_butler_proc_macro::system_set;
 /// #       info!("Message received: {}", message.content);
 /// #   }
 /// # }
-/// #[observer(plugin = MyPlugin)]
+/// #[add_observer(plugin = MyPlugin)]
 /// use my_mod::receive_message;
 /// ```
 ///
@@ -304,7 +307,7 @@ pub use bevy_butler_proc_macro::system_set;
 /// ## `generics`
 /// A list of generic arguments to register the observer with. Used to register a generic observer for multiple
 /// different types.
-pub use bevy_butler_proc_macro::observer;
+pub use bevy_butler_proc_macro::add_observer;
 
 /// Registers the annotated [`Resource`](bevy_ecs::prelude::Resource) to a [`#[butler_plugin]`](butler_plugin) and
 /// initializes it upon the plugin being added.
@@ -319,7 +322,7 @@ pub use bevy_butler_proc_macro::observer;
 /// # #[butler_plugin]
 /// # struct MyPlugin;
 /// #[derive(Resource, Default)]
-/// #[resource(plugin = MyPlugin)]
+/// #[add_resource(plugin = MyPlugin)]
 /// struct Counter(pub u8);
 /// ```
 ///
@@ -334,7 +337,7 @@ pub use bevy_butler_proc_macro::observer;
 /// # }
 /// # #[butler_plugin]
 /// # struct MyPlugin;
-/// #[resource(plugin = MyPlugin)]
+/// #[add_resource(plugin = MyPlugin)]
 /// use my_mod::ModResource;
 /// ```
 ///
@@ -348,7 +351,7 @@ pub use bevy_butler_proc_macro::observer;
 /// # struct MyPlugin;
 /// # #[derive(Resource, Default)]
 /// # struct ExternalResource<T>(T);
-/// #[resource(plugin = MyPlugin)]
+/// #[add_resource(plugin = MyPlugin)]
 /// type MyResource = ExternalResource<usize>;
 /// ```
 ///
@@ -357,7 +360,7 @@ pub use bevy_butler_proc_macro::observer;
 /// A [`Plugin`](bevy_app::prelude::Plugin) annotated with [`#[butler_plugin]`](butler_plugin) to register this resource to.
 ///
 /// ## `init`
-/// By default, `#[resource]` will use the [`Default`] value of the resource.
+/// By default, `#[add_resource]` will use the [`Default`] value of the resource.
 /// This can be overridden by specifying an `init` value.
 ///
 /// ```rust
@@ -366,7 +369,7 @@ pub use bevy_butler_proc_macro::observer;
 /// # #[butler_plugin]
 /// # struct MyPlugin;
 /// #[derive(Resource)]
-/// #[resource(
+/// #[add_resource(
 ///     plugin = MyPlugin,
 ///     init = Message("Hello, world!".to_string())
 /// )]
@@ -388,10 +391,10 @@ pub use bevy_butler_proc_macro::observer;
 /// # #[butler_plugin]
 /// # struct MyPlugin;
 /// #[derive(Resource, Default)]
-/// #[resource(plugin = MyPlugin, non_send)]
+/// #[add_resource(plugin = MyPlugin, non_send)]
 /// struct MyNonSendResource;
 /// ```
-pub use bevy_butler_proc_macro::resource;
+pub use bevy_butler_proc_macro::add_resource;
 
 /// Registers the annotated [`Event`](bevy_ecs::prelude::Event) upon the
 /// given [`#[butler_plugin]`](butler_plugin) being built.
@@ -406,7 +409,7 @@ pub use bevy_butler_proc_macro::resource;
 /// # #[butler_plugin]
 /// # struct MyPlugin;
 /// #[derive(Event)]
-/// #[event(plugin = MyPlugin)]
+/// #[register_event(plugin = MyPlugin)]
 /// struct MessageReceived(String);
 /// ```
 ///
@@ -420,7 +423,7 @@ pub use bevy_butler_proc_macro::resource;
 /// # #[derive(Event)]
 /// # pub struct ModMessageReceived(String);
 /// # }
-/// #[event(plugin = MyPlugin)]
+/// #[register_event(plugin = MyPlugin)]
 /// use my_mod::ModMessageReceived;
 /// ```
 ///
@@ -432,7 +435,7 @@ pub use bevy_butler_proc_macro::resource;
 /// # struct MyPlugin;
 /// # #[derive(Event)]
 /// # struct ExternalEventMessage<T>(T);
-/// #[event(plugin = MyPlugin)]
+/// #[register_event(plugin = MyPlugin)]
 /// type MyMessage = ExternalEventMessage<String>;
 /// ```
 ///
@@ -443,7 +446,7 @@ pub use bevy_butler_proc_macro::resource;
 /// ## `generics`
 /// A list of generic arguments to register the event with. Used to register a generic event for multiple
 /// different types.
-pub use bevy_butler_proc_macro::event;
+pub use bevy_butler_proc_macro::register_event;
 
 /// Registers the annotated `Reflect` type into the app's type registry for reflection.
 ///

@@ -11,20 +11,20 @@ struct MyPlugin;
 #[derive(Resource, Default)]
 struct StepCounter(pub u8);
 
-system_set! {
+add_system_set! {
     (plugin = MyPlugin, schedule = Startup, chain)
 
-    #[system]
+    #[add_system]
     fn system_one(mut counter: ResMut<StepCounter>) {
         info!("System one!");
         assert_eq!(counter.0, 0);
         counter.0 = 1;
     }
 
-    system_set! {
+    add_system_set! {
         (chain)
 
-        #[system]
+        #[add_system]
         fn system_two(mut counter: ResMut<StepCounter>) {
             info!("System two!");
             assert_eq!(counter.0, 1);
@@ -34,14 +34,14 @@ system_set! {
         config_systems! {
             (run_if = || true)
 
-            #[system]
+            #[add_system]
             fn system_three(mut counter: ResMut<StepCounter>) {
                 info!("System three!");
                 assert_eq!(counter.0, 2);
                 counter.0 = 3;
             }
 
-            #[system]
+            #[add_system]
             fn system_four(mut counter: ResMut<StepCounter>) {
                 info!("System four!");
                 assert_eq!(counter.0, 3);

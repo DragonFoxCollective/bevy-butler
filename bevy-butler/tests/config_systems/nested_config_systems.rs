@@ -15,7 +15,7 @@ struct Accumulator(pub u32);
 config_systems! {
     (plugin = MyPlugin, schedule = PreStartup)
 
-    #[system]
+    #[add_system]
     fn system_prestartup(mut acc: ResMut<Accumulator>) {
         info!("Pre-startup!");
         acc.0 = 17;
@@ -24,14 +24,14 @@ config_systems! {
     config_systems! {
         (schedule = Startup)
 
-        #[system]
+        #[add_system]
         fn system_startup_one(mut acc: ResMut<Accumulator>) {
             info!("Startup one!");
             acc.0 *= 2; // 34
         }
 
         config_systems! {
-            #[system(after = system_startup_one)]
+            #[add_system(after = system_startup_one)]
             fn system_startup_two(mut acc: ResMut<Accumulator>) {
                 info!("Startup two!");
                 acc.0 -= 6; // 28
@@ -40,7 +40,7 @@ config_systems! {
             config_systems! {
                 (schedule = PostStartup)
 
-                #[system]
+                #[add_system]
                 fn system_startup_three(mut acc: ResMut<Accumulator>) {
                     info!("Startup three!");
                     acc.0 /= 4; // 7

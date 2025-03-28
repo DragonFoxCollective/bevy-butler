@@ -18,14 +18,14 @@ struct OtherPlugin;
 config_systems! {
     (plugin = MyPlugin, schedule = Startup)
 
-    #[system]
+    #[add_system]
     fn system_one(mut res: ResMut<Counter>) {
         info!("System one!");
         res.0 += 1;
     }
 
-    #[system()]
-    #[system(plugin = OtherPlugin)]
+    #[add_system()]
+    #[add_system(plugin = OtherPlugin)]
     fn system_two(mut res: ResMut<Counter>) {
         info!("System two!");
         res.0 += 1;

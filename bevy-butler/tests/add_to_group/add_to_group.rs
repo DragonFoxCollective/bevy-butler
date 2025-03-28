@@ -15,7 +15,7 @@ struct MyPluginGroup;
 #[add_to_group(group = MyPluginGroup)]
 struct MyPlugin;
 
-#[system(plugin = MyPlugin, schedule = Startup)]
+#[add_system(plugin = MyPlugin, schedule = Startup)]
 fn hello_world(mut commands: Commands) {
     info!("Hello, world!");
     commands.insert_resource(Marker);

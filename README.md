@@ -17,21 +17,22 @@ A set of procedural macros for making Bevy plugins and systems more self-documen
 ```rust
 use bevy::prelude::*;
 use bevy_butler::*;
+use bevy_log::prelude::*;
 
 #[butler_plugin]
 pub struct MyPlugin;
 
 #[derive(Resource)]
-#[resource(plugin = MyPlugin, init = Hello("World".to_string()))]
+#[add_resource(plugin = MyPlugin, init = Hello("World".to_string()))]
 pub struct Hello(pub String);
 
-#[system(schedule = Update, plugin = MyPlugin)]
+#[add_system(schedule = Update, plugin = MyPlugin)]
 fn hello_plugin(name: Res<Hello>)
 {
     info!("Hello, {}!", name.0);
 }
 
-#[system(schedule = Update, plugin = MyPlugin, after = hello_plugin)]
+#[add_system(schedule = Update, plugin = MyPlugin, after = hello_plugin)]
 fn goodbye_plugin(name: Res<Hello>)
 {
     info!("Goodbye, {}!", name.0);

@@ -174,10 +174,10 @@ impl SystemAttr {
         Ok(())
     }
 
-    /// Tries to parse the given attribute into a #[system] attribute
+    /// Tries to parse the given attribute into a #[add_system] attribute
     /// Returns Ok(None) if the attribute's ident is not "system"
     pub fn try_parse_system_attr(attr: &Attribute) -> syn::Result<Option<Self>> {
-        if attr.path().get_ident().is_none_or(|i| i != "system") {
+        if attr.path().get_ident().is_none_or(|i| i != "add_system") {
             return Ok(None);
         }
 
@@ -223,7 +223,7 @@ impl From<SystemAttr> for MetaList {
         let metas = value.get_metas();
         MetaList {
             delimiter: syn::MacroDelimiter::Paren(Default::default()),
-            path: syn::parse_quote!(system),
+            path: syn::parse_quote!(add_system),
             tokens: quote!(#metas),
         }
     }

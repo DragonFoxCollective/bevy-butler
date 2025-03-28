@@ -1,5 +1,6 @@
 use bevy::prelude::*;
 use bevy_butler::*;
+use bevy_log::prelude::*;
 
 use crate::common::log_plugin;
 
@@ -13,13 +14,13 @@ enum MyPlugin {
 #[derive(Resource)]
 struct SuccessMarker;
 
-#[system(plugin = MyPlugin, schedule = Startup)]
+#[add_system(plugin = MyPlugin, schedule = Startup)]
 fn hello_world(mut commands: Commands) {
     info!("Hello, world!");
     commands.insert_resource(SuccessMarker);
 }
 
-#[system(plugin = MyPlugin, schedule = Startup, after = hello_world)]
+#[add_system(plugin = MyPlugin, schedule = Startup, after = hello_world)]
 fn assert_marker(_res: Res<SuccessMarker>) {
     // This will panic if SuccessMarker isn't inserted, so we don't actually
     // need to assert

@@ -1,5 +1,6 @@
 use bevy::prelude::*;
 use bevy_butler::*;
+use bevy_log::prelude::*;
 
 use crate::common::log_plugin;
 
@@ -12,7 +13,7 @@ struct DynamicMessage {
     pub message: String,
 }
 
-#[system(plugin = MyPlugin, schedule = Startup)]
+#[add_system(plugin = MyPlugin, schedule = Startup)]
 fn read_type_registration(registry: Res<AppTypeRegistry>) {
     let registry = registry.read();
     let type_data = registry

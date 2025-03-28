@@ -7,23 +7,23 @@ use wasm_bindgen_test::wasm_bindgen_test;
 use crate::common::log_plugin;
 
 #[derive(Resource, Default)]
-#[resource(plugin = MyPlugin, generics = <bool>)]
+#[add_resource(plugin = MyPlugin, generics = <bool>)]
 struct Marker<T>(T);
 
 #[derive(Resource)]
-#[resource(plugin = MyPlugin, init = Message("Hello, world!".to_string()))]
+#[add_resource(plugin = MyPlugin, init = Message("Hello, world!".to_string()))]
 struct Message<T>(T);
 
 #[butler_plugin]
 struct MyPlugin;
 
-#[system(plugin = MyPlugin, schedule = Startup)]
+#[add_system(plugin = MyPlugin, schedule = Startup)]
 fn get_and_print_message(message: Res<Message<String>>, mut marker: ResMut<Marker<bool>>) {
     info!("Resource message: {}", message.0);
     marker.0 = true;
 }
 
-#[system(plugin = MyPlugin, schedule = PostStartup)]
+#[add_system(plugin = MyPlugin, schedule = PostStartup)]
 fn assert_marker(marker: Res<Marker<bool>>) {
     assert!(marker.0);
 }

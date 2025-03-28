@@ -3,6 +3,7 @@ use std::time::Duration;
 use bevy::{prelude::*, time::TimePlugin};
 use bevy_app::ScheduleRunnerPlugin;
 use bevy_butler::*;
+use bevy_log::prelude::*;
 
 use crate::common::log_plugin;
 
@@ -21,15 +22,15 @@ struct MyPlugin;
 #[derive(Event)]
 struct PersonEntered(String, usize);
 
-#[observer(plugin = MyPlugin)]
+#[add_observer(plugin = MyPlugin)]
 fn greet_person(person: Trigger<PersonEntered>, mut exit: EventWriter<AppExit>) {
     info!("Hello, {}!", person.0);
     if person.1 == 0 {
-        exit.send(AppExit::Success);
+        exit.write(AppExit::Success);
     }
 }
 
-#[system(
+#[add_system(
     plugin = MyPlugin,
     schedule = Update,
     run_if = |attendees: Res<Attendees>| !attendees.0.is_empty()
@@ -51,7 +52,7 @@ fn test() {
         .add_plugins(MyPlugin)
         .add_systems(
             Update,
-            (|| panic!("Timed out")).run_if(|time: Res<Time>| time.elapsed_secs() > 5.0f32),
+            (|| -> () { panic!("Timed out") }).run_if(|time: Res<Time>| time.elapsed_secs() > 5.0f32),
         )
         .run();
 }

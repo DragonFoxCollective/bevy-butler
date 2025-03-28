@@ -7,7 +7,7 @@ use syn::{
     Item,
 };
 
-use crate::system::structs::SystemAttr;
+use crate::add_system::structs::SystemAttr;
 
 #[derive(Clone)]
 pub(crate) struct ConfigSystemsInput {

@@ -20,9 +20,9 @@ struct GenericResource<T>(pub T, pub bool);
 }]
 struct MyPlugin;
 
-#[system(generics = <&str>, plugin = MyPlugin, schedule = Startup, before = test_sys::<u8>)]
-#[system(generics = <u8>, plugin = MyPlugin, schedule = Startup, after = test_sys::<&str>)]
-#[system(generics = <bool>, plugin = MyPlugin, schedule = Startup, after(test_sys::<&str>), after = test_sys::<u8>)]
+#[add_system(generics = <&str>, plugin = MyPlugin, schedule = Startup, before = test_sys::<u8>)]
+#[add_system(generics = <u8>, plugin = MyPlugin, schedule = Startup, after = test_sys::<&str>)]
+#[add_system(generics = <bool>, plugin = MyPlugin, schedule = Startup, after(test_sys::<&str>), after = test_sys::<u8>)]
 fn test_sys<T: 'static + Sync + Send + Display>(mut res: ResMut<GenericResource<T>>) {
     info!("{} = {}", type_name::<T>(), res.0);
     res.1 = true;

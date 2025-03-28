@@ -11,12 +11,12 @@ struct PluginOne;
 #[butler_plugin]
 struct PluginTwo;
 
-#[system(plugin = PluginOne, schedule = Startup)]
+#[add_system(plugin = PluginOne, schedule = Startup)]
 fn system_one() {
     info!("System one!");
 }
 
-#[system(plugin = PluginTwo, schedule = Startup)]
+#[add_system(plugin = PluginTwo, schedule = Startup)]
 fn system_two() {
     info!("System two!");
 }

@@ -25,12 +25,12 @@ mod function {
     }
 }
 
-#[system(
+#[add_system(
     plugin = MyPlugin,
     schedule = Startup,
     generics = <u8>,
 )]
-#[system(
+#[add_system(
     plugin = MyPlugin,
     schedule = Startup,
     generics = <&str>,

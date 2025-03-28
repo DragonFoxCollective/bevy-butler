@@ -1,26 +1,27 @@
 use bevy::prelude::*;
 use bevy_butler::*;
 use wasm_bindgen_test::wasm_bindgen_test;
+use bevy_log::prelude::*;
 
 use crate::common::log_plugin;
 
 #[derive(Event)]
-#[event(plugin = MyPlugin, generics = <String>)]
+#[register_event(plugin = MyPlugin, generics = <String>)]
 struct MessageReceived<T>(T);
 
 #[butler_plugin]
 struct MyPlugin;
 
 #[derive(Resource, Default)]
-#[resource(plugin = MyPlugin)]
+#[add_resource(plugin = MyPlugin)]
 struct Marker(bool);
 
-#[system(plugin = MyPlugin, schedule = Startup)]
+#[add_system(plugin = MyPlugin, schedule = Startup)]
 fn send_message(mut message: EventWriter<MessageReceived<String>>) {
-    message.send(MessageReceived("Hello, world!".to_string()));
+    message.write(MessageReceived("Hello, world!".to_string()));
 }
 
-#[system(plugin = MyPlugin, schedule = Startup, after = send_message)]
+#[add_system(plugin = MyPlugin, schedule = Startup, after = send_message)]
 fn receive_message(mut messages: EventReader<MessageReceived<String>>, mut marker: ResMut<Marker>) {
     for message in messages.read() {
         info!("MessageReceived(\"{}\")", message.0);

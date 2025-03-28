@@ -7,7 +7,7 @@ use syn::{
     Item, Meta,
 };
 
-use crate::{system::structs::SystemAttr, system_set::structs::SystemSetInput};
+use crate::{add_system::structs::SystemAttr, add_system_set::structs::SystemSetInput};
 
 pub mod structs;
 
@@ -21,7 +21,7 @@ pub(crate) fn parse_config_systems(input: ConfigSystemsInput) -> syn::Result<Vec
     // Any non-systems will simply ignore the attribute.
     items.into_iter().try_fold(vec![], |mut items, item| {
         match item {
-            // Could be a system with `#[system]`
+            // Could be a system with `#[add_system]`
             Item::Fn(mut item_fn) => {
                 for attr in item_fn.attrs.iter_mut() {
                     if let Some(mut sys_attr) = SystemAttr::try_parse_system_attr(attr)? {
@@ -31,18 +31,18 @@ pub(crate) fn parse_config_systems(input: ConfigSystemsInput) -> syn::Result<Vec
                 }
                 items.push(item_fn.into());
             }
-            // Could be `config_systems!` or `system_set!`
+            // Could be `config_systems!` or `add_system_set!`
             Item::Macro(item_macro) => match item_macro.mac.path.get_ident() {
                 Some(ident) if ident == "config_systems" => {
                     let mut input: ConfigSystemsInput = item_macro.mac.parse_body()?;
                     input.system_args.with_defaults(defaults.clone());
                     items.extend(parse_config_systems(input)?);
                 }
-                Some(ident) if ident == "system_set" => {
+                Some(ident) if ident == "add_system_set" => {
                     let mut input: SystemSetInput = item_macro.mac.parse_body()?;
                     input.system_args.with_defaults(defaults.clone());
                     items.push(syn::parse_quote! {
-                        system_set! { #input }
+                        add_system_set! { #input }
                     });
                 }
                 _ => items.push(item_macro.into()),

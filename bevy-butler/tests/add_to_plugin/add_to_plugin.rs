@@ -1,10 +1,10 @@
 use bevy_app::{App, Startup};
 use bevy_butler::*;
-use bevy_ecs::system::{Res, Resource};
+use bevy_ecs::{system::Res, prelude::Resource};
 use wasm_bindgen_test::wasm_bindgen_test;
 
 #[derive(Resource, Default)]
-#[resource(plugin = PluginBar)]
+#[add_resource(plugin = PluginBar)]
 struct Marker;
 
 #[butler_plugin]

@@ -12,7 +12,7 @@ struct MyPlugin;
 #[derive(Resource, Default)]
 struct Marker(bool);
 
-#[system(
+#[add_system(
     plugin = MyPlugin,
     schedule = Startup,
 )]
