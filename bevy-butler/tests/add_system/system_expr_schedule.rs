@@ -45,7 +45,7 @@ fn end_system(mut counter: ResMut<Counter>, mut exit: EventWriter<AppExit>) {
     info!("State: End");
     assert_eq!(counter.0, 2);
     counter.0 = 3;
-    exit.send(AppExit::Success);
+    exit.write(AppExit::Success);
 }
 
 #[add_system(plugin = MyPlugin, schedule = Update, run_if = |time: Res<Time>| time.elapsed_secs() > 3.0f32)]

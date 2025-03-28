@@ -11,6 +11,7 @@ A set of procedural macros for making Bevy plugins and systems more self-documen
 ## Version Compatibility
 | bevy | bevy-butler |
 |------|-------------|
+|`0.16`|   `0.6`     |
 |`0.15`|   `0.5`     |
 
 ## Example

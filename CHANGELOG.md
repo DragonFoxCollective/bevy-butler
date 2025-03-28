@@ -1,3 +1,14 @@
+# 0.6.0
+(Unreleased)
+### Breaking Changes
+
+- Many macros have been changed to prevent conflicts with Bevy's derive helpers, and to better communicate their purpose.
+    - `observer` -> `add_observer`
+    - `resource` -> `add_resource`
+    - `system` -> `add_system`
+    - `event` -> `register_event`
+    - `system_set` -> `add_system_set`
+
 # 0.5.7
 Released 2025-03-19
 - Added `add_to_plugin` for adding a `Plugin` or `PluginGroup` to a butler plugin

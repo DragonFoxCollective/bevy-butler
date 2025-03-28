@@ -147,8 +147,8 @@ pub use bevy_butler_proc_macro::butler_plugin;
 /// ```
 ///
 /// ## System transforms
-/// Any attribute that doesn't match the above is assumed to be a system transform function, like [`run_if`](bevy_ecs::prelude::IntoSystemConfigs::run_if)
-/// or [`after`](bevy_ecs::prelude::IntoSystemConfigs::after).
+/// Any attribute that doesn't match the above is assumed to be a system transform function, like [`run_if`](bevy_ecs::prelude::IntoScheduleConfigs::run_if)
+/// or [`after`](bevy_ecs::prelude::IntoScheduleConfigs::after).
 /// ```rust
 /// # use std::fmt::Display;
 /// # use bevy_butler::*;
@@ -175,7 +175,7 @@ pub use bevy_butler_proc_macro::butler_plugin;
 ///
 pub use bevy_butler_proc_macro::add_system;
 
-/// Define a set of default [`#[add_system]`](system) arguments for the enclosed items
+/// Define a set of default [`#[add_system]`](add_system) arguments for the enclosed items
 ///
 /// # Usage
 /// ```rust
@@ -202,15 +202,15 @@ pub use bevy_butler_proc_macro::add_system;
 /// ```
 ///
 /// Note that `config_systems!` does not apply any sort of ordering or grouping of the enclosed systems.
-/// If you want to apply set-level transformations like [`chain`](bevy_ecs::prelude::IntoSystemSetConfigs::chain),
+/// If you want to apply set-level transformations like [`chain`](bevy_ecs::prelude::IntoScheduleConfigs::chain),
 /// see [`add_system_set!`](add_system_set).
 ///
 /// # Arguments
-/// `config_systems!` accepts any arguments that [`#[add_system]`](system) does. If any transforms are
+/// `config_systems!` accepts any arguments that [`#[add_system]`](add_system) does. If any transforms are
 /// provided, the `config_systems!` transforms will be applied **before** the individual `#[add_system]` attributes.
 pub use bevy_butler_proc_macro::config_systems;
 
-/// Wrap a set of [`#[add_system]`](system) functions into an anonymous system set, and apply set-level transformations.
+/// Wrap a set of [`#[add_system]`](add_system) functions into an anonymous system set, and apply set-level transformations.
 ///
 /// # Usage
 /// ```rust
@@ -251,7 +251,7 @@ pub use bevy_butler_proc_macro::config_systems;
 /// `add_system_set!` also supports nested invocations of itself and [`config_systems!`](config_systems).
 ///
 /// # Arguments
-/// `add_system_set!` accepts arguments the same way that [`#[add_system]`](system) does. However,
+/// `add_system_set!` accepts arguments the same way that [`#[add_system]`](add_system) does. However,
 /// any transforms defined will be applied to the overall set, NOT to the individual systems.
 /// To apply the given arguments to every individual system, see [`config_systems!`](config_systems).
 pub use bevy_butler_proc_macro::add_system_set;
