@@ -3,7 +3,6 @@ use std::time::Duration;
 use bevy::{prelude::*, time::TimePlugin};
 use bevy_app::ScheduleRunnerPlugin;
 use bevy_butler::*;
-use bevy_log::prelude::*;
 
 use crate::common::log_plugin;
 

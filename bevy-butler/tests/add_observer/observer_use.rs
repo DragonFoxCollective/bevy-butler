@@ -11,7 +11,6 @@ struct MyPlugin;
 
 mod my_mod {
     use bevy::prelude::*;
-    use bevy_log::prelude::*;
 
     #[derive(Resource)]
     pub struct Attendees(pub Vec<String>);
@@ -33,7 +32,7 @@ mod my_mod {
     }
 }
 
-#[add_resource(plugin = MyPlugin, init = Attendees(vec![
+#[insert_resource(plugin = MyPlugin, init = Attendees(vec![
     "Harrier Du Bois".to_string(),
     "Kim Kitsuragi".to_string(),
     "Mack Torson".to_string(),

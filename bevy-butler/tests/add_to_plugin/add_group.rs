@@ -14,7 +14,7 @@ struct MyPluginGroup;
 struct PluginBar;
 
 #[derive(Resource, Default)]
-#[add_resource(plugin = PluginBar)]
+#[insert_resource(plugin = PluginBar)]
 struct Marker;
 
 #[wasm_bindgen_test(unsupported = test)]

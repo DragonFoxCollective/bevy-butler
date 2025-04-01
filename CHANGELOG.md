@@ -4,9 +4,9 @@
 
 - Many macros have been changed to prevent conflicts with Bevy's derive helpers, and to better communicate their purpose.
     - `observer` -> `add_observer`
-    - `resource` -> `add_resource`
+    - `resource` -> `insert_resource`
     - `system` -> `add_system`
-    - `event` -> `register_event`
+    - `event` -> `add_event`
     - `system_set` -> `add_system_set`
 
 # 0.5.7

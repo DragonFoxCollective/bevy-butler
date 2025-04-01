@@ -9,7 +9,7 @@ use crate::common::log_plugin;
 struct MyPlugin;
 
 #[derive(Resource)]
-#[add_resource(plugin = MyPlugin, non_send, init = Message("Hello, world!".to_string()))]
+#[insert_resource(plugin = MyPlugin, non_send, init = Message("Hello, world!".to_string()))]
 struct Message(String);
 
 #[wasm_bindgen_test(unsupported = test)]

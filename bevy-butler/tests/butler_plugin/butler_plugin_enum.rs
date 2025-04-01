@@ -1,6 +1,5 @@
 use bevy::prelude::*;
 use bevy_butler::*;
-use bevy_log::prelude::*;
 
 use crate::common::log_plugin;
 

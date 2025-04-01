@@ -1,6 +1,5 @@
 use bevy::prelude::*;
 use bevy_butler::*;
-use bevy_log::prelude::*;
 
 use crate::common::log_plugin;
 
@@ -8,7 +7,7 @@ use crate::common::log_plugin;
 struct MyPlugin;
 
 #[derive(Event, Debug)]
-#[register_event(plugin = MyPlugin)]
+#[add_event(plugin = MyPlugin)]
 enum Message {
     Hello(String),
     Goodbye(String),

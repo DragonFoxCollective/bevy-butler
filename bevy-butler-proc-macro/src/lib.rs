@@ -41,16 +41,16 @@ pub fn add_observer(attr: TokenStream, body: TokenStream) -> TokenStream {
     result_to_tokens(add_observer::macro_impl(attr, body))
 }
 
-pub(crate) mod add_resource;
+pub(crate) mod insert_resource;
 #[proc_macro_attribute]
-pub fn add_resource(attr: TokenStream, body: TokenStream) -> TokenStream {
-    result_to_tokens(add_resource::macro_impl(attr, body))
+pub fn insert_resource(attr: TokenStream, body: TokenStream) -> TokenStream {
+    result_to_tokens(insert_resource::macro_impl(attr, body))
 }
 
-pub(crate) mod register_event;
+pub(crate) mod add_event;
 #[proc_macro_attribute]
-pub fn register_event(attr: TokenStream, body: TokenStream) -> TokenStream {
-    result_to_tokens(register_event::macro_impl(attr, body))
+pub fn add_event(attr: TokenStream, body: TokenStream) -> TokenStream {
+    result_to_tokens(add_event::macro_impl(attr, body))
 }
 
 pub(crate) mod register_type;

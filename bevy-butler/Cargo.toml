@@ -28,6 +28,6 @@ inventory = ["dep:inventory"]
 wasm-experimental = []
 
 [dev-dependencies]
-bevy = { version = "0.16.0-rc.2", default-features = false }
-bevy_state = { version = "0.16.0-rc.2", default-features = false, features = ["bevy_app"] }
+bevy = { workspace = true }
+bevy_state = { workspace = true }
 wasm-bindgen-test = "0.3.50"

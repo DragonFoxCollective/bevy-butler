@@ -1,6 +1,5 @@
 use bevy::prelude::*;
 use bevy_butler::*;
-use bevy_log::prelude::*;
 
 use crate::common::log_plugin;
 
@@ -8,7 +7,7 @@ use crate::common::log_plugin;
 struct MyPlugin;
 
 #[derive(Resource)]
-#[add_resource(plugin = MyPlugin, init = StartNumber(10))]
+#[insert_resource(plugin = MyPlugin, init = StartNumber(10))]
 struct StartNumber(i32);
 
 fn system1(res: Res<StartNumber>) -> i32 {

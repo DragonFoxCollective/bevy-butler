@@ -18,14 +18,13 @@ A set of procedural macros for making Bevy plugins and systems more self-documen
 ```rust
 use bevy::prelude::*;
 use bevy_butler::*;
-use bevy_log::prelude::*;
 
 #[butler_plugin]
-pub struct MyPlugin;
+struct MyPlugin;
 
 #[derive(Resource)]
-#[add_resource(plugin = MyPlugin, init = Hello("World".to_string()))]
-pub struct Hello(pub String);
+#[insert_resource(plugin = MyPlugin, init = Hello("World".to_string()))]
+struct Hello(String);
 
 #[add_system(schedule = Update, plugin = MyPlugin)]
 fn hello_plugin(name: Res<Hello>)

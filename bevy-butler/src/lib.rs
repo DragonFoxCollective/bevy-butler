@@ -322,7 +322,7 @@ pub use bevy_butler_proc_macro::add_observer;
 /// # #[butler_plugin]
 /// # struct MyPlugin;
 /// #[derive(Resource, Default)]
-/// #[add_resource(plugin = MyPlugin)]
+/// #[insert_resource(plugin = MyPlugin)]
 /// struct Counter(pub u8);
 /// ```
 ///
@@ -337,7 +337,7 @@ pub use bevy_butler_proc_macro::add_observer;
 /// # }
 /// # #[butler_plugin]
 /// # struct MyPlugin;
-/// #[add_resource(plugin = MyPlugin)]
+/// #[insert_resource(plugin = MyPlugin)]
 /// use my_mod::ModResource;
 /// ```
 ///
@@ -351,7 +351,7 @@ pub use bevy_butler_proc_macro::add_observer;
 /// # struct MyPlugin;
 /// # #[derive(Resource, Default)]
 /// # struct ExternalResource<T>(T);
-/// #[add_resource(plugin = MyPlugin)]
+/// #[insert_resource(plugin = MyPlugin)]
 /// type MyResource = ExternalResource<usize>;
 /// ```
 ///
@@ -360,7 +360,7 @@ pub use bevy_butler_proc_macro::add_observer;
 /// A [`Plugin`](bevy_app::prelude::Plugin) annotated with [`#[butler_plugin]`](butler_plugin) to register this resource to.
 ///
 /// ## `init`
-/// By default, `#[add_resource]` will use the [`Default`] value of the resource.
+/// By default, `#[insert_resource]` will use the [`Default`] value of the resource.
 /// This can be overridden by specifying an `init` value.
 ///
 /// ```rust
@@ -369,7 +369,7 @@ pub use bevy_butler_proc_macro::add_observer;
 /// # #[butler_plugin]
 /// # struct MyPlugin;
 /// #[derive(Resource)]
-/// #[add_resource(
+/// #[insert_resource(
 ///     plugin = MyPlugin,
 ///     init = Message("Hello, world!".to_string())
 /// )]
@@ -391,10 +391,10 @@ pub use bevy_butler_proc_macro::add_observer;
 /// # #[butler_plugin]
 /// # struct MyPlugin;
 /// #[derive(Resource, Default)]
-/// #[add_resource(plugin = MyPlugin, non_send)]
+/// #[insert_resource(plugin = MyPlugin, non_send)]
 /// struct MyNonSendResource;
 /// ```
-pub use bevy_butler_proc_macro::add_resource;
+pub use bevy_butler_proc_macro::insert_resource;
 
 /// Registers the annotated [`Event`](bevy_ecs::prelude::Event) upon the
 /// given [`#[butler_plugin]`](butler_plugin) being built.
@@ -409,7 +409,7 @@ pub use bevy_butler_proc_macro::add_resource;
 /// # #[butler_plugin]
 /// # struct MyPlugin;
 /// #[derive(Event)]
-/// #[register_event(plugin = MyPlugin)]
+/// #[add_event(plugin = MyPlugin)]
 /// struct MessageReceived(String);
 /// ```
 ///
@@ -423,7 +423,7 @@ pub use bevy_butler_proc_macro::add_resource;
 /// # #[derive(Event)]
 /// # pub struct ModMessageReceived(String);
 /// # }
-/// #[register_event(plugin = MyPlugin)]
+/// #[add_event(plugin = MyPlugin)]
 /// use my_mod::ModMessageReceived;
 /// ```
 ///
@@ -435,7 +435,7 @@ pub use bevy_butler_proc_macro::add_resource;
 /// # struct MyPlugin;
 /// # #[derive(Event)]
 /// # struct ExternalEventMessage<T>(T);
-/// #[register_event(plugin = MyPlugin)]
+/// #[add_event(plugin = MyPlugin)]
 /// type MyMessage = ExternalEventMessage<String>;
 /// ```
 ///
@@ -446,7 +446,7 @@ pub use bevy_butler_proc_macro::add_resource;
 /// ## `generics`
 /// A list of generic arguments to register the event with. Used to register a generic event for multiple
 /// different types.
-pub use bevy_butler_proc_macro::register_event;
+pub use bevy_butler_proc_macro::add_event;
 
 /// Registers the annotated `Reflect` type into the app's type registry for reflection.
 ///

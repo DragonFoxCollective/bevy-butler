@@ -4,7 +4,7 @@ use bevy_ecs::{system::Res, prelude::Resource};
 use wasm_bindgen_test::wasm_bindgen_test;
 
 #[derive(Resource, Default)]
-#[add_resource(plugin = PluginBar)]
+#[insert_resource(plugin = PluginBar)]
 struct Marker;
 
 #[butler_plugin]
