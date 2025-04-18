@@ -89,6 +89,19 @@ pub(crate) fn butler_plugin_entry_block(
     }
 }
 
+pub(crate) fn butler_plugin_group_entry_block(
+    static_ident: &Ident,
+    plugin: &TypePath,
+    expr: &ExprClosure,
+) -> TokenStream {
+    quote! {
+        ::bevy_butler::_butler_plugin_group_entry!(#static_ident, ::bevy_butler::__internal::ButlerPluginGroupRegistryEntryFactory::new(
+            || #plugin::_butler_sealed_marker(),
+            #expr
+        ));
+    }
+}
+
 pub(crate) fn get_use_path(tree: &UseTree) -> syn::Result<&Ident> {
     match tree {
         UseTree::Path(path) => get_use_path(&path.tree),
