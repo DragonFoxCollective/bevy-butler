@@ -95,10 +95,10 @@ pub(crate) fn butler_plugin_group_entry_block(
     expr: &ExprClosure,
 ) -> TokenStream {
     quote! {
-        ::bevy_butler::_butler_plugin_group_entry!(#static_ident, ::bevy_butler::__internal::ButlerPluginGroupRegistryEntryFactory::new(
-            || #plugin::_butler_sealed_marker(),
-            #expr
-        ));
+        ::bevy_butler::_butler_plugin_group_entry!(#static_ident, ::bevy_butler::__internal::ButlerPluginGroupRegistryEntryFactory {
+            type_factory: || #plugin::_butler_sealed_marker(),
+            group_factory: #expr
+        });
     }
 }
 

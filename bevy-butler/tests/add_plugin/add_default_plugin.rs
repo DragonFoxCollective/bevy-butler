@@ -4,7 +4,7 @@ use bevy::prelude::*;
 #[derive(Resource)]
 pub struct Marker(String);
 
-#[add_plugin(plugin = MyPlugin)]
+#[add_plugin(to_plugin = MyPlugin)]
 pub struct HelloPlugin(String);
 
 impl Default for HelloPlugin {

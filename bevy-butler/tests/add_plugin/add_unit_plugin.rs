@@ -4,7 +4,7 @@ use bevy::prelude::*;
 #[derive(Resource)]
 pub struct Marker;
 
-#[add_plugin(plugin = FooPlugin)]
+#[add_plugin(to_plugin = FooPlugin)]
 pub struct BarPlugin;
 
 #[butler_plugin]

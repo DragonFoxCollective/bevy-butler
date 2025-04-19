@@ -85,17 +85,17 @@ impl AddPluginAttr {
                 app.add_plugins(plugin);
             } },
             ButlerTarget::PluginGroup { ordering, .. } => match ordering {
-                Some(GroupOrdering::Before(other_plugin)) => parse_quote! { |builder: PluginGroupBuilder| -> PluginGroupBuilder {
+                Some(GroupOrdering::Before(other_plugin)) => parse_quote! { |builder: ::bevy_butler::__internal::bevy_app::PluginGroupBuilder| -> ::bevy_butler::__internal::bevy_app::PluginGroupBuilder {
                     let plugin: #plugin #generics_without_colons = {#init}.into();
-                    builder.add_before::<#other_plugin>(plugin);
+                    builder.add_before::<#other_plugin>(plugin)
                 }},
-                Some(GroupOrdering::After(other_plugin)) => parse_quote! { |builder: PluginGroupBuilder| -> PluginGroupBuilder {
+                Some(GroupOrdering::After(other_plugin)) => parse_quote! { |builder: ::bevy_butler::__internal::bevy_app::PluginGroupBuilder| -> ::bevy_butler::__internal::bevy_app::PluginGroupBuilder {
                     let plugin: #plugin #generics_without_colons = {#init}.into();
-                    builder.add_after::<#other_plugin>(plugin);
+                    builder.add_after::<#other_plugin>(plugin)
                 }},
-                None => parse_quote! { |builder: PluginGroupBuilder| -> PluginGroupBuilder {
+                None => parse_quote! { |builder: ::bevy_butler::__internal::bevy_app::PluginGroupBuilder| -> ::bevy_butler::__internal::bevy_app::PluginGroupBuilder {
                     let plugin: #plugin #generics_without_colons = {#init}.into();
-                    builder.add(plugin);
+                    builder.add(plugin)
                 }},
             },
         })
@@ -133,10 +133,10 @@ impl Parse for AddPluginAttr {
             match arg {
                 GenericOrMeta::Meta(meta) => {
                     match meta.path().require_ident()? {
-                        ident if ident == "plugin" => {
+                        ident if ident == "to_plugin" => {
                             ret.insert_target(ButlerTarget::Plugin(parse_meta_args(meta)?))?;
                         }
-                        ident if ident == "group" => {
+                        ident if ident == "to_group" => {
                             ret.insert_target(ButlerTarget::PluginGroup { group: parse_meta_args(meta)?, ordering: None })?;
                         }
                         ident if ident == "before" => {
