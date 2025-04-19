@@ -6,7 +6,7 @@ use syn::{parse, parse_quote, Error, Fields, Item, ItemEnum, ItemStruct, ItemTyp
 
 use crate::utils::{butler_plugin_entry_block, butler_plugin_group_entry_block, get_use_path};
 
-mod structs;
+pub mod structs;
 
 pub(crate) fn macro_impl(attr: TokenStream1, body: TokenStream1) -> syn::Result<TokenStream2> {
     let mut attr: AddPluginAttr = parse(attr)?;
@@ -33,18 +33,21 @@ pub(crate) fn macro_impl(attr: TokenStream1, body: TokenStream1) -> syn::Result<
     };
 
     let generics = &attr.generics;
-    let plugin_type: TypePath = parse_quote!(#plugin_ident #generics);
 
-    let register = attr.register_statement(&plugin_type)?;
+    let register = attr.register_statement(plugin_ident)?;
 
-    let hash = sha256::digest(register.to_token_stream().to_string());
+    let hash = sha256::digest([
+        plugin_ident.to_token_stream().to_string(),
+        attr.require_target()?.to_string(),
+        generics.to_token_stream().to_string(),
+    ].concat());
     let static_ident = format_ident!("_butler_add_plugin_{}", hash);
 
     let register_block = match attr.require_target()? {
         ButlerTarget::Plugin(target) => {
             butler_plugin_entry_block(&static_ident, &target, &register)
         },
-        ButlerTarget::PluginGroup { group, .. } => {
+        ButlerTarget::PluginGroup(group) => {
             butler_plugin_group_entry_block(&static_ident, &group, &register)
         },
     };

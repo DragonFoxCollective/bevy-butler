@@ -514,6 +514,8 @@ pub use bevy_butler_proc_macro::butler_plugin_group;
 
 pub use bevy_butler_proc_macro::add_plugin;
 
+pub use bevy_butler_proc_macro::add_plugin_group;
+
 #[cfg(all(target_arch = "wasm32", not(feature = "wasm-experimental")))]
 compile_error!(
     "WebAssembly support in bevy-butler is experimental and buggy.
