@@ -2,7 +2,7 @@ use proc_macro::TokenStream as TokenStream1;
 use proc_macro2::TokenStream as TokenStream2;
 use quote::{format_ident, quote, ToTokens};
 use structs::{AddPluginAttr, ButlerTarget};
-use syn::{parse, parse_quote, Error, Fields, Item, ItemEnum, ItemStruct, ItemType, ItemUse, TypePath};
+use syn::{parse, parse_quote, Error, Fields, Item, ItemEnum, ItemStruct, ItemType, ItemUse};
 
 use crate::utils::{butler_plugin_entry_block, butler_plugin_group_entry_block, get_use_path};
 

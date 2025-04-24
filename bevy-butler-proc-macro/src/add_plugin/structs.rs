@@ -1,9 +1,7 @@
-use std::path::Display;
-
 use proc_macro2::Span;
 use syn::{parse::{Parse, ParseStream}, parse_quote, AngleBracketedGenericArguments, Error, Expr, ExprClosure, Ident, Token, TypePath};
 
-use crate::utils::{parse_meta_args, try_parse_generics_arg, GenericOrMeta};
+use crate::utils::{parse_meta_args, GenericOrMeta};
 
 /// When adding to a `PluginGroup`, this will either
 /// add using `PluginGroupBuilder.add_before` or
@@ -108,9 +106,9 @@ impl AddPluginAttr {
     /// Returns the statement that will be used to register this Plugin to the target
     pub fn register_statement(&self, plugin: &Ident) -> syn::Result<ExprClosure> {
         let target = self.require_target()?;
-        let init = self.init.as_ref().cloned().unwrap_or_else(|| parse_quote! { <#plugin as core::default::Default>::default() });
         let generics = &self.generics;
         let generics_without_colons = generics.clone().map(|mut g| { g.colon2_token = None; return g;});
+        let init = self.init.as_ref().cloned().unwrap_or_else(|| parse_quote! { <#plugin #generics_without_colons as core::default::Default>::default() });
         let order = &self.order;
 
         Ok(match target {
