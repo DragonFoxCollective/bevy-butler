@@ -49,21 +49,21 @@ pub(crate) fn macro_impl(attr: TokenStream1, body: TokenStream1) -> syn::Result<
     ].concat()));
 
     let register_block = match attr.require_target()? {
-        ButlerTarget::Plugin(plugin) => {
+        ButlerTarget::Plugin(target) => {
             let register: ExprClosure = parse_quote! { |app| {
                 let plugin: #plugin_ident #generics_without_colons = {#init}.into();
                 app.add_plugins(plugin);
             }};
 
-            butler_plugin_entry_block(&static_ident, plugin, &register)
+            butler_plugin_entry_block(&static_ident, target, &register)
         },
-        ButlerTarget::PluginGroup(group) => {
+        ButlerTarget::PluginGroup(target) => {
             let register = parse_quote! { |builder| {
                 let group: #plugin_ident #generics_without_colons = {#init}.into();
-                builder.add_group(#group)
+                builder.add_group(group)
             }};
 
-            butler_plugin_group_entry_block(&static_ident, group, &register)
+            butler_plugin_group_entry_block(&static_ident, target, &register)
         },
     };
     

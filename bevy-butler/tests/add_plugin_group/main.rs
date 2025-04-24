@@ -3,3 +3,5 @@ mod common {
 }
 
 mod add_plugin_group;
+mod add_plugin_group_to_group;
+mod generics_to_plugin;
