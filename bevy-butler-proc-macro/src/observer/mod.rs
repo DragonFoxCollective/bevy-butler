@@ -17,7 +17,7 @@ pub(crate) fn parse_observer(attr: &ObserverAttr, ident: &Ident) -> syn::Result<
 }
 
 pub(crate) fn macro_impl(attr: TokenStream1, body: TokenStream1) -> syn::Result<TokenStream2> {
-    let attr = ObserverAttr::parse.parse(attr)?;
+    let attr: ObserverAttr = deluxe::parse(attr)?;
     let item = syn::parse::<Item>(body)?;
     let ident = match &item {
         Item::Fn(item_fn) => &item_fn.sig.ident,
@@ -25,7 +25,7 @@ pub(crate) fn macro_impl(attr: TokenStream1, body: TokenStream1) -> syn::Result<
         item => return Err(Error::new_spanned(item, "Expected an `fn` or `use` item")),
     };
 
-    let plugin = attr.require_plugin()?;
+    let plugin = &attr.plugin;
     let obsrv_expr = parse_observer(&attr, ident)?;
 
     let mut hash_bytes = "observer".to_string();

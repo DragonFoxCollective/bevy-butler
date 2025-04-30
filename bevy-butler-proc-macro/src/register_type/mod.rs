@@ -12,7 +12,7 @@ use crate::utils::{butler_plugin_entry_block, get_use_path};
 pub(crate) mod structs;
 
 pub(crate) fn macro_impl(attr: TokenStream1, body: TokenStream1) -> syn::Result<TokenStream2> {
-    let attr = RegisterTypeAttr::parse.parse(attr)?;
+    let attr: RegisterTypeAttr = deluxe::parse(attr)?;
     let item: Item = syn::parse(body)?;
     let type_ident = match &item {
         Item::Struct(i_struct) => &i_struct.ident,
@@ -27,7 +27,7 @@ pub(crate) fn macro_impl(attr: TokenStream1, body: TokenStream1) -> syn::Result<
         }
     };
 
-    let plugin = attr.require_plugin()?;
+    let plugin = &attr.plugin;
     let type_data = &attr.type_data;
 
     let static_ident = format_ident!("_butler_typereg_{}", sha256::digest(type_ident.to_string()));
