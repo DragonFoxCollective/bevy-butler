@@ -1,9 +1,7 @@
 use proc_macro2::TokenStream;
 use quote::{quote, ToTokens};
 use syn::{
-    parse::{discouraged::Speculative, Parse, ParseStream, Parser},
-    punctuated::Punctuated,
-    AngleBracketedGenericArguments, Error, ExprClosure, Ident, Meta, Token, TypePath, UseTree,
+    parse::{discouraged::Speculative, Parse, ParseStream, Parser}, punctuated::Punctuated, AngleBracketedGenericArguments, Error, ExprClosure, Ident, ImplGenerics, Meta, Path, Token, TypeGenerics, TypePath, UseTree
 };
 
 /// Used to parse `generics = <...>`, `generics(...)` and `generics = ...`
@@ -78,7 +76,7 @@ pub(crate) fn parse_meta_args_with<P: Parser>(parser: P, meta: Meta) -> syn::Res
 
 pub(crate) fn butler_plugin_entry_block(
     static_ident: &Ident,
-    plugin: &TypePath,
+    plugin: &Path,
     expr: &ExprClosure,
 ) -> TokenStream {
     quote! {

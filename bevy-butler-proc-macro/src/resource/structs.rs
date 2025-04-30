@@ -1,20 +1,20 @@
 use proc_macro2::Span;
 use syn::{
     parse::{Parse, ParseStream},
-    AngleBracketedGenericArguments, Error, Expr, LitBool, Meta, Token, TypePath,
+    AngleBracketedGenericArguments, Error, Expr, LitBool, Meta, Token, Path,
 };
 
 use crate::utils::{parse_meta_args, GenericOrMeta};
 
 pub(crate) struct ResourceAttr {
-    pub plugin: Option<TypePath>,
+    pub plugin: Option<Path>,
     pub init: Option<Expr>,
     pub non_send: Option<bool>,
     pub generics: Option<AngleBracketedGenericArguments>,
 }
 
 impl ResourceAttr {
-    pub fn insert_plugin(&mut self, plugin: TypePath) -> syn::Result<()> {
+    pub fn insert_plugin(&mut self, plugin: Path) -> syn::Result<()> {
         if self.plugin.is_some() {
             return Err(Error::new_spanned(
                 plugin,
@@ -67,7 +67,7 @@ impl ResourceAttr {
         Ok(())
     }
 
-    pub fn require_plugin(&self) -> syn::Result<&TypePath> {
+    pub fn require_plugin(&self) -> syn::Result<&Path> {
         self.plugin.as_ref().ok_or(Error::new(
             Span::call_site(),
             "Expected a defined or inherited `plugin` argument",
@@ -89,7 +89,7 @@ impl Parse for ResourceAttr {
                 GenericOrMeta::Generic(generics) => ret.insert_generics(generics)?,
                 GenericOrMeta::Meta(meta) => match meta.path().require_ident()? {
                     ident if ident == "plugin" => {
-                        ret.insert_plugin(parse_meta_args::<TypePath>(meta)?)?
+                        ret.insert_plugin(parse_meta_args(meta)?)?
                     }
                     ident if ident == "init" => ret.insert_init(parse_meta_args::<Expr>(meta)?)?,
                     ident if ident == "non_send" => match meta {

@@ -9,7 +9,7 @@ use crate::utils::{butler_plugin_entry_block, get_use_path};
 pub mod structs;
 
 pub(crate) fn macro_impl(attr: TokenStream1, body: TokenStream1) -> syn::Result<TokenStream2> {
-    let attr: AddPluginAttr = syn::parse(attr)?;
+    let attr: AddPluginAttr = deluxe::parse(attr)?;
     let item: Item = syn::parse(body)?;
     let ident = match &item {
         Item::Struct(i_struct) => &i_struct.ident,
@@ -18,7 +18,7 @@ pub(crate) fn macro_impl(attr: TokenStream1, body: TokenStream1) -> syn::Result<
         other => return Err(Error::new_spanned(other, "Expected `struct`, `use` or `enum`")),
     };
 
-    let plugin = attr.require_plugin()?;
+    let plugin = &attr.plugin;
 
     let arghash = sha256::digest(
         ident.to_string() +

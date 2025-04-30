@@ -1,4 +1,5 @@
-use darling::{ast::NestedMeta, FromMeta};
+use std::default;
+
 use proc_macro::TokenStream as TokenStream1;
 use proc_macro2::TokenStream as TokenStream2;
 use quote::{format_ident, quote, ToTokens};
@@ -10,8 +11,7 @@ use crate::utils::get_use_path;
 pub(crate) mod structs;
 
 pub(crate) fn macro_impl(attr: TokenStream1, body: TokenStream1) -> syn::Result<TokenStream2> {
-    let attr_args = NestedMeta::parse_meta_list(attr.into())?;
-    let attr = AddToGroupAttr::from_list(&attr_args)?;
+    let attr: AddToGroupAttr = deluxe::parse(attr)?;
     let item: Item = syn::parse(body)?;
     let ident = match &item {
         Item::Struct(i_struct) => &i_struct.ident,
@@ -29,7 +29,7 @@ pub(crate) fn macro_impl(attr: TokenStream1, body: TokenStream1) -> syn::Result<
 
     let struct_ident = format_ident!("_butler_plugin_{}_{}", ident, arghash);
 
-    let expr = match &attr.as_group.is_present() {
+    let expr = match &attr.as_group.is_set() {
         true => quote! {
             |builder| builder.add_group(#ident)
         },

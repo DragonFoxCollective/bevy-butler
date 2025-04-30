@@ -1,7 +1,7 @@
-use darling::{util::Flag, FromMeta};
+use deluxe::{Flag, ParseMetaItem};
 use syn::Path;
 
-#[derive(Debug, FromMeta)]
+#[derive(Debug, ParseMetaItem)]
 pub(crate) struct AddToGroupAttr {
     pub group: Path,
     pub as_group: Flag,

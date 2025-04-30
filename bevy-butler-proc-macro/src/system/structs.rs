@@ -4,7 +4,7 @@ use syn::{
     parse::{Parse, ParseStream, Parser},
     punctuated::Punctuated,
     AngleBracketedGenericArguments, Attribute, Error, ExprCall, GenericArgument, ItemFn, Meta,
-    MetaList, MetaNameValue, Token, TypePath,
+    MetaList, MetaNameValue, Token, Path,
 };
 use syn::{Expr, Item, ItemUse};
 
@@ -15,7 +15,7 @@ use self::utils::parse_meta_args_with;
 
 #[derive(Clone)]
 pub(crate) struct SystemAttr {
-    pub plugin: Option<TypePath>,
+    pub plugin: Option<Path>,
     pub schedule: Option<Expr>,
     pub generics: Option<AngleBracketedGenericArguments>,
     pub pipe_in: Option<Vec<Expr>>,
@@ -37,7 +37,7 @@ impl Default for SystemAttr {
 }
 
 impl SystemAttr {
-    pub fn require_plugin(&self) -> syn::Result<&TypePath> {
+    pub fn require_plugin(&self) -> syn::Result<&Path> {
         self.plugin.as_ref().ok_or(Error::new(
             self.attr_span,
             "Expected a defined or inherited `plugin` argument",
@@ -78,7 +78,7 @@ impl SystemAttr {
         Ok(self.generics.insert(generics))
     }
 
-    pub fn parse_plugin_meta(&mut self, meta: Meta) -> syn::Result<&mut TypePath> {
+    pub fn parse_plugin_meta(&mut self, meta: Meta) -> syn::Result<()> {
         if self.plugin.is_some() {
             return Err(Error::new_spanned(
                 meta,
@@ -86,10 +86,11 @@ impl SystemAttr {
             ));
         }
 
-        Ok(self.plugin.insert(utils::parse_meta_args(meta)?))
+        self.plugin.insert(utils::parse_meta_args(meta)?);
+        Ok(())
     }
 
-    pub fn parse_schedule_meta(&mut self, meta: Meta) -> syn::Result<&mut Expr> {
+    pub fn parse_schedule_meta(&mut self, meta: Meta) -> syn::Result<()> {
         if self.schedule.is_some() {
             return Err(Error::new_spanned(
                 meta,
@@ -97,7 +98,8 @@ impl SystemAttr {
             ));
         }
 
-        Ok(self.schedule.insert(utils::parse_meta_args(meta)?))
+        self.schedule.insert(utils::parse_meta_args(meta)?);
+        Ok(())
     }
 
     pub fn parse_transform_meta(

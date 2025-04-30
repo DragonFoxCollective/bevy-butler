@@ -1,18 +1,18 @@
 use proc_macro2::Span;
 use syn::{
     parse::{Parse, ParseStream},
-    AngleBracketedGenericArguments, Error, Token, TypePath,
+    AngleBracketedGenericArguments, Error, Token, Path,
 };
 
 use crate::utils::{parse_meta_args, GenericOrMeta};
 
 pub(crate) struct EventAttr {
-    pub plugin: Option<TypePath>,
+    pub plugin: Option<Path>,
     pub generics: Option<AngleBracketedGenericArguments>,
 }
 
 impl EventAttr {
-    pub fn insert_plugin(&mut self, plugin: TypePath) -> syn::Result<()> {
+    pub fn insert_plugin(&mut self, plugin: Path) -> syn::Result<()> {
         if self.plugin.is_some() {
             return Err(Error::new_spanned(
                 plugin,
@@ -41,7 +41,7 @@ impl EventAttr {
         Ok(())
     }
 
-    pub fn require_plugin(&self) -> syn::Result<&TypePath> {
+    pub fn require_plugin(&self) -> syn::Result<&Path> {
         self.plugin.as_ref().ok_or(Error::new(
             Span::call_site(),
             "Expected a defined or inherited `plugin` argument",
@@ -61,7 +61,7 @@ impl Parse for EventAttr {
                 GenericOrMeta::Generic(generics) => ret.insert_generics(generics)?,
                 GenericOrMeta::Meta(meta) => match meta.path().require_ident()? {
                     ident if ident == "plugin" => {
-                        ret.insert_plugin(parse_meta_args::<TypePath>(meta)?)?
+                        ret.insert_plugin(parse_meta_args(meta)?)?
                     }
                     ident => {
                         return Err(Error::new_spanned(

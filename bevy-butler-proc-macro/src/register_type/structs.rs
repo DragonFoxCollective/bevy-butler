@@ -2,18 +2,18 @@ use proc_macro2::Span;
 use syn::{
     parse::{Parse, ParseStream},
     punctuated::Punctuated,
-    Error, Meta, Token, TypePath,
+    Error, Meta, Token, Path,
 };
 
 use crate::utils::{parse_meta_args, parse_meta_args_with};
 
 pub(crate) struct RegisterTypeAttr {
-    pub plugin: Option<TypePath>,
-    pub type_data: Vec<TypePath>,
+    pub plugin: Option<Path>,
+    pub type_data: Vec<Path>,
 }
 
 impl RegisterTypeAttr {
-    pub fn insert_plugin(&mut self, plugin: TypePath) -> syn::Result<()> {
+    pub fn insert_plugin(&mut self, plugin: Path) -> syn::Result<()> {
         if self.plugin.is_some() {
             return Err(Error::new_spanned(
                 plugin,
@@ -25,7 +25,7 @@ impl RegisterTypeAttr {
         Ok(())
     }
 
-    pub fn require_plugin(&self) -> syn::Result<&TypePath> {
+    pub fn require_plugin(&self) -> syn::Result<&Path> {
         self.plugin.as_ref().ok_or(Error::new(
             Span::call_site(),
             "Expected a defined or inherited `plugin` argument",
@@ -44,7 +44,7 @@ impl Parse for RegisterTypeAttr {
             match meta.path().require_ident()? {
                 ident if ident == "plugin" => ret.insert_plugin(parse_meta_args(meta)?)?,
                 ident if ident == "type_data" => ret.type_data.extend(parse_meta_args_with(
-                    Punctuated::<TypePath, Token![,]>::parse_terminated,
+                    Punctuated::<Path, Token![,]>::parse_terminated,
                     meta,
                 )?),
                 ident => {

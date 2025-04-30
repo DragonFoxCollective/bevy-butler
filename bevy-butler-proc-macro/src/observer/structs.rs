@@ -2,26 +2,26 @@ use proc_macro2::Span;
 use quote::ToTokens;
 use syn::{
     parse::{Parse, ParseStream},
-    AngleBracketedGenericArguments, Error, Ident, Meta, Token, TypePath,
+    AngleBracketedGenericArguments, Error, Ident, Meta, Token, Path,
 };
 
 use crate::utils;
 
 pub(crate) struct ObserverAttr {
-    pub plugin: Option<TypePath>,
+    pub plugin: Option<Path>,
     pub generics: Option<AngleBracketedGenericArguments>,
     pub attr_span: Span,
 }
 
 impl ObserverAttr {
-    pub fn require_plugin(&self) -> syn::Result<&TypePath> {
+    pub fn require_plugin(&self) -> syn::Result<&Path> {
         self.plugin.as_ref().ok_or(Error::new(
             self.attr_span,
             "Expected a defined or inherited `plugin` argument",
         ))
     }
 
-    pub fn insert_plugin(&mut self, plugin: TypePath) -> syn::Result<&mut TypePath> {
+    pub fn insert_plugin(&mut self, plugin: Path) -> syn::Result<()> {
         if self.plugin.is_some() {
             return Err(Error::new_spanned(
                 plugin,
@@ -29,7 +29,8 @@ impl ObserverAttr {
             ));
         }
 
-        Ok(self.plugin.insert(plugin))
+        self.plugin.insert(plugin);
+        Ok(())
     }
 
     pub fn insert_generics(
