@@ -1,20 +1,22 @@
+use std::default;
+
 use proc_macro::TokenStream as TokenStream1;
 use proc_macro2::TokenStream as TokenStream2;
 use quote::{format_ident, quote, ToTokens};
-use structs::{SystemAttr, SystemInput};
-use syn::Ident;
-use syn::{
-    parse::{Parse, Parser},
-    Expr,
-};
+use structs::SystemAttr;
+use syn::{Error, ExprCall, Ident, Item, ItemFn, ItemUse, Signature};
+use syn::Expr;
 
 use crate::utils::{butler_plugin_entry_block, get_use_path};
 
 pub mod structs;
 
 pub(crate) fn parse_system(attr: &SystemAttr, ident: &Ident) -> Expr {
-    let transforms = Some(&attr.transforms).filter(|i| !i.is_empty()).into_iter();
-    let generics = attr.generics.as_ref();
+    let generics = attr.generics.clone().map(|mut g| {
+        g.colon2_token = Some(Default::default());
+        g
+    });
+    let transforms = &attr.transforms.0;
 
     let sys_expr = syn::parse_quote! {
         #ident #generics #(. #transforms)*
@@ -33,17 +35,19 @@ pub(crate) fn parse_system(attr: &SystemAttr, ident: &Ident) -> Expr {
 }
 
 pub(crate) fn macro_impl(attr: TokenStream1, item: TokenStream1) -> syn::Result<TokenStream2> {
-    let attr = SystemAttr::parse.parse(attr)?;
-    let input = SystemInput::parse_with_attr(attr).parse(item)?;
-    let (attr, ident) = match &input {
-        SystemInput::Fn { attr, body } => (attr, &body.sig.ident),
-        SystemInput::Use { attr, body } => (attr, get_use_path(&body.tree)?),
+    let attr: SystemAttr = deluxe::parse(attr)?;
+    let input: Item = syn::parse(item)?;
+    
+    let sys_ident = match &input {
+        Item::Fn(ItemFn { sig: Signature { ident, .. }, ..}) => ident,
+        Item::Use(ItemUse { tree, .. }) => get_use_path(&tree)?,
+        _ => return Err(Error::new_spanned(input, "Expected `fn` or `use`")),
     };
 
-    let plugin = attr.require_plugin()?;
-    let schedule = attr.require_schedule()?;
+    let plugin = &attr.plugin;
+    let schedule = &attr.schedule;
 
-    let sys_expr = parse_system(attr, ident);
+    let sys_expr = parse_system(&attr, &sys_ident);
 
     let mut hash_bytes = "system".to_string();
     hash_bytes += &plugin.to_token_stream().to_string();
@@ -59,17 +63,10 @@ pub(crate) fn macro_impl(attr: TokenStream1, item: TokenStream1) -> syn::Result<
             |app| { app.add_systems( #schedule, #sys_expr ); }
         },
     );
+    
+    Ok(quote! {
+        #input
 
-    match input {
-        SystemInput::Fn { body, .. } => Ok(quote! {
-            #body
-
-            #register_block
-        }),
-        SystemInput::Use { body, .. } => Ok(quote! {
-            #body
-
-            #register_block
-        }),
-    }
+        #register_block
+    })
 }

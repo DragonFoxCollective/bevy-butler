@@ -18,7 +18,7 @@ fn system2(input: In<i32>) -> String {
     input.0.to_string()
 }
 
-#[system(plugin = MyPlugin, schedule = Startup, pipe_in(system1, system2))]
+#[system(plugin = MyPlugin, schedule = Startup, pipe_in = [system1, system2])]
 fn system3(input: In<String>) {
     info!("Number: {}", *input);
 }

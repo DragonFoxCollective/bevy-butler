@@ -16,7 +16,7 @@ fn generic_pipe<T: 'static + Sync + Send + Display>(res: Res<GenericRes<T>>) -> 
     res.0.to_string()
 }
 
-#[system(plugin = MyPlugin, schedule = Startup, pipe_in = generic_pipe::<u8>)]
+#[system(plugin = MyPlugin, schedule = Startup, pipe_in = [generic_pipe::<u8>])]
 fn print_res(input: In<String>) {
     info!("Generic resource: {}", input.0);
     assert_eq!(input.0, "5");
