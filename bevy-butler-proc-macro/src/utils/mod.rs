@@ -1,7 +1,7 @@
 use proc_macro2::TokenStream;
-use quote::{quote, ToTokens};
+use quote::quote;
 use syn::{
-    parse::{discouraged::Speculative, Parse, ParseStream, Parser}, punctuated::Punctuated, AngleBracketedGenericArguments, Error, ExprClosure, Ident, ImplGenerics, Meta, Path, Token, TypeGenerics, TypePath, UseTree
+    ExprClosure, Ident, Path, UseTree
 };
 
 pub(crate) fn butler_plugin_entry_block(

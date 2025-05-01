@@ -1,8 +1,7 @@
 use deluxe::ParseMetaItem;
-use syn::{ AngleBracketedGenericArguments, Generics, Path, TypePath };
+use syn::Path;
 
 #[derive(Debug, ParseMetaItem)]
 pub(crate) struct AddPluginAttr {
     pub plugin: Path,
-    pub generics: Option<AngleBracketedGenericArguments>,
 }

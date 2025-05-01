@@ -1,18 +1,18 @@
 use std::borrow::Borrow;
 
 use deluxe::{ParseMetaItem, ParseMetaRest};
-use deluxe_core::parse_helpers::{peek_eof_or_trailing_comma, skip_meta_item};
+use deluxe_core::parse_helpers::skip_meta_item;
 use quote::quote;
 use syn::parse::discouraged::AnyDelimiter;
 use syn::parse::{Parse, ParseBuffer};
 use syn::punctuated::Punctuated;
-use syn::{AngleBracketedGenericArguments, ExprCall, Ident, Meta, Path, Token};
+use syn::{AngleBracketedGenericArguments, ExprCall, Path, Token};
 use syn::Expr;
 
 #[derive(Clone)]
 pub(crate) struct TransformList(pub Vec<ExprCall>);
 
-fn parse_end_comma_or_eof<'s>(input: &ParseBuffer<'s>) -> deluxe::Result<()> {
+fn parse_end_comma_or_eof(input: &ParseBuffer<'_>) -> deluxe::Result<()> {
     if input.is_empty() { return Ok(()); }
 
     input.parse::<Token![,]>()?;
@@ -26,7 +26,7 @@ impl ParseMetaRest for TransformList {
     ) -> deluxe::Result<Self> {
         let mut ret = Vec::new();
 
-        for input in inputs.into_iter() {
+        for input in inputs.iter() {
             let input = input.borrow();
             while !input.is_empty() {
                 let path = Path::parse(input)?;

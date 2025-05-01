@@ -3,7 +3,6 @@ use proc_macro2::TokenStream as TokenStream2;
 use quote::{format_ident, quote, ToTokens};
 use structs::ObserverAttr;
 use syn::{
-    parse::{Parse, Parser},
     Error, Expr, Ident, Item,
 };
 
