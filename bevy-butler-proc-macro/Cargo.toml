@@ -1,6 +1,6 @@
 [package]
 name = "bevy-butler-proc-macro"
-version = "0.6.1-alpha.2"
+version = "0.6.1"
 edition = "2021"
 description = "Procedural macro definitions for bevy-butler"
 license = "MIT OR Apache-2.0"
