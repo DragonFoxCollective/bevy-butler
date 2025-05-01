@@ -30,34 +30,6 @@ pub mod __internal;
 ///     }
 /// }
 /// ```
-///
-/// # Arguments
-/// ## `build` | `finish` | `cleanup`
-/// Butler plugins can define statements to run within their respective [`Plugin`](bevy_app::prelude::Plugin)
-/// stages upon being added to an [`App`](bevy_app::prelude::App).
-/// ```rust
-/// # use bevy_butler::*;
-/// # use bevy::prelude::*;
-/// # #[derive(Resource, Default)]
-/// # struct Counter;
-/// # #[derive(Resource)]
-/// # struct Hello1(&'static str);
-/// # #[derive(Resource)]
-/// # struct Hello2(&'static str);
-/// #[butler_plugin(
-///     // Name-value style
-///     build = init_resource::<Counter>,
-///     // Becomes:
-///     // app.init_resource::<Counter>();
-///
-///     // List style
-///     finish(insert_resource(Hello1("World")), insert_resource(Hello2("World"))),
-///     // Becomes:
-///     // app.insert_resource(Hello1("World"));
-///     // app.insert_resource(Hello2("World"));
-/// )]
-/// # struct MyPlugin;
-/// ```
 pub use bevy_butler_proc_macro::butler_plugin;
 
 /// Registers a system to a [`#[butler_plugin]`](butler_plugin)-annotated [`Plugin`](bevy_app::prelude::Plugin).

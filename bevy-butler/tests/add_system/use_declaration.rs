@@ -5,11 +5,15 @@ use wasm_bindgen_test::wasm_bindgen_test;
 
 use super::common::log_plugin;
 
-#[butler_plugin(build(
-    insert_resource(Marker(8u8, false)),
-    insert_resource(Marker("Hello", false)),
-))]
 struct MyPlugin;
+
+#[butler_plugin]
+impl Plugin for MyPlugin {
+    fn build(&self, app: &mut App) {
+        app.insert_resource(Marker(8u8, false));
+        app.insert_resource(Marker("Hello", false));
+    }
+}
 
 #[derive(Resource)]
 struct Marker<T>(T, bool);

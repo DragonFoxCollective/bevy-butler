@@ -7,15 +7,14 @@ use bevy_butler::*;
 use crate::common::log_plugin;
 
 #[derive(Resource)]
+#[insert_resource(plugin = MyPlugin, init = Attendees(vec![
+    "Harrier Du Bois".to_string(),
+    "Kim Kitsuragi".to_string(),
+    "Mack Torson".to_string(),
+]))]
 struct Attendees(Vec<String>);
 
-#[butler_plugin(
-    build = insert_resource(Attendees(vec![
-        "Harrier Du Bois".to_string(),
-        "Kim Kitsuragi".to_string(),
-        "Mack Torson".to_string(),
-    ]))
-)]
+#[butler_plugin]
 struct MyPlugin;
 
 #[derive(Event)]

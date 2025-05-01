@@ -3,6 +3,10 @@
 
 bevy-butler's parsing has been completely overhauled to use [deluxe](https://github.com/jf2048/deluxe), which should make maintenance and improvements much easier in the long run.
 
+# Changes
+
+- Support for Bevy 0.16!
+
 ### Breaking Changes
 
 - Many macros have been changed to prevent conflicts with Bevy's derive helpers, and to better communicate their purpose.
@@ -14,6 +18,7 @@ bevy-butler's parsing has been completely overhauled to use [deluxe](https://git
 - `config_systems!` and `system_set!` have been removed because they were very complex, poorly implemented, and did not work well with rust analyzer.
 - `add_system`'s `pipe_in` argument now requires square brackets (i.e. `pipe_in = [system1, system2]`)
 - `register_type`'s `type_data` argument now requires square brackets (i.e. `type_data = [type1, type2]`)
+- `build`, `finish` and `cleanup` arguments have been removed from `butler_plugin`, as they were an early hack before annotated `impl Plugin` blocks were implemented.
 
 # 0.5.7
 Released 2025-03-19
