@@ -8,15 +8,12 @@ use crate::common::log_plugin;
 struct MyPlugin;
 
 #[derive(Resource, Default)]
-struct MarkerOne;
+struct Marker;
 
-#[derive(Resource, Default)]
-struct MarkerTwo;
-
-#[butler_plugin(build = init_resource::<MarkerOne>)]
+#[butler_plugin]
 impl Plugin for MyPlugin {
     fn build(&self, nonstandard_app_name: &mut App) {
-        nonstandard_app_name.init_resource::<MarkerTwo>();
+        nonstandard_app_name.init_resource::<Marker>();
     }
 }
 
@@ -27,7 +24,7 @@ fn test() {
         .add_plugins(MyPlugin)
         .add_systems(
             Startup,
-            (|_res: Res<MarkerOne>| (), |_res: Res<MarkerTwo>| ()),
+            |_res: Res<Marker>| (),
         )
         .run();
 }

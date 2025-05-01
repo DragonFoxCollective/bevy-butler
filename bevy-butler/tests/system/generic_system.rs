@@ -11,14 +11,16 @@ use super::common::log_plugin;
 #[derive(Resource)]
 struct GenericResource<T>(pub T, pub bool);
 
-#[butler_plugin {
-    build(
-        insert_resource = GenericResource("Hello", false),
-        insert_resource(GenericResource(52u8, false)),
-        insert_resource = GenericResource(true, false),
-    )
-}]
 struct MyPlugin;
+
+#[butler_plugin]
+impl Plugin for MyPlugin {
+    fn build(&self, app: &mut App) {
+        app.insert_resource(GenericResource("Hello", false));
+        app.insert_resource(GenericResource(52u8, false));
+        app.insert_resource(GenericResource(true, false));
+    }
+}
 
 #[system(generics = <&str>, plugin = MyPlugin, schedule = Startup, before = test_sys::<u8>)]
 #[system(generics = <u8>, plugin = MyPlugin, schedule = Startup, after = test_sys::<&str>)]
