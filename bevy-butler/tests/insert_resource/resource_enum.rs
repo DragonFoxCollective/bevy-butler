@@ -13,7 +13,7 @@ struct MyPlugin;
 enum Message {
     Variant1,
     #[default]
-    Variant2
+    Variant2,
 }
 
 #[add_system(plugin = MyPlugin, schedule = Startup)]

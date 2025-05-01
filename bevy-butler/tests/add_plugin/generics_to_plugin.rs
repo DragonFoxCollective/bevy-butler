@@ -22,8 +22,14 @@ pub struct GenericMarker<T>(T);
 fn test() {
     App::new()
         .add_plugins(GamePlugin)
-        .add_systems(Startup, |boolres: Res<GenericMarker<bool>>| assert_eq!(boolres.0, true))
-        .add_systems(Startup, |u8res: Res<GenericMarker<u8>>| assert_eq!(u8res.0, 5))
-        .add_systems(Startup, |strres: Res<GenericMarker<&'static str>>| assert_eq!(strres.0, "Hello, world!"))
+        .add_systems(Startup, |boolres: Res<GenericMarker<bool>>| {
+            assert_eq!(boolres.0, true)
+        })
+        .add_systems(Startup, |u8res: Res<GenericMarker<u8>>| {
+            assert_eq!(u8res.0, 5)
+        })
+        .add_systems(Startup, |strres: Res<GenericMarker<&'static str>>| {
+            assert_eq!(strres.0, "Hello, world!")
+        })
         .run();
 }

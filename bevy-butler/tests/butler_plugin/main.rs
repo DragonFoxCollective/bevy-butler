@@ -3,6 +3,6 @@ pub mod common {
 }
 
 mod butler_plugin;
-mod multiple_plugins;
-mod butler_plugin_impl;
 mod butler_plugin_enum;
+mod butler_plugin_impl;
+mod multiple_plugins;

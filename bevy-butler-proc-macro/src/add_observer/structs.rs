@@ -1,5 +1,5 @@
 use deluxe::ParseMetaItem;
-use syn::{Path, AngleBracketedGenericArguments};
+use syn::{AngleBracketedGenericArguments, Path};
 
 #[derive(ParseMetaItem)]
 pub(crate) struct ObserverAttr {

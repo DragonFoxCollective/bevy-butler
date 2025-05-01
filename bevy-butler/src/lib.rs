@@ -90,14 +90,14 @@ pub use bevy_butler_proc_macro::butler_plugin;
 ///     info!("Resource: {}", res.0);
 /// }
 /// ```
-/// 
+///
 /// ## `pipe_in`
 /// One or more system pipes to use as inputs to the system.
-/// 
+///
 /// Pipes are used in the order given, so `pipe_in(sys1, sys2)` would result in `sys1.pipe(sys2).pipe(<system>)`.
-/// 
+///
 /// For more info, see the [Bevy Cheat Book](https://bevy-cheatbook.github.io/programming/system-piping.html) page on system piping.
-/// 
+///
 /// ```rust
 /// # use bevy_butler::*;
 /// # use bevy::prelude::*;
@@ -107,11 +107,11 @@ pub use bevy_butler_proc_macro::butler_plugin;
 /// fn get_name() -> String {
 ///     "World".to_string()
 /// }
-/// 
+///
 /// fn greet_name(name: In<String>) -> String {
 ///     format!("Hello, {}!", *name)
 /// }
-/// 
+///
 /// #[add_system(plugin = MyPlugin, schedule = Startup, pipe_in = [get_name, greet_name])]
 /// fn print_greeting(greeting: In<String>) {
 ///     info!("{}", *greeting);
@@ -388,7 +388,7 @@ pub use bevy_butler_proc_macro::add_event;
 pub use bevy_butler_proc_macro::register_type;
 
 /// Implements `PluginGroup` and configures it to allow usage of [`#[add_to_group]`](add_to_group).
-/// 
+///
 /// # Usage
 /// ## On a struct
 /// Annotating a struct will automatically implement [`PluginGroup`](bevy_app::prelude::PluginGroup).
@@ -397,7 +397,7 @@ pub use bevy_butler_proc_macro::register_type;
 /// #[butler_plugin_group]
 /// struct MyPluginGroup;
 /// ```
-/// 
+///
 /// # Arguments
 /// ## `name`
 /// The internal name of the [`PluginGroup`](bevy_app::prelude::PluginGroup). Used to implement the [`name`](bevy_app::prelude::PluginGroup::name) function.

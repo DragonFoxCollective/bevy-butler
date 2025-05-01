@@ -1,10 +1,9 @@
-
 use proc_macro::TokenStream as TokenStream1;
 use proc_macro2::TokenStream as TokenStream2;
 use quote::{format_ident, quote, ToTokens};
 use structs::SystemAttr;
-use syn::{Error, Ident, Item, ItemFn, ItemUse, Signature};
 use syn::Expr;
+use syn::{Error, Ident, Item, ItemFn, ItemUse, Signature};
 
 use crate::utils::{butler_plugin_entry_block, get_use_path};
 
@@ -28,17 +27,20 @@ pub(crate) fn parse_system(attr: &SystemAttr, ident: &Ident) -> Expr {
             syn::parse_quote! {
                 #first #(.pipe(#iter))* .pipe(#sys_expr)
             }
-        },
-        _ => sys_expr
+        }
+        _ => sys_expr,
     }
 }
 
 pub(crate) fn macro_impl(attr: TokenStream1, item: TokenStream1) -> syn::Result<TokenStream2> {
     let attr: SystemAttr = deluxe::parse(attr)?;
     let input: Item = syn::parse(item)?;
-    
+
     let sys_ident = match &input {
-        Item::Fn(ItemFn { sig: Signature { ident, .. }, ..}) => ident,
+        Item::Fn(ItemFn {
+            sig: Signature { ident, .. },
+            ..
+        }) => ident,
         Item::Use(ItemUse { tree, .. }) => get_use_path(tree)?,
         _ => return Err(Error::new_spanned(input, "Expected `fn` or `use`")),
     };
@@ -62,7 +64,7 @@ pub(crate) fn macro_impl(attr: TokenStream1, item: TokenStream1) -> syn::Result<
             |app| { app.add_systems( #schedule, #sys_expr ); }
         },
     );
-    
+
     Ok(quote! {
         #input
 

@@ -2,9 +2,7 @@ use proc_macro::TokenStream as TokenStream1;
 use proc_macro2::TokenStream as TokenStream2;
 use quote::{format_ident, quote, ToTokens};
 use structs::ObserverAttr;
-use syn::{
-    Error, Expr, Ident, Item,
-};
+use syn::{Error, Expr, Ident, Item};
 
 use crate::utils::{butler_plugin_entry_block, get_use_path};
 

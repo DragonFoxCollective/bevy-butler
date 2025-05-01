@@ -50,7 +50,8 @@ fn test() {
         .add_plugins(MyPlugin)
         .add_systems(
             Update,
-            (|| -> () { panic!("Timed out") }).run_if(|time: Res<Time>| time.elapsed_secs() > 5.0f32),
+            (|| -> () { panic!("Timed out") })
+                .run_if(|time: Res<Time>| time.elapsed_secs() > 5.0f32),
         )
         .run();
 }

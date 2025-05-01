@@ -1,6 +1,6 @@
 use deluxe::ParseMetaItem;
 use proc_macro2::Span;
-use syn::{parse_quote, AngleBracketedGenericArguments, Expr, ExprClosure, Ident, Path, TypePath};
+use syn::{parse_quote, AngleBracketedGenericArguments, Expr, ExprClosure, Ident, Path};
 
 /// Whether to add to a `Plugin` or a `PluginGroup`.
 #[derive(Debug, Clone)]
@@ -22,8 +22,18 @@ fn validate(mut input: AddPluginAttr) -> deluxe::Result<AddPluginAttr> {
     match (input._to_plugin.take(), input._to_group.take()) {
         (Some(plugin), None) => input.target = ButlerTarget::Plugin(plugin),
         (None, Some(group)) => input.target = ButlerTarget::PluginGroup(group),
-        (Some(_), Some(g)) => return Err(deluxe::Error::new_spanned(g, "`to_group` and `to_plugin` are mutually exclusive")),
-        (None, None) => return Err(deluxe::Error::new(Span::call_site(), "Expected `to_group` or `to_plugin`")),
+        (Some(_), Some(g)) => {
+            return Err(deluxe::Error::new_spanned(
+                g,
+                "`to_group` and `to_plugin` are mutually exclusive",
+            ))
+        }
+        (None, None) => {
+            return Err(deluxe::Error::new(
+                Span::call_site(),
+                "Expected `to_group` or `to_plugin`",
+            ))
+        }
     }
 
     Ok(input)
@@ -48,7 +58,10 @@ impl AddPluginAttr {
     pub fn register_statement(&self, plugin: &Ident) -> syn::Result<ExprClosure> {
         let target = &self.target;
         let generics = &self.generics;
-        let generics_without_colons = generics.clone().map(|mut g| { g.colon2_token = None; return g;});
+        let generics_without_colons = generics.clone().map(|mut g| {
+            g.colon2_token = None;
+            g
+        });
         let init = self.init.as_ref().cloned().unwrap_or_else(|| parse_quote! { <#plugin #generics_without_colons as core::default::Default>::default() });
 
         Ok(match target {
@@ -56,10 +69,12 @@ impl AddPluginAttr {
                 let plugin: #plugin #generics_without_colons = {#init}.into();
                 app.add_plugins(plugin);
             } },
-            ButlerTarget::PluginGroup(_) => parse_quote! { |builder: ::bevy_butler::__internal::bevy_app::PluginGroupBuilder| -> ::bevy_butler::__internal::bevy_app::PluginGroupBuilder {
-                    let plugin: #plugin #generics_without_colons = {#init}.into();
-                    builder.add(plugin)
-            } },
+            ButlerTarget::PluginGroup(_) => {
+                parse_quote! { |builder: ::bevy_butler::__internal::bevy_app::PluginGroupBuilder| -> ::bevy_butler::__internal::bevy_app::PluginGroupBuilder {
+                        let plugin: #plugin #generics_without_colons = {#init}.into();
+                        builder.add(plugin)
+                } }
+            }
         })
     }
 }

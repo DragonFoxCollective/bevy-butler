@@ -1,8 +1,6 @@
 use proc_macro2::TokenStream;
 use quote::quote;
-use syn::{
-    ExprClosure, Ident, Path, UseTree
-};
+use syn::{ExprClosure, Ident, Path, UseTree};
 
 pub(crate) fn butler_plugin_entry_block(
     static_ident: &Ident,

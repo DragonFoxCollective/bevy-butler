@@ -22,9 +22,6 @@ fn test() {
     App::new()
         .add_plugins(log_plugin())
         .add_plugins(MyPlugin)
-        .add_systems(
-            Startup,
-            |_res: Res<Marker>| (),
-        )
+        .add_systems(Startup, |_res: Res<Marker>| ())
         .run();
 }

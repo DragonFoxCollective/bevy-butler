@@ -19,10 +19,7 @@ struct HelloReceived;
 struct GoodbyeReceived;
 
 #[add_observer(plugin = MyPlugin)]
-fn received_message(
-    message: Trigger<Message>,
-    mut commands: Commands
-) {
+fn received_message(message: Trigger<Message>, mut commands: Commands) {
     match &*message {
         Message::Hello(name) => {
             info!("Hello, {name}!");

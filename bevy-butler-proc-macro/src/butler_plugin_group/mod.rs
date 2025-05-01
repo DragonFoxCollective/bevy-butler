@@ -45,6 +45,6 @@ pub(crate) fn macro_impl(attr: TokenStream1, body: TokenStream1) -> syn::Result<
                 }
             })
         }
-        other => Err(Error::new_spanned(other, "Expected `struct`"))
+        other => Err(Error::new_spanned(other, "Expected `struct`")),
     }
 }

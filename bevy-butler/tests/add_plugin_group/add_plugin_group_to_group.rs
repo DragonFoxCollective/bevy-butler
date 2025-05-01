@@ -1,5 +1,5 @@
-use bevy_butler::*;
 use bevy::prelude::*;
+use bevy_butler::*;
 
 #[butler_plugin_group]
 pub struct FooPluginGroup;

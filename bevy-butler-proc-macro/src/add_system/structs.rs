@@ -6,14 +6,16 @@ use quote::quote;
 use syn::parse::discouraged::AnyDelimiter;
 use syn::parse::{Parse, ParseBuffer};
 use syn::punctuated::Punctuated;
-use syn::{AngleBracketedGenericArguments, ExprCall, Path, Token};
 use syn::Expr;
+use syn::{AngleBracketedGenericArguments, ExprCall, Path, Token};
 
 #[derive(Clone)]
 pub(crate) struct TransformList(pub Vec<ExprCall>);
 
 fn parse_end_comma_or_eof(input: &ParseBuffer<'_>) -> deluxe::Result<()> {
-    if input.is_empty() { return Ok(()); }
+    if input.is_empty() {
+        return Ok(());
+    }
 
     input.parse::<Token![,]>()?;
     Ok(())
@@ -30,7 +32,10 @@ impl ParseMetaRest for TransformList {
             let input = input.borrow();
             while !input.is_empty() {
                 let path = Path::parse(input)?;
-                if path.get_ident().is_some_and(|i| exclude.contains(&i.to_string().as_str())) {
+                if path
+                    .get_ident()
+                    .is_some_and(|i| exclude.contains(&i.to_string().as_str()))
+                {
                     skip_meta_item(input);
                     parse_end_comma_or_eof(input)?;
                     continue;
@@ -42,7 +47,7 @@ impl ParseMetaRest for TransformList {
                     parse_end_comma_or_eof(input)?;
                     continue;
                 }
-                
+
                 // Style 2: NameValue - transform = expr
                 if input.peek(Token![=]) {
                     input.parse::<Token![=]>()?;

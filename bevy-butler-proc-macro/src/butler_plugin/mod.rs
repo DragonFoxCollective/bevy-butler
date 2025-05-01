@@ -2,7 +2,7 @@ use proc_macro::TokenStream as TokenStream1;
 use proc_macro2::TokenStream as TokenStream2;
 use quote::{format_ident, quote};
 use syn::{
-    parse_quote, Error, FnArg, Ident, ImplItem, Item, ItemEnum, ItemImpl, ItemStruct, Pat, TypePath
+    parse_quote, Error, FnArg, Ident, ImplItem, Item, ItemEnum, ItemImpl, ItemStruct, Pat, TypePath,
 };
 
 #[derive(deluxe::ParseMetaItem)]
@@ -15,7 +15,10 @@ pub(crate) fn macro_impl(attr: TokenStream1, item: TokenStream1) -> syn::Result<
         Item::Impl(i_impl) => impl_impl(attr, i_impl),
         Item::Struct(i_struct) => struct_impl(attr, i_struct),
         Item::Enum(i_enum) => enum_impl(attr, i_enum),
-        other => Err(Error::new_spanned(other, "Expected `struct`, `enum` or `impl Plugin`")),
+        other => Err(Error::new_spanned(
+            other,
+            "Expected `struct`, `enum` or `impl Plugin`",
+        )),
     }
 }
 
@@ -33,10 +36,7 @@ fn register_butler_plugin_stmts(plugin: &TypePath) -> TokenStream2 {
     }
 }
 
-pub(crate) fn struct_impl(
-    _attr: ButlerPluginAttr,
-    item: ItemStruct,
-) -> syn::Result<TokenStream2> {
+pub(crate) fn struct_impl(_attr: ButlerPluginAttr, item: ItemStruct) -> syn::Result<TokenStream2> {
     let impl_block = impl_plugin_block(_attr, &item.ident)?;
 
     Ok(quote! {
@@ -46,10 +46,7 @@ pub(crate) fn struct_impl(
     })
 }
 
-pub(crate) fn enum_impl(
-    _attr: ButlerPluginAttr,
-    item: ItemEnum,
-) -> syn::Result<TokenStream2> {
+pub(crate) fn enum_impl(_attr: ButlerPluginAttr, item: ItemEnum) -> syn::Result<TokenStream2> {
     let impl_block = impl_plugin_block(_attr, &item.ident)?;
 
     Ok(quote! {
@@ -76,13 +73,12 @@ pub(crate) fn impl_plugin_block(
     })
 }
 
-pub(crate) fn impl_impl(
-    _attr: ButlerPluginAttr,
-    mut body: ItemImpl,
-) -> syn::Result<TokenStream2> {
-    let register_block = |app_ident: &Ident| syn::parse2(quote!(
-        <Self as ::bevy_butler::__internal::ButlerPlugin>::register_butler_systems(#app_ident, Self::_butler_plugin_sealed_marker());
-    ));
+pub(crate) fn impl_impl(_attr: ButlerPluginAttr, mut body: ItemImpl) -> syn::Result<TokenStream2> {
+    let register_block = |app_ident: &Ident| {
+        syn::parse2(quote!(
+            <Self as ::bevy_butler::__internal::ButlerPlugin>::register_butler_systems(#app_ident, Self::_butler_plugin_sealed_marker());
+        ))
+    };
 
     let build_index = body.items.iter().position(|i| {
         if let ImplItem::Fn(item) = i {
@@ -106,19 +102,14 @@ pub(crate) fn impl_impl(
         let app_ident = match app_ident {
             FnArg::Typed(ident) => match &*ident.pat {
                 Pat::Ident(ident) => &ident.ident,
-                other => {
-                    return Err(Error::new_spanned(other, "Expected `app: &mut App`"))
-                }
+                other => return Err(Error::new_spanned(other, "Expected `app: &mut App`")),
             },
-            FnArg::Receiver(r) => {
-                return Err(Error::new_spanned(r, "Receiver arg in arg 1????"))
-            }
+            FnArg::Receiver(r) => return Err(Error::new_spanned(r, "Receiver arg in arg 1????")),
         };
 
         // Insert our registration step into the beginning
         build.block.stmts.insert(0, register_block(app_ident)?);
-    }
-    else {
+    } else {
         // No build statement, insert it ourselves
         let register = register_block(&format_ident!("app"))?;
         body.items.push(parse_quote! {

@@ -45,13 +45,15 @@ pub static BUTLER_PLUGIN_REGISTRY: LazyLock<ButlerPluginRegistry> = LazyLock::ne
 
     let mut count = 0;
     let mut registry: HashMap<TypeId, Vec<fn(&mut App)>> = HashMap::new();
-    iter.for_each(|ButlerPluginRegistryEntryFactory(type_factory, sys_factory)| {
-        registry
-            .entry(type_factory())
-            .or_default()
-            .push(*sys_factory);
-        count += 1;
-    });
+    iter.for_each(
+        |ButlerPluginRegistryEntryFactory(type_factory, sys_factory)| {
+            registry
+                .entry(type_factory())
+                .or_default()
+                .push(*sys_factory);
+            count += 1;
+        },
+    );
 
     // Trim down
     registry.values_mut().for_each(|vec| vec.shrink_to_fit());

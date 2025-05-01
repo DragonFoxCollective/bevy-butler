@@ -3,5 +3,5 @@ mod common {
 }
 
 mod event;
-mod generic_event;
 mod event_enum;
+mod generic_event;

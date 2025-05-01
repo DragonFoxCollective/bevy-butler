@@ -1,5 +1,5 @@
-use bevy_butler::*;
 use bevy::prelude::*;
+use bevy_butler::*;
 
 #[derive(Resource)]
 pub struct Marker(String);
@@ -27,6 +27,8 @@ pub struct MyPlugin;
 fn test() {
     App::new()
         .add_plugins(MyPlugin)
-        .add_systems(Startup, |marker: Res<Marker>| assert_eq!((*marker).0, "world"))
+        .add_systems(Startup, |marker: Res<Marker>| {
+            assert_eq!((*marker).0, "world")
+        })
         .run();
 }
