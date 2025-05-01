@@ -1,3 +1,11 @@
+# 0.6.1
+
+bevy-butler's parsing has been completely overhauled to use [deluxe](https://github.com/jf2048/deluxe), which should make maintenance and improvements much easier in the long run.
+
+## Breaking Changes
+- `config_systems!` and `system_set!` have been removed because they were very complex, poorly implemented, and did not work well with rust analyzer.
+- `pipe_in` now requires square brackets (i.e. `pipe_in = [system1, system2]`)
+
 # 0.5.7
 Released 2025-03-19
 - Added `add_to_plugin` for adding a `Plugin` or `PluginGroup` to a butler plugin
