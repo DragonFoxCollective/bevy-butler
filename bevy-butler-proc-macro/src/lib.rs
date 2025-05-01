@@ -23,18 +23,6 @@ pub fn add_system(attr: TokenStream, body: TokenStream) -> TokenStream {
     result_to_tokens(add_system::macro_impl(attr, body))
 }
 
-pub(crate) mod config_systems;
-#[proc_macro]
-pub fn config_systems(body: TokenStream) -> TokenStream {
-    result_to_tokens(config_systems::macro_impl(body))
-}
-
-pub(crate) mod add_system_set;
-#[proc_macro]
-pub fn add_system_set(body: TokenStream) -> TokenStream {
-    result_to_tokens(add_system_set::macro_impl(body))
-}
-
 pub(crate) mod add_observer;
 #[proc_macro_attribute]
 pub fn add_observer(attr: TokenStream, body: TokenStream) -> TokenStream {

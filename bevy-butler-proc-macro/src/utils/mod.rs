@@ -1,84 +1,12 @@
 use proc_macro2::TokenStream;
-use quote::{quote, ToTokens};
+use quote::quote;
 use syn::{
-    parse::{discouraged::Speculative, Parse, ParseStream, Parser},
-    punctuated::Punctuated,
-    AngleBracketedGenericArguments, Error, ExprClosure, Ident, Meta, Token, TypePath, UseTree,
+    ExprClosure, Ident, Path, UseTree
 };
-
-/// Used to parse `generics = <...>`, `generics(...)` and `generics = ...`
-/// Returns None if the meta identifier is not `generics`
-pub(crate) fn try_parse_generics_arg(
-    input: ParseStream,
-) -> syn::Result<Option<AngleBracketedGenericArguments>> {
-    if !input.fork().parse::<Ident>().is_ok_and(|i| i == "generics") {
-        return Ok(None);
-    }
-
-    // First check for Meta-valid forms, like `generics(...) and generics = ...`
-    let fork = input.fork();
-    match fork.parse::<Meta>() {
-        Ok(meta) => {
-            input.advance_to(&fork);
-            match meta {
-                Meta::List(list) => {
-                    let args =
-                        list.parse_args_with(Punctuated::<TypePath, Token![,]>::parse_terminated)?;
-                    Ok(Some(syn::parse2(quote!(::<#args>))?))
-                }
-                Meta::NameValue(name_value) => {
-                    let arg = name_value.value;
-                    Ok(Some(syn::parse2(quote!(::<#arg>))?))
-                }
-                Meta::Path(p) => Err(Error::new_spanned(
-                    p,
-                    "Expected `generics = <...>`, `generics(...)` or `generics = ...`",
-                )),
-            }
-        }
-        Err(e) => {
-            // Try to parse `generics = <...>`
-            let args = input
-                .parse::<Ident>()
-                .and_then(|_| input.parse::<Token![=]>())
-                .and_then(|_| input.parse::<AngleBracketedGenericArguments>())
-                .map_err(|_| {
-                    Error::new(
-                        e.span(),
-                        "Expected `generics = <...>`, `generics(...)` or `generics = ...`",
-                    )
-                });
-
-            Ok(Some(args?))
-        }
-    }
-}
-
-pub(crate) fn parse_meta_args<T: Parse>(meta: Meta) -> syn::Result<T> {
-    match meta {
-        Meta::List(list) => list.parse_args(),
-        Meta::NameValue(name_value) => syn::parse2(name_value.value.to_token_stream()),
-        Meta::Path(p) => Err(Error::new_spanned(
-            p,
-            "Expected parenthesis or `name = value`",
-        )),
-    }
-}
-
-pub(crate) fn parse_meta_args_with<P: Parser>(parser: P, meta: Meta) -> syn::Result<P::Output> {
-    match meta {
-        Meta::List(list) => list.parse_args_with(parser),
-        Meta::NameValue(name_value) => parser.parse2(name_value.value.to_token_stream()),
-        Meta::Path(p) => Err(Error::new_spanned(
-            p,
-            "Expected parenthesis or `name = value`",
-        )),
-    }
-}
 
 pub(crate) fn butler_plugin_entry_block(
     static_ident: &Ident,
-    plugin: &TypePath,
+    plugin: &Path,
     expr: &ExprClosure,
 ) -> TokenStream {
     quote! {
@@ -91,7 +19,7 @@ pub(crate) fn butler_plugin_entry_block(
 
 pub(crate) fn butler_plugin_group_entry_block(
     static_ident: &Ident,
-    plugin: &TypePath,
+    plugin: &Path,
     expr: &ExprClosure,
 ) -> TokenStream {
     quote! {
@@ -109,21 +37,6 @@ pub(crate) fn get_use_path(tree: &UseTree) -> syn::Result<&Ident> {
         UseTree::Rename(rename) => Ok(&rename.rename),
         UseTree::Group(_) | UseTree::Glob(_) => {
             Err(syn::Error::new_spanned(tree, "Expected a path"))
-        }
-    }
-}
-
-pub(crate) enum GenericOrMeta {
-    Generic(AngleBracketedGenericArguments),
-    Meta(Meta),
-}
-
-impl Parse for GenericOrMeta {
-    fn parse(input: ParseStream) -> syn::Result<Self> {
-        if let Some(generics) = try_parse_generics_arg(input)? {
-            Ok(GenericOrMeta::Generic(generics))
-        } else {
-            Ok(GenericOrMeta::Meta(input.parse()?))
         }
     }
 }

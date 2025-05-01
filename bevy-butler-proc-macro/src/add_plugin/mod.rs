@@ -9,16 +9,16 @@ use crate::utils::{butler_plugin_entry_block, butler_plugin_group_entry_block, g
 pub mod structs;
 
 pub(crate) fn macro_impl(attr: TokenStream1, body: TokenStream1) -> syn::Result<TokenStream2> {
-    let mut attr: AddPluginAttr = parse(attr)?;
+    let mut attr: AddPluginAttr = deluxe::parse(attr)?;
     let item: Item = parse(body)?;
     let plugin_ident = match &item {
         Item::Struct(ItemStruct { ident, fields, .. }) => {
             if attr.init.is_none() && fields.is_empty() {
                 // Unit structs can be initialized using themselves
                 match fields {
-                    Fields::Unit => attr.insert_init(parse_quote!(#ident))?,
-                    Fields::Named(_) => attr.insert_init(parse_quote!(#ident {}))?,
-                    Fields::Unnamed(_) => attr.insert_init(parse_quote!(#ident ()))?,
+                    Fields::Unit => attr.init = Some(parse_quote!(#ident)),
+                    Fields::Named(_) => attr.init = Some(parse_quote!(#ident {})),
+                    Fields::Unnamed(_) => attr.init = Some(parse_quote!(#ident ())),
                 }
             }
             ident
@@ -38,12 +38,12 @@ pub(crate) fn macro_impl(attr: TokenStream1, body: TokenStream1) -> syn::Result<
 
     let hash = sha256::digest([
         plugin_ident.to_token_stream().to_string(),
-        attr.require_target()?.to_string(),
+        attr.target.to_string(),
         generics.to_token_stream().to_string(),
     ].concat());
     let static_ident = format_ident!("_butler_add_plugin_{}", hash);
 
-    let register_block = match attr.require_target()? {
+    let register_block = match attr.target {
         ButlerTarget::Plugin(target) => {
             butler_plugin_entry_block(&static_ident, &target, &register)
         },

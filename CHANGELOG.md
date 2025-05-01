@@ -1,5 +1,8 @@
-# 0.6.0
+# 0.6.1
 (Unreleased)
+
+bevy-butler's parsing has been completely overhauled to use [deluxe](https://github.com/jf2048/deluxe), which should make maintenance and improvements much easier in the long run.
+
 ### Breaking Changes
 
 - Many macros have been changed to prevent conflicts with Bevy's derive helpers, and to better communicate their purpose.
@@ -7,7 +10,9 @@
     - `resource` -> `insert_resource`
     - `system` -> `add_system`
     - `event` -> `add_event`
-    - `system_set` -> `add_system_set`
+- `config_systems!` and `system_set!` have been removed because they were very complex, poorly implemented, and did not work well with rust analyzer.
+- `add_system`'s `pipe_in` argument now requires square brackets (i.e. `pipe_in = [system1, system2]`)
+- `register_type`'s `type_data` argument now requires square brackets (i.e. `type_data = [type1, type2]`)
 
 # 0.5.7
 Released 2025-03-19

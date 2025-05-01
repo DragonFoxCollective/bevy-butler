@@ -9,7 +9,7 @@ use crate::{add_plugin::structs::ButlerTarget, utils::{butler_plugin_entry_block
 pub(crate) mod structs;
 
 pub(crate) fn macro_impl(attr: TokenStream1, body: TokenStream1) -> syn::Result<TokenStream2> {
-    let mut attr: AddPluginGroupAttr = parse(attr)?;
+    let mut attr: AddPluginGroupAttr = deluxe::parse(attr)?;
     let item: Item = parse(body)?;
 
     let plugin_ident = match &item {
@@ -18,13 +18,13 @@ pub(crate) fn macro_impl(attr: TokenStream1, body: TokenStream1) -> syn::Result<
                 if fields.is_empty() {
                     // Unit structs can be initialized using themselves
                     match fields {
-                        Fields::Unit => attr.insert_init(parse_quote!(#ident))?,
-                        Fields::Named(_) => attr.insert_init(parse_quote!(#ident {}))?,
-                        Fields::Unnamed(_) => attr.insert_init(parse_quote!(#ident ()))?,
+                        Fields::Unit => attr.init = Some(parse_quote!(#ident)),
+                        Fields::Named(_) => attr.init = Some(parse_quote!(#ident {})),
+                        Fields::Unnamed(_) => attr.init = Some(parse_quote!(#ident ())),
                     }
                 }
                 else {
-                    attr.insert_init(parse_quote!(core::default::Default::default()))?
+                    attr.init = Some(parse_quote!(core::default::Default::default()));
                 }
             }
             ident
@@ -44,18 +44,18 @@ pub(crate) fn macro_impl(attr: TokenStream1, body: TokenStream1) -> syn::Result<
 
     let static_ident = format_ident!("_butler_add_plugin_group_{}", sha256::digest([
         plugin_ident.to_token_stream().to_string(),
-        attr.require_target()?.to_string(),
+        attr.target.to_string(),
         generics.to_token_stream().to_string(),
     ].concat()));
 
-    let register_block = match attr.require_target()? {
+    let register_block = match attr.target {
         ButlerTarget::Plugin(target) => {
             let register: ExprClosure = parse_quote! { |app| {
                 let plugin: #plugin_ident #generics_without_colons = {#init}.into();
                 app.add_plugins(plugin);
             }};
 
-            butler_plugin_entry_block(&static_ident, target, &register)
+            butler_plugin_entry_block(&static_ident, &target, &register)
         },
         ButlerTarget::PluginGroup(target) => {
             let register = parse_quote! { |builder| {
@@ -63,7 +63,7 @@ pub(crate) fn macro_impl(attr: TokenStream1, body: TokenStream1) -> syn::Result<
                 builder.add_group(group)
             }};
 
-            butler_plugin_group_entry_block(&static_ident, target, &register)
+            butler_plugin_group_entry_block(&static_ident, &target, &register)
         },
     };
     
