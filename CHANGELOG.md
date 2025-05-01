@@ -10,6 +10,7 @@ bevy-butler's parsing has been completely overhauled to use [deluxe](https://git
     - `resource` -> `insert_resource`
     - `system` -> `add_system`
     - `event` -> `add_event`
+- `add_to_plugin` and `add_to_group` have been replaced with `add_plugin` for annotating `Plugin`s and `add_plugins` for annotating `PluginGroup`s
 - `config_systems!` and `system_set!` have been removed because they were very complex, poorly implemented, and did not work well with rust analyzer.
 - `add_system`'s `pipe_in` argument now requires square brackets (i.e. `pipe_in = [system1, system2]`)
 - `register_type`'s `type_data` argument now requires square brackets (i.e. `type_data = [type1, type2]`)
