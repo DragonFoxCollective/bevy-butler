@@ -139,7 +139,7 @@ pub use bevy_butler_proc_macro::butler_plugin;
 ///     format!("Hello, {}!", *name)
 /// }
 /// 
-/// #[system(plugin = MyPlugin, schedule = Startup, pipe_in(get_name, greet_name))]
+/// #[system(plugin = MyPlugin, schedule = Startup, pipe_in = [get_name, greet_name])]
 /// fn print_greeting(greeting: In<String>) {
 ///     info!("{}", *greeting);
 /// }
@@ -173,87 +173,6 @@ pub use bevy_butler_proc_macro::butler_plugin;
 /// ```
 ///
 pub use bevy_butler_proc_macro::system;
-
-/// Define a set of default [`#[system]`](system) arguments for the enclosed items
-///
-/// # Usage
-/// ```rust
-/// # use bevy_butler::*;
-/// # use bevy_app::prelude::*;
-/// # use bevy_log::prelude::*;
-/// # #[butler_plugin]
-/// # struct MyPlugin;
-/// #
-/// config_systems! {
-///     (plugin = MyPlugin, schedule = Startup)
-///
-///     #[system]
-///     fn system_foo() {
-///         info!("Foo");
-///     }
-///
-///     // Default arguments can be overridden
-///     #[system(schedule = PostStartup)]
-///     fn system_bar() {
-///         info!("Bar");
-///     }
-/// }
-/// ```
-///
-/// Note that `config_systems!` does not apply any sort of ordering or grouping of the enclosed systems.
-/// If you want to apply set-level transformations like [`chain`](bevy_ecs::prelude::IntoSystemSetConfigs::chain),
-/// see [`system_set!`](system_set).
-///
-/// # Arguments
-/// `config_systems!` accepts any arguments that [`#[system]`](system) does. If any transforms are
-/// provided, the `config_systems!` transforms will be applied **before** the individual `#[system]` attributes.
-pub use bevy_butler_proc_macro::config_systems;
-
-/// Wrap a set of [`#[system]`](system) functions into an anonymous system set, and apply set-level transformations.
-///
-/// # Usage
-/// ```rust
-/// # use bevy_butler::*;
-/// # use bevy_app::prelude::*;
-/// # use bevy_log::prelude::*;
-/// # use bevy_ecs::prelude::*;
-/// # #[butler_plugin]
-/// # struct MyPlugin;
-/// system_set! {
-///     (plugin = MyPlugin, schedule = Update, chain)
-///
-///     #[system]
-///     fn system_one() {
-///         info!("One!");
-///     }
-///
-///     #[system]
-///     fn system_two() {
-///         info!("Two!");
-///     }
-///
-///     #[system(run_if = || true)]
-///     fn system_three() {
-///         info!("Three!");
-///     }
-/// }
-///
-/// // Equivalent set:
-/// # let _ =
-/// (system_one, system_two, system_three.run_if(|| true)).chain()
-/// # ;
-/// ```
-///
-/// Because this macro wraps all the enclosed systems in a single set,
-/// the `plugin` and `schedule` arguments cannot be overridden.
-///
-/// `system_set!` also supports nested invocations of itself and [`config_systems!`](config_systems).
-///
-/// # Arguments
-/// `system_set!` accepts arguments the same way that [`#[system]`](system) does. However,
-/// any transforms defined will be applied to the overall set, NOT to the individual systems.
-/// To apply the given arguments to every individual system, see [`config_systems!`](config_systems).
-pub use bevy_butler_proc_macro::system_set;
 
 /// Registers an [observer](bevy_ecs::prelude::Observer) function to a [`#[butler_plugin]`](butler_plugin)-annotated [`Plugin`](bevy_app::prelude::Plugin).
 ///

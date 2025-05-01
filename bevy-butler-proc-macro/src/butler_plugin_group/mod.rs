@@ -7,7 +7,7 @@ use syn::{Error, ImplItemFn, Item};
 pub(crate) mod structs;
 
 pub(crate) fn macro_impl(attr: TokenStream1, body: TokenStream1) -> syn::Result<TokenStream2> {
-    let attr: ButlerPluginGroupAttr = syn::parse(attr)?;
+    let attr: ButlerPluginGroupAttr = deluxe::parse(attr)?;
     let item: Item = syn::parse(body)?;
 
     let name_func: Option<ImplItemFn> = attr.name.map(|name| {

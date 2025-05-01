@@ -1,7 +1,7 @@
 use proc_macro::TokenStream as TokenStream1;
 use proc_macro2::TokenStream as TokenStream2;
 use quote::{format_ident, quote, ToTokens};
-use structs::{AddToGroupAttr, AddType};
+use structs::AddToGroupAttr;
 use syn::{Error, Item};
 
 use crate::utils::get_use_path;
@@ -9,7 +9,7 @@ use crate::utils::get_use_path;
 pub(crate) mod structs;
 
 pub(crate) fn macro_impl(attr: TokenStream1, body: TokenStream1) -> syn::Result<TokenStream2> {
-    let attr: AddToGroupAttr = syn::parse(attr)?;
+    let attr: AddToGroupAttr = deluxe::parse(attr)?;
     let item: Item = syn::parse(body)?;
     let ident = match &item {
         Item::Struct(i_struct) => &i_struct.ident,
@@ -18,7 +18,7 @@ pub(crate) fn macro_impl(attr: TokenStream1, body: TokenStream1) -> syn::Result<
         other => return Err(Error::new_spanned(other, "Expected `struct`, `use` or `enum`")),
     };
 
-    let group = attr.require_group()?;
+    let group = &attr.group;
 
     let arghash = sha256::digest(
         ident.to_string() +
@@ -27,17 +27,11 @@ pub(crate) fn macro_impl(attr: TokenStream1, body: TokenStream1) -> syn::Result<
 
     let struct_ident = format_ident!("_butler_plugin_{}_{}", ident, arghash);
 
-    let expr = match &attr.add_type {
-        Some(AddType::Before(other_plugin)) => quote! {
-            |builder| builder.add_before::<#other_plugin>(#ident)
-        },
-        Some(AddType::After(other_plugin)) => quote! {
-            |builder| builder.add_after::<#other_plugin>(#ident)
-        },
-        Some(AddType::Group) => quote! {
+    let expr = match &attr.as_group.is_set() {
+        true => quote! {
             |builder| builder.add_group(#ident)
         },
-        None => quote! {
+        false => quote! {
             |builder| builder.add(#ident)
         }
     };
