@@ -1,9 +1,9 @@
 # 0.6.1
-(Unreleased)
+Released 2025-05-01
 
 bevy-butler's parsing has been completely overhauled to use [deluxe](https://github.com/jf2048/deluxe), which should make maintenance and improvements much easier in the long run.
 
-# Changes
+### Changes
 
 - Support for Bevy 0.16!
 
