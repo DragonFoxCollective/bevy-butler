@@ -1,5 +1,5 @@
 use proc_macro::TokenStream as TokenStream1;
-use proc_macro2::{TokenStream as TokenStream2};
+use proc_macro2::TokenStream as TokenStream2;
 use quote::{format_ident, quote};
 use syn::{
     parse_quote, Error, FnArg, Ident, ImplItem, Item, ItemEnum, ItemImpl, ItemStruct, Pat, TypePath
@@ -22,7 +22,7 @@ pub(crate) fn macro_impl(attr: TokenStream1, item: TokenStream1) -> syn::Result<
 fn register_butler_plugin_stmts(plugin: &TypePath) -> TokenStream2 {
     quote! {
         impl #plugin {
-            pub(crate) fn _butler_sealed_marker() -> ::std::any::TypeId {
+            pub(crate) fn _butler_plugin_sealed_marker() -> ::std::any::TypeId {
                 struct SealedMarker;
 
                 ::std::any::TypeId::of::<SealedMarker>()
@@ -68,7 +68,7 @@ pub(crate) fn impl_plugin_block(
     Ok(quote! {
         impl ::bevy_butler::__internal::bevy_app::Plugin for #ident {
             fn build(&self, app: &mut ::bevy_butler::__internal::bevy_app::App) {
-                <Self as ::bevy_butler::__internal::ButlerPlugin>::register_butler_systems(app, Self::_butler_sealed_marker());
+                <Self as ::bevy_butler::__internal::ButlerPlugin>::register_butler_systems(app, Self::_butler_plugin_sealed_marker());
             }
         }
 
@@ -81,7 +81,7 @@ pub(crate) fn impl_impl(
     mut body: ItemImpl,
 ) -> syn::Result<TokenStream2> {
     let register_block = |app_ident: &Ident| syn::parse2(quote!(
-        <Self as ::bevy_butler::__internal::ButlerPlugin>::register_butler_systems(#app_ident, Self::_butler_sealed_marker());
+        <Self as ::bevy_butler::__internal::ButlerPlugin>::register_butler_systems(#app_ident, Self::_butler_plugin_sealed_marker());
     ));
 
     let build_index = body.items.iter().position(|i| {

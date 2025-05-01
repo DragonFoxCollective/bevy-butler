@@ -43,7 +43,7 @@ pub use bevy_butler_proc_macro::butler_plugin;
 /// # #[butler_plugin]
 /// # struct MyPlugin;
 /// #
-/// #[system(plugin = MyPlugin, schedule = Startup)]
+/// #[add_system(plugin = MyPlugin, schedule = Startup)]
 /// fn hello_world() {
 ///     info!("Hello, world!");
 /// }
@@ -59,7 +59,7 @@ pub use bevy_butler_proc_macro::butler_plugin;
 /// # }
 /// # #[butler_plugin]
 /// # struct MyPlugin;
-/// #[system(plugin = MyPlugin, schedule = Startup)]
+/// #[add_system(plugin = MyPlugin, schedule = Startup)]
 /// use my_mod::hello_world;
 /// ```
 /// # Arguments
@@ -83,9 +83,9 @@ pub use bevy_butler_proc_macro::butler_plugin;
 /// #[derive(Resource)]
 /// struct GenericResource<T>(pub T);
 ///
-/// #[system(generics = <&'static str>, plugin = MyPlugin, schedule = Update)]
-/// #[system(generics = <u32>, plugin = MyPlugin, schedule = Update)]
-/// #[system(generics = <bool>, plugin = MyPlugin, schedule = Update)]
+/// #[add_system(generics = <&'static str>, plugin = MyPlugin, schedule = Update)]
+/// #[add_system(generics = <u32>, plugin = MyPlugin, schedule = Update)]
+/// #[add_system(generics = <bool>, plugin = MyPlugin, schedule = Update)]
 /// fn print_my_resource<T: 'static + Send + Sync + Display>(res: Res<GenericResource<T>>) {
 ///     info!("Resource: {}", res.0);
 /// }
@@ -101,6 +101,7 @@ pub use bevy_butler_proc_macro::butler_plugin;
 /// ```rust
 /// # use bevy_butler::*;
 /// # use bevy::prelude::*;
+/// # use bevy_log::prelude::*;
 /// # #[butler_plugin]
 /// # struct MyPlugin;
 /// fn get_name() -> String {
@@ -111,15 +112,15 @@ pub use bevy_butler_proc_macro::butler_plugin;
 ///     format!("Hello, {}!", *name)
 /// }
 /// 
-/// #[system(plugin = MyPlugin, schedule = Startup, pipe_in = [get_name, greet_name])]
+/// #[add_system(plugin = MyPlugin, schedule = Startup, pipe_in = [get_name, greet_name])]
 /// fn print_greeting(greeting: In<String>) {
 ///     info!("{}", *greeting);
 /// }
 /// ```
 ///
 /// ## System transforms
-/// Any attribute that doesn't match the above is assumed to be a system transform function, like [`run_if`](bevy_ecs::prelude::IntoSystemConfigs::run_if)
-/// or [`after`](bevy_ecs::prelude::IntoSystemConfigs::after).
+/// Any attribute that doesn't match the above is assumed to be a system transform function, like [`run_if`](bevy_ecs::prelude::IntoScheduleConfigs::run_if)
+/// or [`after`](bevy_ecs::prelude::IntoScheduleConfigs::after).
 /// ```rust
 /// # use std::fmt::Display;
 /// # use bevy_butler::*;
@@ -128,23 +129,23 @@ pub use bevy_butler_proc_macro::butler_plugin;
 /// # use bevy_log::prelude::*;
 /// # #[butler_plugin]
 /// # struct MyPlugin;
-/// #[system(plugin = MyPlugin, schedule = Startup)]
+/// #[add_system(plugin = MyPlugin, schedule = Startup)]
 /// fn system_one() {
 ///     info!("One!");
 /// }
 ///
-/// #[system(plugin = MyPlugin, schedule = Startup, after = system_one)]
+/// #[add_system(plugin = MyPlugin, schedule = Startup, after = system_one)]
 /// fn system_two() {
 ///     info!("Two!");
 /// }
 ///
-/// #[system(plugin = MyPlugin, schedule = Startup, after(system_two))]
+/// #[add_system(plugin = MyPlugin, schedule = Startup, after(system_two))]
 /// fn system_three() {
 ///     info!("Three!");
 /// }
 /// ```
 ///
-pub use bevy_butler_proc_macro::system;
+pub use bevy_butler_proc_macro::add_system;
 
 /// Registers an [observer](bevy_ecs::prelude::Observer) function to a [`#[butler_plugin]`](butler_plugin)-annotated [`Plugin`](bevy_app::prelude::Plugin).
 ///
@@ -153,13 +154,14 @@ pub use bevy_butler_proc_macro::system;
 /// ```rust
 /// # use bevy_butler::*;
 /// # use bevy::prelude::*;
+/// # use bevy_log::prelude::*;
 /// # #[butler_plugin]
 /// # struct MyPlugin;
 /// # #[derive(Event)]
 /// # struct Message {
 /// #     content: String,
 /// # }
-/// #[observer(plugin = MyPlugin)]
+/// #[add_observer(plugin = MyPlugin)]
 /// fn receive_message(message: Trigger<Message>) {
 ///     info!("Message received: {}", message.content);
 /// }
@@ -172,6 +174,7 @@ pub use bevy_butler_proc_macro::system;
 /// # struct MyPlugin;
 /// # mod my_mod {
 /// #   use bevy::prelude::*;
+/// #   use bevy_log::prelude::*;
 /// #
 /// #   #[derive(Event)]
 /// #   pub(super) struct Message {
@@ -182,7 +185,7 @@ pub use bevy_butler_proc_macro::system;
 /// #       info!("Message received: {}", message.content);
 /// #   }
 /// # }
-/// #[observer(plugin = MyPlugin)]
+/// #[add_observer(plugin = MyPlugin)]
 /// use my_mod::receive_message;
 /// ```
 ///
@@ -195,7 +198,7 @@ pub use bevy_butler_proc_macro::system;
 /// ## `generics`
 /// A list of generic arguments to register the observer with. Used to register a generic observer for multiple
 /// different types.
-pub use bevy_butler_proc_macro::observer;
+pub use bevy_butler_proc_macro::add_observer;
 
 /// Registers the annotated [`Resource`](bevy_ecs::prelude::Resource) to a [`#[butler_plugin]`](butler_plugin) and
 /// initializes it upon the plugin being added.
@@ -210,7 +213,7 @@ pub use bevy_butler_proc_macro::observer;
 /// # #[butler_plugin]
 /// # struct MyPlugin;
 /// #[derive(Resource, Default)]
-/// #[resource(plugin = MyPlugin)]
+/// #[insert_resource(plugin = MyPlugin)]
 /// struct Counter(pub u8);
 /// ```
 ///
@@ -225,7 +228,7 @@ pub use bevy_butler_proc_macro::observer;
 /// # }
 /// # #[butler_plugin]
 /// # struct MyPlugin;
-/// #[resource(plugin = MyPlugin)]
+/// #[insert_resource(plugin = MyPlugin)]
 /// use my_mod::ModResource;
 /// ```
 ///
@@ -239,7 +242,7 @@ pub use bevy_butler_proc_macro::observer;
 /// # struct MyPlugin;
 /// # #[derive(Resource, Default)]
 /// # struct ExternalResource<T>(T);
-/// #[resource(plugin = MyPlugin)]
+/// #[insert_resource(plugin = MyPlugin)]
 /// type MyResource = ExternalResource<usize>;
 /// ```
 ///
@@ -248,7 +251,7 @@ pub use bevy_butler_proc_macro::observer;
 /// A [`Plugin`](bevy_app::prelude::Plugin) annotated with [`#[butler_plugin]`](butler_plugin) to register this resource to.
 ///
 /// ## `init`
-/// By default, `#[resource]` will use the [`Default`] value of the resource.
+/// By default, `#[insert_resource]` will use the [`Default`] value of the resource.
 /// This can be overridden by specifying an `init` value.
 ///
 /// ```rust
@@ -257,7 +260,7 @@ pub use bevy_butler_proc_macro::observer;
 /// # #[butler_plugin]
 /// # struct MyPlugin;
 /// #[derive(Resource)]
-/// #[resource(
+/// #[insert_resource(
 ///     plugin = MyPlugin,
 ///     init = Message("Hello, world!".to_string())
 /// )]
@@ -279,10 +282,10 @@ pub use bevy_butler_proc_macro::observer;
 /// # #[butler_plugin]
 /// # struct MyPlugin;
 /// #[derive(Resource, Default)]
-/// #[resource(plugin = MyPlugin, non_send)]
+/// #[insert_resource(plugin = MyPlugin, non_send)]
 /// struct MyNonSendResource;
 /// ```
-pub use bevy_butler_proc_macro::resource;
+pub use bevy_butler_proc_macro::insert_resource;
 
 /// Registers the annotated [`Event`](bevy_ecs::prelude::Event) upon the
 /// given [`#[butler_plugin]`](butler_plugin) being built.
@@ -297,7 +300,7 @@ pub use bevy_butler_proc_macro::resource;
 /// # #[butler_plugin]
 /// # struct MyPlugin;
 /// #[derive(Event)]
-/// #[event(plugin = MyPlugin)]
+/// #[add_event(plugin = MyPlugin)]
 /// struct MessageReceived(String);
 /// ```
 ///
@@ -311,7 +314,7 @@ pub use bevy_butler_proc_macro::resource;
 /// # #[derive(Event)]
 /// # pub struct ModMessageReceived(String);
 /// # }
-/// #[event(plugin = MyPlugin)]
+/// #[add_event(plugin = MyPlugin)]
 /// use my_mod::ModMessageReceived;
 /// ```
 ///
@@ -323,7 +326,7 @@ pub use bevy_butler_proc_macro::resource;
 /// # struct MyPlugin;
 /// # #[derive(Event)]
 /// # struct ExternalEventMessage<T>(T);
-/// #[event(plugin = MyPlugin)]
+/// #[add_event(plugin = MyPlugin)]
 /// type MyMessage = ExternalEventMessage<String>;
 /// ```
 ///
@@ -334,7 +337,7 @@ pub use bevy_butler_proc_macro::resource;
 /// ## `generics`
 /// A list of generic arguments to register the event with. Used to register a generic event for multiple
 /// different types.
-pub use bevy_butler_proc_macro::event;
+pub use bevy_butler_proc_macro::add_event;
 
 /// Registers the annotated `Reflect` type into the app's type registry for reflection.
 ///
@@ -400,81 +403,9 @@ pub use bevy_butler_proc_macro::register_type;
 /// The internal name of the [`PluginGroup`](bevy_app::prelude::PluginGroup). Used to implement the [`name`](bevy_app::prelude::PluginGroup::name) function.
 pub use bevy_butler_proc_macro::butler_plugin_group;
 
-/// Register a plugin to a `PluginGroup` annotated with [`#[butler_plugin_group]`](butler_plugin_group).
-/// 
-/// # Usage
-/// ## On a struct/enum
-/// ```rust
-/// # use bevy_butler::*;
-/// # #[butler_plugin_group]
-/// # struct MyPluginGroup;
-/// # #[butler_plugin]
-/// #[add_to_group(group = MyPluginGroup)]
-/// struct MyPlugin;
-/// ```
-/// 
-/// ## On an imported type
-/// ```rust
-/// # use bevy_butler::*;
-/// # #[butler_plugin_group]
-/// # struct MyPluginGroup;
-/// # mod my_mod {
-/// # use bevy_butler::*;
-/// # #[butler_plugin]
-/// # pub struct MyPlugin;
-/// # }
-/// #[add_to_group(group = MyPluginGroup)]
-/// use my_mod::MyPlugin;
-/// ```
-/// 
-/// # Arguments
-/// ## `before` / `after` / `as_group`
-/// These arguments define how the annotated item is added to the PluginGroup.
-/// They are mutually exclusive.
-/// 
-/// - `before = <plugin>` uses [`PluginGroupBuilder.add_before<plugin>`](bevy_app::PluginGroupBuilder::add_before)
-/// - `after = <plugin>` uses [`PluginGroupBuilder.add_after<plugin>`](bevy_app::PluginGroupBuilder::add_after)
-/// - `as_group` uses [`PluginGroupBuilder.add_group`](bevy_app::PluginGroupBuilder::add_group), assuming the item is a `PluginGroup`.
-pub use bevy_butler_proc_macro::add_to_group;
+pub use bevy_butler_proc_macro::add_plugin;
 
-/// Register a `Plugin` or `PluginGroup` to a `Plugin` annotated with [`#[butler_plugin]`](butler_plugin).
-/// 
-/// *Note: The plugin or group you annotate this with does **NOT** need to be annotated with [`#[butler_plugin]`](butler_plugin).
-/// Any `Plugin` or `PluginGroup` will work.*
-/// 
-/// # Usage
-/// ## On a struct/enum
-/// ```rust
-/// # use bevy_butler::*;
-/// # #[butler_plugin]
-/// # struct PluginBar;
-/// #[butler_plugin]
-/// #[add_to_plugin(plugin = PluginBar)]
-/// struct PluginFoo;
-/// ```
-/// 
-/// ## On an imported type
-/// ```rust
-/// # use bevy_butler::*;
-/// # #[butler_plugin]
-/// # struct PluginBar;
-/// # mod my_mod {
-/// # use bevy_butler::*;
-/// # #[butler_plugin]
-/// # pub struct PluginFoo;
-/// # }
-/// #[add_to_plugin(plugin = PluginBar)]
-/// use my_mod::PluginFoo;
-/// ```
-/// 
-/// # Arguments
-/// ## `plugin` (Required)
-/// A [`Plugin`](bevy_app::prelude::Plugin) annotated with [`#[butler_plugin]`](butler_plugin) to register this plugin or plugin group to.
-///
-/// ## `generics`
-/// A list of generic arguments to register the plugin with. Used to register a generic plugin for multiple
-/// different types.
-pub use bevy_butler_proc_macro::add_to_plugin;
+pub use bevy_butler_proc_macro::add_plugin_group;
 
 #[cfg(all(target_arch = "wasm32", not(feature = "wasm-experimental")))]
 compile_error!(

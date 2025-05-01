@@ -26,7 +26,7 @@ pub(crate) fn macro_impl(attr: TokenStream1, body: TokenStream1) -> syn::Result<
                 #i_struct
 
                 impl #ident {
-                    pub(crate) fn _butler_sealed_marker() -> ::std::any::TypeId {
+                    pub(crate) fn _butler_plugin_group_sealed_marker() -> ::std::any::TypeId {
                         struct SealedMarker;
 
                         std::any::TypeId::of::<SealedMarker>()
@@ -38,7 +38,7 @@ pub(crate) fn macro_impl(attr: TokenStream1, body: TokenStream1) -> syn::Result<
                 impl ::bevy_butler::__internal::bevy_app::PluginGroup for #ident {
                     fn build(self) -> ::bevy_butler::__internal::bevy_app::PluginGroupBuilder {
                         <Self as ::bevy_butler::__internal::ButlerPluginGroup>
-                            ::register_plugins(::bevy_butler::__internal::bevy_app::PluginGroupBuilder::start::<Self>(), #ident::_butler_sealed_marker())
+                            ::register_plugins(::bevy_butler::__internal::bevy_app::PluginGroupBuilder::start::<Self>(), #ident::_butler_plugin_group_sealed_marker())
                     }
 
                     #name_func

@@ -11,9 +11,22 @@ pub(crate) fn butler_plugin_entry_block(
 ) -> TokenStream {
     quote! {
         ::bevy_butler::_butler_plugin_entry!(#static_ident, ::bevy_butler::__internal::ButlerPluginRegistryEntryFactory::new(
-            || #plugin::_butler_sealed_marker(),
+            || #plugin::_butler_plugin_sealed_marker(),
             #expr
         ));
+    }
+}
+
+pub(crate) fn butler_plugin_group_entry_block(
+    static_ident: &Ident,
+    plugin: &Path,
+    expr: &ExprClosure,
+) -> TokenStream {
+    quote! {
+        ::bevy_butler::_butler_plugin_group_entry!(#static_ident, ::bevy_butler::__internal::ButlerPluginGroupRegistryEntryFactory {
+            type_factory: || #plugin::_butler_plugin_group_sealed_marker(),
+            group_factory: #expr
+        });
     }
 }
 

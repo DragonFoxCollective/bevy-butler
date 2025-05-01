@@ -11,6 +11,7 @@ A set of procedural macros for making Bevy plugins and systems more self-documen
 ## Version Compatibility
 | bevy | bevy-butler |
 |------|-------------|
+|`0.16`|   `0.6`     |
 |`0.15`|   `0.5`     |
 
 ## Example
@@ -19,19 +20,19 @@ use bevy::prelude::*;
 use bevy_butler::*;
 
 #[butler_plugin]
-pub struct MyPlugin;
+struct MyPlugin;
 
 #[derive(Resource)]
-#[resource(plugin = MyPlugin, init = Hello("World".to_string()))]
-pub struct Hello(pub String);
+#[insert_resource(plugin = MyPlugin, init = Hello("World".to_string()))]
+struct Hello(String);
 
-#[system(schedule = Update, plugin = MyPlugin)]
+#[add_system(schedule = Update, plugin = MyPlugin)]
 fn hello_plugin(name: Res<Hello>)
 {
     info!("Hello, {}!", name.0);
 }
 
-#[system(schedule = Update, plugin = MyPlugin, after = hello_plugin)]
+#[add_system(schedule = Update, plugin = MyPlugin, after = hello_plugin)]
 fn goodbye_plugin(name: Res<Hello>)
 {
     info!("Goodbye, {}!", name.0);

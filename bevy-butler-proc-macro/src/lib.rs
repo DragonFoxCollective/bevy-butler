@@ -17,28 +17,28 @@ pub fn butler_plugin(attr: TokenStream, body: TokenStream) -> TokenStream {
     result_to_tokens(butler_plugin::macro_impl(attr, body))
 }
 
-pub(crate) mod system;
+pub(crate) mod add_system;
 #[proc_macro_attribute]
-pub fn system(attr: TokenStream, body: TokenStream) -> TokenStream {
-    result_to_tokens(system::macro_impl(attr, body))
+pub fn add_system(attr: TokenStream, body: TokenStream) -> TokenStream {
+    result_to_tokens(add_system::macro_impl(attr, body))
 }
 
-pub(crate) mod observer;
+pub(crate) mod add_observer;
 #[proc_macro_attribute]
-pub fn observer(attr: TokenStream, body: TokenStream) -> TokenStream {
-    result_to_tokens(observer::macro_impl(attr, body))
+pub fn add_observer(attr: TokenStream, body: TokenStream) -> TokenStream {
+    result_to_tokens(add_observer::macro_impl(attr, body))
 }
 
-pub(crate) mod resource;
+pub(crate) mod insert_resource;
 #[proc_macro_attribute]
-pub fn resource(attr: TokenStream, body: TokenStream) -> TokenStream {
-    result_to_tokens(resource::macro_impl(attr, body))
+pub fn insert_resource(attr: TokenStream, body: TokenStream) -> TokenStream {
+    result_to_tokens(insert_resource::macro_impl(attr, body))
 }
 
-pub(crate) mod event;
+pub(crate) mod add_event;
 #[proc_macro_attribute]
-pub fn event(attr: TokenStream, body: TokenStream) -> TokenStream {
-    result_to_tokens(event::macro_impl(attr, body))
+pub fn add_event(attr: TokenStream, body: TokenStream) -> TokenStream {
+    result_to_tokens(add_event::macro_impl(attr, body))
 }
 
 pub(crate) mod register_type;
@@ -53,14 +53,14 @@ pub fn butler_plugin_group(attr: TokenStream, body: TokenStream) -> TokenStream 
     result_to_tokens(butler_plugin_group::macro_impl(attr, body))
 }
 
-pub(crate) mod add_to_group;
+pub(crate) mod add_plugin;
 #[proc_macro_attribute]
-pub fn add_to_group(attr: TokenStream, body: TokenStream) -> TokenStream {
-    result_to_tokens(add_to_group::macro_impl(attr, body))
+pub fn add_plugin(attr: TokenStream, body: TokenStream) -> TokenStream {
+    result_to_tokens(add_plugin::macro_impl(attr, body))
 }
 
-pub(crate) mod add_to_plugin;
+pub(crate) mod add_plugin_group;
 #[proc_macro_attribute]
-pub fn add_to_plugin(attr: TokenStream, body: TokenStream) -> TokenStream {
-    result_to_tokens(add_to_plugin::macro_impl(attr, body))
+pub fn add_plugin_group(attr: TokenStream, body: TokenStream) -> TokenStream {
+    result_to_tokens(add_plugin_group::macro_impl(attr, body))
 }
