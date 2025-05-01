@@ -4,6 +4,7 @@ bevy-butler's parsing has been completely overhauled to use [deluxe](https://git
 
 ## Breaking Changes
 - `config_systems!` and `system_set!` have been removed because they were very complex, poorly implemented, and did not work well with rust analyzer.
+- `build`, `finish` and `cleanup` arguments have been removed from `butler_plugin`, as they were an early hack before annotated `impl Plugin` blocks were implemented.
 - `pipe_in` now requires square brackets (i.e. `pipe_in = [system1, system2]`)
 
 # 0.5.7

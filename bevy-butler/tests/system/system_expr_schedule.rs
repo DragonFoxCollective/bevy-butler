@@ -20,8 +20,14 @@ enum MyState {
 #[derive(Resource, Default)]
 struct Counter(u8);
 
-#[butler_plugin(build = init_resource::<Counter>)]
 struct MyPlugin;
+
+#[butler_plugin]
+impl Plugin for MyPlugin {
+    fn build(&self, app: &mut App) {
+        app.init_resource::<Counter>();
+    }
+}
 
 #[system(plugin = MyPlugin, schedule = Startup)]
 fn start_system(mut counter: ResMut<Counter>, mut next_state: ResMut<NextState<MyState>>) {
