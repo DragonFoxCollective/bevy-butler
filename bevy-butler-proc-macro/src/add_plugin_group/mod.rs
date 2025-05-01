@@ -27,8 +27,6 @@ pub(crate) fn macro_impl(attr: TokenStream1, body: TokenStream1) -> syn::Result<
                         Fields::Named(_) => attr.init = Some(parse_quote!(#ident {})),
                         Fields::Unnamed(_) => attr.init = Some(parse_quote!(#ident ())),
                     }
-                } else {
-                    attr.init = Some(parse_quote!(core::default::Default::default()));
                 }
             }
             ident
@@ -43,6 +41,10 @@ pub(crate) fn macro_impl(attr: TokenStream1, body: TokenStream1) -> syn::Result<
             ))
         }
     };
+
+    if attr.init.is_none() {
+        attr.init = Some(parse_quote!(core::default::Default::default()));
+    }
 
     let generics = &attr.generics;
     let generics_without_colons = generics.clone().map(|mut g| {
@@ -66,7 +68,7 @@ pub(crate) fn macro_impl(attr: TokenStream1, body: TokenStream1) -> syn::Result<
     let register_block = match attr.target {
         ButlerTarget::Plugin(target) => {
             let register: ExprClosure = parse_quote! { |app| {
-                let plugin: #plugin_ident #generics_without_colons = {#init}.into();
+                let plugin: #plugin_ident #generics_without_colons = {#init};
                 app.add_plugins(plugin);
             }};
 
@@ -74,7 +76,7 @@ pub(crate) fn macro_impl(attr: TokenStream1, body: TokenStream1) -> syn::Result<
         }
         ButlerTarget::PluginGroup(target) => {
             let register = parse_quote! { |builder| {
-                let group: #plugin_ident #generics_without_colons = {#init}.into();
+                let group: #plugin_ident #generics_without_colons = {#init};
                 builder.add_group(group)
             }};
 

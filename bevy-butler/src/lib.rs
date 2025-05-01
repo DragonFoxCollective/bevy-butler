@@ -387,7 +387,7 @@ pub use bevy_butler_proc_macro::add_event;
 /// different types.
 pub use bevy_butler_proc_macro::register_type;
 
-/// Implements `PluginGroup` and configures it to allow usage of [`#[add_to_group]`](add_to_group).
+/// Implements `PluginGroup` and configures it to be used with [`add_plugin`]/[`add_plugin_group`].
 ///
 /// # Usage
 /// ## On a struct
@@ -403,8 +403,84 @@ pub use bevy_butler_proc_macro::register_type;
 /// The internal name of the [`PluginGroup`](bevy_app::prelude::PluginGroup). Used to implement the [`name`](bevy_app::prelude::PluginGroup::name) function.
 pub use bevy_butler_proc_macro::butler_plugin_group;
 
+/// Adds the given `Plugin` to the target `Plugin`/`PluginGroup`
+/// 
+/// # Usage
+/// ## On a struct
+/// ```rust
+/// # use bevy_butler::*;
+/// # #[butler_plugin]
+/// # struct BarPlugin;
+/// # #[butler_plugin]
+/// #[add_plugin(to_plugin = BarPlugin)]
+/// struct FooPlugin;
+/// ```
+/// ## On an imported type
+/// ```rust
+/// # use bevy_butler::*;
+/// # #[butler_plugin]
+/// # struct BarPlugin;
+/// # mod module {
+/// # use bevy_butler::*;
+/// # #[butler_plugin]
+/// # #[derive(Default)]
+/// # pub struct FooPlugin;
+/// # }
+/// #[add_plugin(to_plugin = BarPlugin)]
+/// use module::FooPlugin;
+/// ```
+/// 
+/// # Arguments
+/// ## `to_plugin` / `to_group` (Required)
+/// The target to register this Plugin to. Must be a [`butler_plugin`] if using `to_plugin`
+/// and a [`butler_plugin_group`] if using `to_group`.
+/// 
+/// ## `generics`
+/// A list of generic arguments to register the plugin with.
+/// 
+/// ## `init`
+/// An expression to initialize the plugin with. If not set, will either default
+/// to [`Default::default()`] or the plugin itself if the plugin is a zero-size struct.
 pub use bevy_butler_proc_macro::add_plugin;
 
+/// Adds the given `PluginGroup` to the target `Plugin`/`PluginGroup`
+/// 
+/// # Usage
+/// ## On a struct
+/// ```rust
+/// # use bevy_butler::*;
+/// # #[butler_plugin]
+/// # struct BarPlugin;
+/// # #[butler_plugin_group]
+/// #[add_plugin_group(to_plugin = BarPlugin)]
+/// struct FooPlugins;
+/// ```
+/// ## On an imported type
+/// ```rust
+/// # use bevy_butler::*;
+/// # #[butler_plugin]
+/// # struct BarPlugin;
+/// # mod module {
+/// # use bevy_butler::*;
+/// # #[butler_plugin_group]
+/// # #[derive(Default)]
+/// # pub struct FooPlugins;
+/// # }
+/// #[add_plugin_group(to_plugin = BarPlugin)]
+/// use module::FooPlugins;
+/// ```
+/// 
+/// # Arguments
+/// ## `to_plugin` / `to_group` (Required)
+/// The target to register this Plugin to. Must be a [`butler_plugin`] if using `to_plugin`
+/// and a [`butler_plugin_group`] if using `to_group`.
+/// 
+/// ## `generics`
+/// A list of generic arguments to register the plugin with.
+/// 
+/// ## `init`
+/// An expression to initialize the plugin with. If not set, will either default
+/// to [`Default::default()`] or the plugin itself if the plugin is a zero-size struct.
 pub use bevy_butler_proc_macro::add_plugin_group;
 
 #[cfg(all(target_arch = "wasm32", not(feature = "wasm-experimental")))]
