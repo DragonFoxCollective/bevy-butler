@@ -483,6 +483,67 @@ pub use bevy_butler_proc_macro::add_plugin;
 /// to [`Default::default()`] or the plugin itself if the plugin is a zero-size struct.
 pub use bevy_butler_proc_macro::add_plugin_group;
 
+/// Adds the annotated state to a `#[butler_plugin]`
+/// 
+/// # Usage
+/// ## On an enum
+/// ```rust
+/// # use bevy::prelude::*;
+/// # use bevy_butler::*;
+/// # #[butler_plugin]
+/// # struct GamePlugin;
+/// #[derive(States, Default, Debug, Clone, PartialEq, Eq, Hash)]
+/// #[insert_state(plugin = GamePlugin)]
+/// enum GameState {
+///     #[default]
+///     Loading,
+///     InGame
+/// }
+/// ```
+/// 
+/// ## On a use statement
+/// ```rust
+/// # use bevy_butler::*;
+/// # #[butler_plugin]
+/// # struct GamePlugin;
+/// # mod my_mod {
+/// #   use bevy::prelude::*;
+/// #   use bevy_butler::*;
+/// #   #[derive(States, Default, Debug, Clone, PartialEq, Eq, Hash)]
+/// #   pub enum GameState {
+/// #       #[default]
+/// #       Loading,
+/// #       InGame
+/// #   }
+/// # }
+/// #[insert_state(plugin = GamePlugin)]
+/// use my_mod::GameState;
+/// ```
+/// 
+/// # Arguments
+/// 
+/// ## `plugin` (Required)
+/// A [`Plugin`](bevy_app::prelude::Plugin) annotated with [`#[butler_plugin]`](butler_plugin) to register this state to.
+/// 
+/// ## `init`
+/// By default, `#[insert_state]` will use [`init_state`](bevy_state::app::AppExtStates::init_state) to add the given state.
+/// Setting the `init` argument will pass the given expression to [`insert_state`](bevy_state::app::AppExtStates::insert_state).
+/// ```rust
+/// # use bevy_butler::*;
+/// # use bevy::prelude::*;
+/// # #[butler_plugin]
+/// # struct GamePlugin;
+/// #[derive(States, Debug, Clone, PartialEq, Eq, Hash)]
+/// #[insert_state(plugin = GamePlugin, init = MyState::Bar)]
+/// enum MyState {
+///     Foo,
+///     Bar,
+///     Baz
+/// }
+/// ```
+/// 
+/// ## `generics`
+/// A list of generic arguments to register the state with. Used to register a generic state for multiple different types.
 pub use bevy_butler_proc_macro::insert_state;
 
 #[cfg(all(target_arch = "wasm32", not(feature = "wasm-experimental")))]
