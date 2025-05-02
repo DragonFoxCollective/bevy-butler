@@ -6,6 +6,7 @@ pub use linkme;
 pub use bevy_app;
 pub use bevy_ecs;
 pub use bevy_log;
+pub use bevy_state;
 
 mod plugin;
 pub use plugin::*;

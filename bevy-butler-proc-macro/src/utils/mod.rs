@@ -1,6 +1,6 @@
 use proc_macro2::TokenStream;
 use quote::quote;
-use syn::{ExprClosure, Ident, Path, UseTree};
+use syn::{Error, ExprClosure, Ident, Item, Path, UseTree};
 
 pub(crate) fn butler_plugin_entry_block(
     static_ident: &Ident,
@@ -36,5 +36,23 @@ pub(crate) fn get_use_path(tree: &UseTree) -> syn::Result<&Ident> {
         UseTree::Group(_) | UseTree::Glob(_) => {
             Err(syn::Error::new_spanned(tree, "Expected a path"))
         }
+    }
+}
+
+pub(crate) fn get_struct_or_enum_ident(item: &Item) -> syn::Result<&Ident> {
+    match item {
+        Item::Struct(i) => Ok(&i.ident),
+        Item::Enum(i) => Ok(&i.ident),
+        Item::Use(i) => get_use_path(&i.tree),
+        Item::Type(i) => Ok(&i.ident),
+        other => Err(Error::new_spanned(other, "Expected a struct, enum, type alias or use statement")),
+    }
+}
+
+pub(crate) fn get_fn_ident(item: &Item) -> syn::Result<&Ident> {
+    match item {
+        Item::Fn(i) => Ok(&i.sig.ident),
+        Item::Use(i) => get_use_path(&i.tree),
+        other => Err(Error::new_spanned(other, "Expected a function or use statement")),
     }
 }

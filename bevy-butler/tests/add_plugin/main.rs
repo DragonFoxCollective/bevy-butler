@@ -1,6 +1,5 @@
-mod common {
-    include!("../common.rs");
-}
+include!("../common.rs");
+
 
 mod add_default_plugin;
 mod add_plugin;

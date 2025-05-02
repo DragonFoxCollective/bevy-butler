@@ -2,27 +2,16 @@ use proc_macro::TokenStream as TokenStream1;
 use proc_macro2::TokenStream as TokenStream2;
 use quote::{format_ident, quote, ToTokens};
 use structs::*;
-use syn::{Error, Item};
+use syn::Item;
 
-use crate::utils::{butler_plugin_entry_block, get_use_path};
+use crate::utils::{butler_plugin_entry_block, get_struct_or_enum_ident};
 
 pub(crate) mod structs;
 
 pub(crate) fn macro_impl(attr: TokenStream1, body: TokenStream1) -> syn::Result<TokenStream2> {
     let attr: ResourceAttr = deluxe::parse(attr)?;
     let item = syn::parse::<Item>(body)?;
-    let res_ident = match &item {
-        Item::Struct(i_struct) => &i_struct.ident,
-        Item::Use(i_use) => get_use_path(&i_use.tree)?,
-        Item::Type(i_type) => &i_type.ident,
-        Item::Enum(i_enum) => &i_enum.ident,
-        item => {
-            return Err(Error::new_spanned(
-                item,
-                "Expected a struct or use statement",
-            ))
-        }
-    };
+    let res_ident = get_struct_or_enum_ident(&item)?;
 
     let plugin = &attr.plugin;
     let generics = &attr.generics;

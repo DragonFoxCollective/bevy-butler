@@ -1,6 +1,4 @@
-pub mod common {
-    include!("../common.rs");
-}
+include!("../common.rs");
 
 mod butler_plugin;
 mod butler_plugin_enum;

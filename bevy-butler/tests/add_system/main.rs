@@ -1,6 +1,4 @@
-pub mod common {
-    include!("../common.rs");
-}
+include!("../common.rs");
 
 mod generic_pipe;
 mod generic_system;

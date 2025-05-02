@@ -15,6 +15,7 @@ bevy-butler-proc-macro = { path = "../bevy-butler-proc-macro", version = "0.6.1"
 bevy_app = { workspace = true }
 bevy_ecs = { workspace = true }
 bevy_log = { workspace = true }
+bevy_state = { workspace = true }
 inventory = { version = "0.3.17", optional = true }
 
 [target.'cfg(not(target_arch="wasm32"))'.dependencies]

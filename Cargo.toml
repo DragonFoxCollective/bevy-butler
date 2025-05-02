@@ -13,4 +13,4 @@ bevy_app = { version = "0.16.0", default-features = false }
 bevy_ecs = { version = "0.16.0", default-features = false }
 bevy_log = { version = "0.16.0", default-features = false }
 bevy_state = { version = "0.16.0", default-features = false, features = ["bevy_app"] }
-bevy = { version = "0.16.0", default-features = false, features = ["bevy_log"] }
+bevy = { version = "0.16.0", default-features = false, features = ["bevy_log", "bevy_state"] }
