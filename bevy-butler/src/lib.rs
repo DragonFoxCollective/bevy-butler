@@ -483,6 +483,8 @@ pub use bevy_butler_proc_macro::add_plugin;
 /// to [`Default::default()`] or the plugin itself if the plugin is a zero-size struct.
 pub use bevy_butler_proc_macro::add_plugin_group;
 
+pub use bevy_butler_proc_macro::insert_state;
+
 #[cfg(all(target_arch = "wasm32", not(feature = "wasm-experimental")))]
 compile_error!(
     "WebAssembly support in bevy-butler is experimental and buggy.
