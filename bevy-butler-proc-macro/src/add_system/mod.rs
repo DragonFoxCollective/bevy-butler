@@ -3,9 +3,9 @@ use proc_macro2::TokenStream as TokenStream2;
 use quote::{format_ident, quote, ToTokens};
 use structs::SystemAttr;
 use syn::Expr;
-use syn::{Error, Ident, Item, ItemFn, ItemUse, Signature};
+use syn::{Ident, Item};
 
-use crate::utils::{butler_plugin_entry_block, get_use_path};
+use crate::utils::{butler_plugin_entry_block, get_fn_ident};
 
 pub mod structs;
 
@@ -36,14 +36,7 @@ pub(crate) fn macro_impl(attr: TokenStream1, item: TokenStream1) -> syn::Result<
     let attr: SystemAttr = deluxe::parse(attr)?;
     let input: Item = syn::parse(item)?;
 
-    let sys_ident = match &input {
-        Item::Fn(ItemFn {
-            sig: Signature { ident, .. },
-            ..
-        }) => ident,
-        Item::Use(ItemUse { tree, .. }) => get_use_path(tree)?,
-        _ => return Err(Error::new_spanned(input, "Expected `fn` or `use`")),
-    };
+    let sys_ident = get_fn_ident(&input)?;
 
     let plugin = &attr.plugin;
     let schedule = &attr.schedule;
