@@ -1,6 +1,4 @@
-mod common {
-    include!("../common.rs");
-}
+include!("../common.rs");
 
 mod add_plugin_group;
 mod add_plugin_group_to_group;

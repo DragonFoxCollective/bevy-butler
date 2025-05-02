@@ -1,6 +1,4 @@
-mod common {
-    include!("../common.rs");
-}
+include!("../common.rs");
 
 mod register_type;
 mod register_type_enum;
