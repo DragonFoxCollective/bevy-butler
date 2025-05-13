@@ -1,10 +1,13 @@
+use std::any::Any;
+use std::backtrace::Backtrace;
 use std::borrow::Borrow;
 
 use deluxe::{ParseMetaItem, ParseMetaRest};
-use deluxe_core::parse_helpers::skip_meta_item;
-use quote::quote;
+use proc_macro2::TokenTree;
+use quote::{quote, ToTokens};
+use syn::buffer::Cursor;
 use syn::parse::discouraged::AnyDelimiter;
-use syn::parse::{Parse, ParseBuffer};
+use syn::parse::{Parse, ParseBuffer, ParseStream};
 use syn::punctuated::Punctuated;
 use syn::Expr;
 use syn::{AngleBracketedGenericArguments, ExprCall, Path, Token};
@@ -18,6 +21,23 @@ fn parse_end_comma_or_eof(input: &ParseBuffer<'_>) -> deluxe::Result<()> {
     }
 
     input.parse::<Token![,]>()?;
+    Ok(())
+}
+
+fn skip_meta_item(input: ParseStream) -> deluxe::Result<()> {
+    println!("SKIPPING META ITEM");
+    input.parse::<Option<Token![=]>>().ok();
+    // Special handling for generic arguments
+    if input.peek(Token![<]) {
+        input.parse::<AngleBracketedGenericArguments>()?;
+    }
+    while !input.is_empty() {
+        if input.peek(Token![,]) {
+            break;
+        }
+        input.parse::<Expr>()?;
+    }
+    println!("Remaining after skip: {input}");
     Ok(())
 }
 
@@ -36,7 +56,7 @@ impl ParseMetaRest for TransformList {
                     .get_ident()
                     .is_some_and(|i| exclude.contains(&i.to_string().as_str()))
                 {
-                    skip_meta_item(input);
+                    skip_meta_item(input)?;
                     parse_end_comma_or_eof(input)?;
                     continue;
                 }
@@ -51,8 +71,10 @@ impl ParseMetaRest for TransformList {
                 // Style 2: NameValue - transform = expr
                 if input.peek(Token![=]) {
                     input.parse::<Token![=]>()?;
-                    let expr = Expr::parse(input)?;
-                    ret.push(syn::parse2(quote!(#path ( #expr )))?);
+                    let expr: Expr = Expr::parse(input)?;
+                    let trns: ExprCall = syn::parse2(quote!(#path ( #expr )))?;
+                    ret.push(trns);
+
                     parse_end_comma_or_eof(input)?;
                     continue;
                 }
