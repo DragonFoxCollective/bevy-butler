@@ -33,11 +33,7 @@ pub(crate) fn parse_system(attr: &SystemAttr, ident: &Ident) -> Expr {
 }
 
 pub(crate) fn macro_impl(attr: TokenStream1, item: TokenStream1) -> syn::Result<TokenStream2> {
-    let attr = deluxe::parse(attr);
-    if let Err(e) = &attr {
-        return Err(e.clone());
-    }
-    let attr: SystemAttr = attr.unwrap();
+    let attr: SystemAttr = deluxe::parse(attr)?;
     let input: Item = syn::parse(item)?;
 
     let sys_ident = get_fn_ident(&input)?;
