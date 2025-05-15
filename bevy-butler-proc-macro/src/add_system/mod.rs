@@ -16,7 +16,7 @@ pub(crate) fn parse_system(attr: &SystemAttr, ident: &Ident) -> Expr {
     });
     let transforms = &attr.transforms.0;
 
-    let sys_expr = syn::parse_quote! {
+    let sys_expr: Expr = syn::parse_quote! {
         #ident #generics #(. #transforms)*
     };
 

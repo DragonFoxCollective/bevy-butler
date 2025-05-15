@@ -6,7 +6,8 @@ use bevy_ecs::prelude::*;
 use bevy_log::info;
 use wasm_bindgen_test::wasm_bindgen_test;
 
-use super::common::log_plugin;
+include!("../common.rs");
+use common::log_plugin;
 
 #[derive(Resource)]
 struct GenericResource<T>(pub T, pub bool);
@@ -22,10 +23,11 @@ impl Plugin for MyPlugin {
     }
 }
 
-#[add_system(generics = <&str>, plugin = MyPlugin, schedule = Startup, before = test_sys::<u8>)]
-#[add_system(generics = <u8>, plugin = MyPlugin, schedule = Startup, after = test_sys::<&str>)]
-#[add_system(generics = <bool>, plugin = MyPlugin, schedule = Startup, after(test_sys::<&str>), after = test_sys::<u8>)]
-fn test_sys<T: 'static + Sync + Send + Display>(mut res: ResMut<GenericResource<T>>) {
+// Duplicated generics to test an issue that existed with deluxe
+#[add_system(generics = <&str, &str>, plugin = MyPlugin, schedule = Startup, before = test_sys::<u8, u8>)]
+#[add_system(generics = <u8,u8>, plugin = MyPlugin, schedule = Startup, after = test_sys::<&str, &str>)]
+#[add_system(generics = <bool,bool>, plugin = MyPlugin, schedule = Startup)]
+fn test_sys<T: 'static + Sync + Send + Display, R>(mut res: ResMut<GenericResource<T>>) {
     info!("{} = {}", type_name::<T>(), res.0);
     res.1 = true;
 }

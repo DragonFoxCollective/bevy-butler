@@ -51,8 +51,10 @@ impl ParseMetaRest for TransformList {
                 // Style 2: NameValue - transform = expr
                 if input.peek(Token![=]) {
                     input.parse::<Token![=]>()?;
-                    let expr = Expr::parse(input)?;
-                    ret.push(syn::parse2(quote!(#path ( #expr )))?);
+                    let expr: Expr = Expr::parse(input)?;
+                    let trns: ExprCall = syn::parse2(quote!(#path ( #expr )))?;
+                    ret.push(trns);
+
                     parse_end_comma_or_eof(input)?;
                     continue;
                 }
@@ -64,7 +66,6 @@ impl ParseMetaRest for TransformList {
                 parse_end_comma_or_eof(input)?;
             }
         }
-
         Ok(TransformList(ret))
     }
 }

@@ -14,3 +14,9 @@ bevy_ecs = { version = "0.16.0", default-features = false }
 bevy_log = { version = "0.16.0", default-features = false }
 bevy_state = { version = "0.16.0", default-features = false, features = ["bevy_app"] }
 bevy = { version = "0.16.0", default-features = false, features = ["bevy_log", "bevy_state"] }
+deluxe = { version = "0.5.0", package = "deluxe-tg" }
+deluxe-core = { version = "0.5.0", package = "deluxe-core-tg" }
+proc-macro2 = "1.0.93"
+quote = "1.0.38"
+sha256 = { version = "1.5.0", default-features = false }
+syn = { version = "2.0.96", features = ["full"] }
