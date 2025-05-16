@@ -14,8 +14,8 @@ bevy_ecs = { version = "0.16.0", default-features = false }
 bevy_log = { version = "0.16.0", default-features = false }
 bevy_state = { version = "0.16.0", default-features = false, features = ["bevy_app"] }
 bevy = { version = "0.16.0", default-features = false, features = ["bevy_log", "bevy_state"] }
-deluxe = { version = "0.5.0-DONOTUSE.1", package = "deluxe-tg" }
-deluxe-core = { version = "0.5.0-DONOTUSE.1", package = "deluxe-core-tg" }
+deluxe = { version = "0.5.0", path = "deluxe-vendored" }
+deluxe-core = { version = "0.5.0", path = "deluxe-vendored/core" }
 proc-macro2 = "1.0.93"
 quote = "1.0.38"
 sha256 = { version = "1.5.0", default-features = false }
