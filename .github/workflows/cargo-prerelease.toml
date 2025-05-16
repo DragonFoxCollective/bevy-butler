@@ -1,2 +1,5 @@
 pre-release-commit-message = "Publish Pre-release"
 tag = false
+
+[workspace]
+exclude = ["deluxe-vendored"]
