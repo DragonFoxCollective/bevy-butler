@@ -14,6 +14,7 @@
 
 #![deny(missing_docs)]
 #![deny(unsafe_code)]
+#![allow(warnings)] // not my code not my warnings
 
 #[cfg(feature = "proc-macro")]
 extern crate proc_macro;

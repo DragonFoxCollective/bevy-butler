@@ -5,6 +5,7 @@
 
 #![deny(missing_docs)]
 #![deny(unsafe_code)]
+#![allow(warnings)] // not my code not my warnings
 
 #[macro_use]
 mod util;
