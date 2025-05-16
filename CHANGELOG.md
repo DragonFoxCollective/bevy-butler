@@ -1,3 +1,12 @@
+# 0.6.2
+Released 2025-05-16
+
+### Changes
+- Added `insert_state` for adding `State` types to butler plugins
+
+### Bug Fixes
+- Macros can now have multiple generic arguments
+
 # 0.6.1
 Released 2025-05-01
 
