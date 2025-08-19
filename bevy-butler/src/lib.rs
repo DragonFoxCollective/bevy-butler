@@ -555,6 +555,13 @@ pub use bevy_butler_proc_macro::insert_state;
 /// # use bevy_butler::*;
 /// # #[butler_plugin]
 /// # struct GamePlugin;
+/// #[derive(States, Default, Debug, Clone, PartialEq, Eq, Hash)]
+/// #[insert_state(plugin = GamePlugin)]
+/// enum GameState {
+///     #[default]
+///     Loading,
+///     InGame
+/// }
 /// #[derive(SubStates, Default, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Clone)]
 /// #[source(GameState = GameState::InGame)]
 /// #[add_sub_state(plugin = GamePlugin)]
@@ -573,6 +580,12 @@ pub use bevy_butler_proc_macro::insert_state;
 /// # mod my_mod {
 /// #   use bevy::prelude::*;
 /// #   use bevy_butler::*;
+/// #   #[derive(States, Default, Debug, Clone, PartialEq, Eq, Hash)]
+/// #   pub enum GameState {
+/// #       #[default]
+/// #       Loading,
+/// #       InGame
+/// #   }
 /// #   #[derive(SubStates, Default, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Clone)]
 /// #   #[source(GameState = GameState::InGame)]
 /// #   pub enum IsPaused {
@@ -581,6 +594,8 @@ pub use bevy_butler_proc_macro::insert_state;
 /// #       Paused
 /// #   }
 /// # }
+/// #[insert_state(plugin = GamePlugin)]
+/// use my_mod::GameState;
 /// #[add_sub_state(plugin = GamePlugin)]
 /// use my_mod::IsPaused;
 /// ```
