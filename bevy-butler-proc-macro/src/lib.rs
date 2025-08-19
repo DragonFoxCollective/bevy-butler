@@ -70,3 +70,9 @@ pub(crate) mod insert_state;
 pub fn insert_state(attr: TokenStream, body: TokenStream) -> TokenStream {
     result_to_tokens(insert_state::macro_impl(attr, body))
 }
+
+pub(crate) mod add_sub_state;
+#[proc_macro_attribute]
+pub fn add_sub_state(attr: TokenStream, body: TokenStream) -> TokenStream {
+    result_to_tokens(add_sub_state::macro_impl(attr, body))
+}

@@ -546,6 +546,54 @@ pub use bevy_butler_proc_macro::add_plugin_group;
 /// A list of generic arguments to register the state with. Used to register a generic state for multiple different types.
 pub use bevy_butler_proc_macro::insert_state;
 
+/// Adds the annotated sub state to a `#[butler_plugin]`
+/// 
+/// # Usage
+/// ## On an enum
+/// ```rust
+/// # use bevy::prelude::*;
+/// # use bevy_butler::*;
+/// # #[butler_plugin]
+/// # struct GamePlugin;
+/// #[derive(SubStates, Default, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Clone)]
+/// #[source(GameState = GameState::InGame)]
+/// #[add_sub_state(plugin = GamePlugin)]
+/// enum IsPaused {
+///     #[default]
+///     Running,
+///     Paused
+/// }
+/// ```
+/// 
+/// ## On a use statement
+/// ```rust
+/// # use bevy_butler::*;
+/// # #[butler_plugin]
+/// # struct GamePlugin;
+/// # mod my_mod {
+/// #   use bevy::prelude::*;
+/// #   use bevy_butler::*;
+/// #   #[derive(SubStates, Default, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Clone)]
+/// #   #[source(GameState = GameState::InGame)]
+/// #   pub enum IsPaused {
+/// #       #[default]
+/// #       Running,
+/// #       Paused
+/// #   }
+/// # }
+/// #[add_sub_state(plugin = GamePlugin)]
+/// use my_mod::IsPaused;
+/// ```
+/// 
+/// # Arguments
+/// 
+/// ## `plugin` (Required)
+/// A [`Plugin`](bevy_app::prelude::Plugin) annotated with [`#[butler_plugin]`](butler_plugin) to register this sub state to.
+/// 
+/// ## `generics`
+/// A list of generic arguments to register the sub state with. Used to register a generic sub state for multiple different types.
+pub use bevy_butler_proc_macro::add_sub_state;
+
 #[cfg(all(target_arch = "wasm32", not(feature = "wasm-experimental")))]
 compile_error!(
     "WebAssembly support in bevy-butler is experimental and buggy.
