@@ -1,3 +1,6 @@
+> [!WARNING]
+> hi chat i'm forking this, source is https://github.com/TGRCdev/bevy-butler
+
 # bevy-butler
 
 A set of procedural macros for making Bevy plugins and systems more self-documenting.
@@ -11,6 +14,7 @@ A set of procedural macros for making Bevy plugins and systems more self-documen
 ## Version Compatibility
 | bevy | bevy-butler |
 |------|-------------|
+|`0.17`|   `0.7`     |
 |`0.16`|   `0.6`     |
 |`0.15`|   `0.5`     |
 

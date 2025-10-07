@@ -287,7 +287,7 @@ pub use bevy_butler_proc_macro::add_observer;
 /// ```
 pub use bevy_butler_proc_macro::insert_resource;
 
-/// Registers the annotated [`Event`](bevy_ecs::prelude::Event) upon the
+/// Registers the annotated [`Message`](bevy_ecs::prelude::Message) upon the
 /// given [`#[butler_plugin]`](butler_plugin) being built.
 ///
 /// # Usage
@@ -299,8 +299,8 @@ pub use bevy_butler_proc_macro::insert_resource;
 /// # use bevy_log::prelude::*;
 /// # #[butler_plugin]
 /// # struct MyPlugin;
-/// #[derive(Event)]
-/// #[add_event(plugin = MyPlugin)]
+/// #[derive(Message)]
+/// #[add_message(plugin = MyPlugin)]
 /// struct MessageReceived(String);
 /// ```
 ///
@@ -311,10 +311,10 @@ pub use bevy_butler_proc_macro::insert_resource;
 /// # struct MyPlugin;
 /// # mod my_mod {
 /// # use bevy_ecs::prelude::*;
-/// # #[derive(Event)]
+/// # #[derive(Message)]
 /// # pub struct ModMessageReceived(String);
 /// # }
-/// #[add_event(plugin = MyPlugin)]
+/// #[add_message(plugin = MyPlugin)]
 /// use my_mod::ModMessageReceived;
 /// ```
 ///
@@ -324,9 +324,9 @@ pub use bevy_butler_proc_macro::insert_resource;
 /// # use bevy_ecs::prelude::*;
 /// # #[butler_plugin]
 /// # struct MyPlugin;
-/// # #[derive(Event)]
+/// # #[derive(Message)]
 /// # struct ExternalEventMessage<T>(T);
-/// #[add_event(plugin = MyPlugin)]
+/// #[add_message(plugin = MyPlugin)]
 /// type MyMessage = ExternalEventMessage<String>;
 /// ```
 ///
@@ -335,9 +335,9 @@ pub use bevy_butler_proc_macro::insert_resource;
 /// A [`Plugin`](bevy_app::prelude::Plugin) annotated with [`#[butler_plugin]`](butler_plugin) to register this resource to.
 ///
 /// ## `generics`
-/// A list of generic arguments to register the event with. Used to register a generic event for multiple
+/// A list of generic arguments to register the message with. Used to register a generic message for multiple
 /// different types.
-pub use bevy_butler_proc_macro::add_event;
+pub use bevy_butler_proc_macro::add_message;
 
 /// Registers the annotated `Reflect` type into the app's type registry for reflection.
 ///

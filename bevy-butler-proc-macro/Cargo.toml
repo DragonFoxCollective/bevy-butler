@@ -1,10 +1,10 @@
 [package]
 name = "bevy-butler-proc-macro"
-version = "0.6.2-alpha.2"
+version = "0.7.0"
 edition = "2021"
 description = "Procedural macro definitions for bevy-butler"
 license = "MIT OR Apache-2.0"
-repository = "https://github.com/TGRCdev/bevy-butler"
+repository = "https://github.com/DragonFoxCollective/bevy-butler"
 exclude = [".direnv/", ".vscode/", "Cargo.lock", "*.nix", "flake.lock", ".envrc", ".github/"]
 
 [lib]

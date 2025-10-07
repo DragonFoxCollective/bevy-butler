@@ -1,3 +1,10 @@
+# Unreleased 0.7.0
+
+### Changes
+- Support for Bevy 0.17!
+- Added `add_sub_state` for adding substates to states
+- Renamed `add_event` to `add_message` for Bevy 0.17 compliance
+
 # 0.6.2
 Released 2025-05-16
 
