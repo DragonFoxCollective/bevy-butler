@@ -1,12 +1,16 @@
-use std::marker::PhantomData;
+use std::{any::type_name, fmt::Display};
 
-use bevy::prelude::*;
+use bevy_app::prelude::*;
 use bevy_butler::*;
+use bevy_ecs::prelude::*;
+use bevy_log::info;
+use wasm_bindgen_test::wasm_bindgen_test;
 
-use crate::common::log_plugin;
+include!("../common.rs");
+use common::log_plugin;
 
 #[derive(Resource)]
-struct GenericResource<T>(pub bool, PhantomData<T>);
+struct GenericResource<T>(pub bool, std::marker::PhantomData<T>);
 
 #[derive(Event)]
 struct GenericEvent<T>(pub T);
@@ -21,10 +25,10 @@ struct MyPlugin;
 fn test_observer<T: 'static + Sync + Send + Display, R>(person: On<GenericEvent<T>>, mut commands: Commands) {
     info!("{} = {}!", type_name::<R>(), person.0);
     info!("{} is also here", type_name::<R>());
-    commands.insert_resource(GenericResource(true, PhantomData));
+    commands.insert_resource(GenericResource(true, std::marker::PhantomData::<T>));
 }
 
-#[test]
+#[wasm_bindgen_test(unsupported = test)]
 fn test() {
     App::new()
         .add_plugins(log_plugin())
