@@ -28,7 +28,7 @@ fn test() {
     App::new()
         .add_plugins(MyPlugin)
         .add_systems(Startup, |marker: Res<Marker>| {
-            assert_eq!((*marker).0, "world")
+            assert_eq!(marker.0, "world")
         })
         .run();
 }

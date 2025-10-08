@@ -46,7 +46,7 @@ fn middle_system(mut counter: ResMut<Counter>, mut next_state: ResMut<NextState<
 }
 
 #[add_system(plugin = MyPlugin, schedule = OnEnter(MyState::End))]
-fn end_system(mut counter: ResMut<Counter>, mut exit: EventWriter<AppExit>) {
+fn end_system(mut counter: ResMut<Counter>, mut exit: MessageWriter<AppExit>) {
     info!("State: End");
     assert_eq!(counter.0, 2);
     counter.0 = 3;

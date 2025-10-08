@@ -16,7 +16,7 @@ pub fn macro_impl(attr: TokenStream1, body: TokenStream1) -> syn::Result<TokenSt
 
     let static_ident = format_ident!(
         "_butler_state_{}",
-        sha256::digest(&[
+        sha256::digest([
             attr.plugin.to_token_stream().to_string(),
             attr.generics.to_token_stream().to_string(),
         ].concat())

@@ -1,6 +1,6 @@
+//! Test that unit plugins can be added without an `init` and
+//! without a `Default` implementation
 use bevy::prelude::*;
-///! Test that unit plugins can be added without an `init` and
-///! without a `Default` implementation
 use bevy_butler::*;
 
 #[derive(Resource)]

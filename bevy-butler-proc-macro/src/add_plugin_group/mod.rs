@@ -20,14 +20,12 @@ pub(crate) fn macro_impl(attr: TokenStream1, body: TokenStream1) -> syn::Result<
     let plugin_ident = get_struct_or_enum_ident(&item)?;
 
     if let Item::Struct(ItemStruct { fields, ident, .. }) = &item {
-        if attr.init.is_none() {
-            if fields.is_empty() {
-                // Unit structs can be initialized using themselves
-                match fields {
-                    Fields::Unit => attr.init = Some(parse_quote!(#ident)),
-                    Fields::Named(_) => attr.init = Some(parse_quote!(#ident {})),
-                    Fields::Unnamed(_) => attr.init = Some(parse_quote!(#ident ())),
-                }
+        if attr.init.is_none() && fields.is_empty() {
+            // Unit structs can be initialized using themselves
+            match fields {
+                Fields::Unit => attr.init = Some(parse_quote!(#ident)),
+                Fields::Named(_) => attr.init = Some(parse_quote!(#ident {})),
+                Fields::Unnamed(_) => attr.init = Some(parse_quote!(#ident ())),
             }
         }
     }
