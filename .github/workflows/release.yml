@@ -26,7 +26,7 @@ jobs:
       - name: Git Config
         run: git config user.name "GitHub Action" && git config user.email "github-action@users.noreply.github.com"
       - name: Publish Release
-        run: cargo-release release patch --execute --no-confirm --config .github/workflows/cargo-release-patch.toml
+        run: cargo-release release patch --execute --no-confirm --config .github/workflows/cargo-release-patch.toml --exclude deluxe --exclude deluxe-core --exclude deluxe-macros
       - name: Logout of Cargo
         if: always()
         run: cargo logout

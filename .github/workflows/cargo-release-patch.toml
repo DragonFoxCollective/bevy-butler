@@ -1,5 +1,2 @@
 pre-release-commit-message = "Publish Patch"
 tag-name = "v{{version}}"
-
-[workspace]
-exclude = ["deluxe-vendored"]
