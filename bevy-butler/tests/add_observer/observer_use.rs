@@ -16,9 +16,9 @@ mod my_mod {
     pub struct Attendees(pub Vec<String>);
 
     #[derive(Event)]
-    pub struct PersonEntered(String, usize);
+    pub struct PersonEnter(String, usize);
 
-    pub fn greet_person(person: Trigger<PersonEntered>, mut exit: EventWriter<AppExit>) {
+    pub fn greet_person(person: On<PersonEnter>, mut exit: MessageWriter<AppExit>) {
         info!("Hello, {}!", person.0);
         if person.1 == 0 {
             exit.write(AppExit::Success);
@@ -27,7 +27,7 @@ mod my_mod {
 
     pub fn attendees_arriving(mut commands: Commands, mut attendees: ResMut<Attendees>) {
         if let Some(attendee) = attendees.0.pop() {
-            commands.trigger(PersonEntered(attendee, attendees.0.len()));
+            commands.trigger(PersonEnter(attendee, attendees.0.len()));
         }
     }
 }
@@ -60,7 +60,7 @@ fn test() {
         .add_plugins(MyPlugin)
         .add_systems(
             Update,
-            (|| -> () { panic!("Timed out") })
+            (|| { panic!("Timed out") })
                 .run_if(|time: Res<Time>| time.elapsed_secs() > 5.0f32),
         )
         .run();

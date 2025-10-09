@@ -23,7 +23,7 @@ fn test() {
     App::new()
         .add_plugins(GamePlugins)
         .add_systems(Startup, |boolres: Res<GenericMarker<bool>>| {
-            assert_eq!(boolres.0, true)
+            assert!(boolres.0)
         })
         .add_systems(Startup, |u8res: Res<GenericMarker<u8>>| {
             assert_eq!(u8res.0, 5)

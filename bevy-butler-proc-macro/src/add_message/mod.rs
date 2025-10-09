@@ -25,7 +25,7 @@ pub(crate) fn macro_impl(attr: TokenStream1, body: TokenStream1) -> syn::Result<
         &static_ident,
         &attr.plugin,
         &syn::parse_quote! {
-            |app| { app.add_event::<#event_ident #generics>(); }
+            |app| { app.add_message::<#event_ident #generics>(); }
         },
     );
 

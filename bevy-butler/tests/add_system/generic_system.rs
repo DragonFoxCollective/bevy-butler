@@ -25,10 +25,11 @@ impl Plugin for MyPlugin {
 
 // Duplicated generics to test an issue that existed with deluxe
 #[add_system(generics = <&str, &str>, plugin = MyPlugin, schedule = Startup, before = test_sys::<u8, u8>)]
-#[add_system(generics = <u8,u8>, plugin = MyPlugin, schedule = Startup, after = test_sys::<&str, &str>)]
-#[add_system(generics = <bool,bool>, plugin = MyPlugin, schedule = Startup)]
+#[add_system(generics = <u8, u8>, plugin = MyPlugin, schedule = Startup, after = test_sys::<&str, &str>)]
+#[add_system(generics = <bool, bool>, plugin = MyPlugin, schedule = Startup)]
 fn test_sys<T: 'static + Sync + Send + Display, R>(mut res: ResMut<GenericResource<T>>) {
     info!("{} = {}", type_name::<T>(), res.0);
+    info!("{} is also here", type_name::<R>());
     res.1 = true;
 }
 

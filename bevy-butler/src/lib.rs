@@ -287,7 +287,7 @@ pub use bevy_butler_proc_macro::add_observer;
 /// ```
 pub use bevy_butler_proc_macro::insert_resource;
 
-/// Registers the annotated [`Event`](bevy_ecs::prelude::Event) upon the
+/// Registers the annotated [`Message`](bevy_ecs::prelude::Message) upon the
 /// given [`#[butler_plugin]`](butler_plugin) being built.
 ///
 /// # Usage
@@ -299,8 +299,8 @@ pub use bevy_butler_proc_macro::insert_resource;
 /// # use bevy_log::prelude::*;
 /// # #[butler_plugin]
 /// # struct MyPlugin;
-/// #[derive(Event)]
-/// #[add_event(plugin = MyPlugin)]
+/// #[derive(Message)]
+/// #[add_message(plugin = MyPlugin)]
 /// struct MessageReceived(String);
 /// ```
 ///
@@ -311,10 +311,10 @@ pub use bevy_butler_proc_macro::insert_resource;
 /// # struct MyPlugin;
 /// # mod my_mod {
 /// # use bevy_ecs::prelude::*;
-/// # #[derive(Event)]
+/// # #[derive(Message)]
 /// # pub struct ModMessageReceived(String);
 /// # }
-/// #[add_event(plugin = MyPlugin)]
+/// #[add_message(plugin = MyPlugin)]
 /// use my_mod::ModMessageReceived;
 /// ```
 ///
@@ -324,9 +324,9 @@ pub use bevy_butler_proc_macro::insert_resource;
 /// # use bevy_ecs::prelude::*;
 /// # #[butler_plugin]
 /// # struct MyPlugin;
-/// # #[derive(Event)]
+/// # #[derive(Message)]
 /// # struct ExternalEventMessage<T>(T);
-/// #[add_event(plugin = MyPlugin)]
+/// #[add_message(plugin = MyPlugin)]
 /// type MyMessage = ExternalEventMessage<String>;
 /// ```
 ///
@@ -335,9 +335,9 @@ pub use bevy_butler_proc_macro::insert_resource;
 /// A [`Plugin`](bevy_app::prelude::Plugin) annotated with [`#[butler_plugin]`](butler_plugin) to register this resource to.
 ///
 /// ## `generics`
-/// A list of generic arguments to register the event with. Used to register a generic event for multiple
+/// A list of generic arguments to register the message with. Used to register a generic message for multiple
 /// different types.
-pub use bevy_butler_proc_macro::add_event;
+pub use bevy_butler_proc_macro::add_message;
 
 /// Registers the annotated `Reflect` type into the app's type registry for reflection.
 ///
@@ -545,6 +545,69 @@ pub use bevy_butler_proc_macro::add_plugin_group;
 /// ## `generics`
 /// A list of generic arguments to register the state with. Used to register a generic state for multiple different types.
 pub use bevy_butler_proc_macro::insert_state;
+
+/// Adds the annotated sub state to a `#[butler_plugin]`
+/// 
+/// # Usage
+/// ## On an enum
+/// ```rust
+/// # use bevy::prelude::*;
+/// # use bevy_butler::*;
+/// # #[butler_plugin]
+/// # struct GamePlugin;
+/// #[derive(States, Default, Debug, Clone, PartialEq, Eq, Hash)]
+/// #[insert_state(plugin = GamePlugin)]
+/// enum GameState {
+///     #[default]
+///     Loading,
+///     InGame
+/// }
+/// #[derive(SubStates, Default, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Clone)]
+/// #[source(GameState = GameState::InGame)]
+/// #[add_sub_state(plugin = GamePlugin)]
+/// enum IsPaused {
+///     #[default]
+///     Running,
+///     Paused
+/// }
+/// ```
+/// 
+/// ## On a use statement
+/// ```rust
+/// # use bevy_butler::*;
+/// # #[butler_plugin]
+/// # struct GamePlugin;
+/// # mod my_mod {
+/// #   use bevy::prelude::*;
+/// #   use bevy_butler::*;
+/// #   #[derive(States, Default, Debug, Clone, PartialEq, Eq, Hash)]
+/// #   pub enum GameState {
+/// #       #[default]
+/// #       Loading,
+/// #       InGame
+/// #   }
+/// #   #[derive(SubStates, Default, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Clone)]
+/// #   #[source(GameState = GameState::InGame)]
+/// #   pub enum IsPaused {
+/// #       #[default]
+/// #       Running,
+/// #       Paused
+/// #   }
+/// # }
+/// #[insert_state(plugin = GamePlugin)]
+/// use my_mod::GameState;
+/// #[add_sub_state(plugin = GamePlugin)]
+/// use my_mod::IsPaused;
+/// ```
+/// 
+/// # Arguments
+/// 
+/// ## `plugin` (Required)
+/// A [`Plugin`](bevy_app::prelude::Plugin) annotated with [`#[butler_plugin]`](butler_plugin) to register this sub state to.
+/// 
+/// ## `generics`
+/// A list of generic arguments to register the sub state with. Used to register a generic sub state for multiple different types.
+pub use bevy_butler_proc_macro::add_sub_state;
 
 #[cfg(all(target_arch = "wasm32", not(feature = "wasm-experimental")))]
 compile_error!(

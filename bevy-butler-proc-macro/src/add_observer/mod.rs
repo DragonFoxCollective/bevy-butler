@@ -8,9 +8,14 @@ use crate::utils::{butler_plugin_entry_block, get_fn_ident};
 
 pub(crate) mod structs;
 
-pub(crate) fn parse_observer(attr: &ObserverAttr, ident: &Ident) -> syn::Result<Expr> {
-    let generics = &attr.generics;
-    syn::parse2(quote!(#ident #generics))
+pub(crate) fn parse_observer(attr: &ObserverAttr, ident: &Ident) -> Expr {
+    let generics = attr.generics.clone().map(|mut g| {
+        g.colon2_token = Some(Default::default());
+        g
+    });
+    syn::parse_quote! {
+        #ident #generics
+    }
 }
 
 pub(crate) fn macro_impl(attr: TokenStream1, body: TokenStream1) -> syn::Result<TokenStream2> {
@@ -19,7 +24,7 @@ pub(crate) fn macro_impl(attr: TokenStream1, body: TokenStream1) -> syn::Result<
     let ident = get_fn_ident(&item)?;
 
     let plugin = &attr.plugin;
-    let obsrv_expr = parse_observer(&attr, ident)?;
+    let obsrv_expr = parse_observer(&attr, ident);
 
     let mut hash_bytes = "observer".to_string();
     hash_bytes += &plugin.to_token_stream().to_string();

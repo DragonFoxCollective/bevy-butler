@@ -18,10 +18,10 @@ struct Attendees(Vec<String>);
 struct MyPlugin;
 
 #[derive(Event)]
-struct PersonEntered(String, usize);
+struct PersonEnter(String, usize);
 
 #[add_observer(plugin = MyPlugin)]
-fn greet_person(person: Trigger<PersonEntered>, mut exit: EventWriter<AppExit>) {
+fn greet_person(person: On<PersonEnter>, mut exit: MessageWriter<AppExit>) {
     info!("Hello, {}!", person.0);
     if person.1 == 0 {
         exit.write(AppExit::Success);
@@ -35,7 +35,7 @@ fn greet_person(person: Trigger<PersonEntered>, mut exit: EventWriter<AppExit>) 
 )]
 fn attendees_arriving(mut commands: Commands, mut attendees: ResMut<Attendees>) {
     if let Some(attendee) = attendees.0.pop() {
-        commands.trigger(PersonEntered(attendee, attendees.0.len()));
+        commands.trigger(PersonEnter(attendee, attendees.0.len()));
     }
 }
 
@@ -50,7 +50,7 @@ fn test() {
         .add_plugins(MyPlugin)
         .add_systems(
             Update,
-            (|| -> () { panic!("Timed out") })
+            (|| { panic!("Timed out") })
                 .run_if(|time: Res<Time>| time.elapsed_secs() > 5.0f32),
         )
         .run();

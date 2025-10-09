@@ -35,10 +35,10 @@ pub fn insert_resource(attr: TokenStream, body: TokenStream) -> TokenStream {
     result_to_tokens(insert_resource::macro_impl(attr, body))
 }
 
-pub(crate) mod add_event;
+pub(crate) mod add_message;
 #[proc_macro_attribute]
-pub fn add_event(attr: TokenStream, body: TokenStream) -> TokenStream {
-    result_to_tokens(add_event::macro_impl(attr, body))
+pub fn add_message(attr: TokenStream, body: TokenStream) -> TokenStream {
+    result_to_tokens(add_message::macro_impl(attr, body))
 }
 
 pub(crate) mod register_type;
@@ -69,4 +69,10 @@ pub(crate) mod insert_state;
 #[proc_macro_attribute]
 pub fn insert_state(attr: TokenStream, body: TokenStream) -> TokenStream {
     result_to_tokens(insert_state::macro_impl(attr, body))
+}
+
+pub(crate) mod add_sub_state;
+#[proc_macro_attribute]
+pub fn add_sub_state(attr: TokenStream, body: TokenStream) -> TokenStream {
+    result_to_tokens(add_sub_state::macro_impl(attr, body))
 }

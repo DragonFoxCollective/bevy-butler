@@ -1,3 +1,5 @@
+use std::fmt::Display;
+
 use deluxe::ParseMetaItem;
 use proc_macro2::Span;
 use syn::{parse_quote, AngleBracketedGenericArguments, Expr, ExprClosure, Ident, Path};
@@ -9,11 +11,11 @@ pub(crate) enum ButlerTarget {
     PluginGroup(Path),
 }
 
-impl ToString for ButlerTarget {
-    fn to_string(&self) -> String {
+impl Display for ButlerTarget {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         match self {
-            Self::Plugin(p) => format!("Plugin({p:?})"),
-            Self::PluginGroup(g) => format!("PluginGroup({g:?})"),
+            Self::Plugin(p) => write!(f, "Plugin({p:?})"),
+            Self::PluginGroup(g) => write!(f, "PluginGroup({g:?})"),
         }
     }
 }
